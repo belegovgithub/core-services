@@ -7,8 +7,8 @@ import org.springframework.context.annotation.Configuration;
 
 import lombok.Data;
 
-@Configuration
-@Data
+//@Configuration
+//@Data
 public class SMSProperties {
 	
 	@Value("${sms.provider.url}")
