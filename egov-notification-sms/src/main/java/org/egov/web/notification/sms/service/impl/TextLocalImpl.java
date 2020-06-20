@@ -18,9 +18,11 @@ public class TextLocalImpl implements SMSService {
 		// TODO Auto-generated method stub
 		try {
 			// Construct data
+			
+			//String apiKey = "apikey=" + "";
 			//commented this to avoid sending of sms till demo day
-			String apiKey = "apikey=" + "";
-		    //String apiKey = "apikey=" + "YW7j9bfyV6A-FDzcLlUcEbQMFLCkhmu5C0fz6wca3i";
+		   String apiKey = "apikey=" + "YW7j9bfyV6A-FDzcLlUcEbQMFLCkhmu5C0fz6wca3i";
+			
 			String message = "&message=" + sms.getMessage();
 			String sender = "&sender=" + "TXTLCL";
 			String numbers = "&numbers=" +"91"+ sms.getMobileNumber();
