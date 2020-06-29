@@ -21,27 +21,22 @@ public class TextLocalImpl implements SMSService {
 			
 			//String apiKey = "apikey=" + "";
 			//commented this to avoid sending of sms till demo day
-		   String apiKey = "apikey=" + "YW7j9bfyV6A-FDzcLlUcEbQMFLCkhmu5C0fz6wca3i";
-			
-			String message = "&message=" + sms.getMessage();
-			String sender = "&sender=" + "TXTLCL";
-			String numbers = "&numbers=" +"91"+ sms.getMobileNumber();
-			// Send data"91"
-			HttpURLConnection conn = (HttpURLConnection) new URL("https://api.textlocal.in/send/?").openConnection();
-			String data = apiKey + numbers + message + sender;
-			System.out.println("data "+data);
-			conn.setDoOutput(true);
-			conn.setRequestMethod("POST");
-			conn.setRequestProperty("Content-Length", Integer.toString(data.length()));
-			conn.getOutputStream().write(data.getBytes("UTF-8"));
-			final BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-			final StringBuffer stringBuffer = new StringBuffer();
-			String line;
-			while ((line = rd.readLine()) != null) {
-				stringBuffer.append(line);
-			}
-			rd.close();
-			
+			/*
+			 * String apiKey = "apikey=" + "YW7j9bfyV6A-FDzcLlUcEbQMFLCkhmu5C0fz6wca3i";
+			 * 
+			 * String message = "&message=" + sms.getMessage(); String sender = "&sender=" +
+			 * "TXTLCL"; String numbers = "&numbers=" +"91"+ sms.getMobileNumber(); // Send
+			 * data"91" HttpURLConnection conn = (HttpURLConnection) new
+			 * URL("https://api.textlocal.in/send/?").openConnection(); String data = apiKey
+			 * + numbers + message + sender; System.out.println("data "+data);
+			 * conn.setDoOutput(true); conn.setRequestMethod("POST");
+			 * conn.setRequestProperty("Content-Length", Integer.toString(data.length()));
+			 * conn.getOutputStream().write(data.getBytes("UTF-8")); final BufferedReader rd
+			 * = new BufferedReader(new InputStreamReader(conn.getInputStream())); final
+			 * StringBuffer stringBuffer = new StringBuffer(); String line; while ((line =
+			 * rd.readLine()) != null) { stringBuffer.append(line); } rd.close();
+			 */
+			System.out.println("Mob No. "+sms.getMobileNumber()+" -- Message : "+sms.getMessage());
 			
 		} catch (Exception e) {
 			e.printStackTrace();
