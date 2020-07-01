@@ -11,25 +11,30 @@ import org.egov.web.notification.sms.service.SMSService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
+
 @Service
-@ConditionalOnProperty(value = "sms.gateway.to.use", havingValue ="TEXTLOCAL_SMS", matchIfMissing = true)
-public class TextLocalImpl implements SMSService {
+@ConditionalOnProperty(value = "sms.gateway.to.use", havingValue ="NIC_SMS", matchIfMissing = true)
+public class NICSMSServiceImpl implements SMSService {
 	
 	@Autowired private SMSProperties smsProperties;	
 	
 	@Override
 	public void sendSMS(Sms sms) {
-		// TODO Auto-generated method stub
+
+		System.out.println("Inside Nic sms : " + smsProperties.getSenderid());
+
 		try {
-			// Construct data
-		    String apiKey = "apikey=" + smsProperties.getSecureKey();
+			String username = "username=" + smsProperties.getUsername();
+			String pin = "&pin=" + smsProperties.getPassword();
 			String message = "&message=" + sms.getMessage();
-			String sender = "&sender=" + smsProperties.getSenderid();
-			String numbers = "&numbers=" +"91"+ sms.getMobileNumber();
-			// Send data"91"
+			String mnumber = "&mnumber=91" + sms.getMobileNumber();
+			String signature = "&signature=" + smsProperties.getSenderid();
+
 			HttpURLConnection conn = (HttpURLConnection) new URL(smsProperties.getUrl()).openConnection();
-			String data = apiKey + numbers + message + sender;
-			System.out.println("data "+data);
+
+			String data = username + pin + message + mnumber + signature;
+			System.out.println("data " + data);
+
 			conn.setDoOutput(true);
 			conn.setRequestMethod("POST");
 			conn.setRequestProperty("Content-Length", Integer.toString(data.length()));
@@ -41,14 +46,13 @@ public class TextLocalImpl implements SMSService {
 				stringBuffer.append(line);
 			}
 			rd.close();
-			
-			
+
 		} catch (Exception e) {
 			e.printStackTrace();
 			System.out.println("Error SMS ");
-			
+
 		}
-		
+
 	}
 
 }
