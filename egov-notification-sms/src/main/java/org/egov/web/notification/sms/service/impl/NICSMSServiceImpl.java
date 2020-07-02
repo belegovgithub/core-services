@@ -1,20 +1,19 @@
 
   package org.egov.web.notification.sms.service.impl;
   
-  import java.io.BufferedReader; 
-  import java.io.InputStreamReader;
-  import java.net.HttpURLConnection; 
-  import java.net.URL;
+  import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 
-  import org.egov.web.notification.sms.models.Sms; 
-  import org.egov.web.notification.sms.service.SMSService; 
-
-  import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-  import org.springframework.stereotype.Service;
+import org.egov.web.notification.sms.models.Sms;
+import org.egov.web.notification.sms.service.SMSService;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.stereotype.Service;
   
   @Service
   
-  @ConditionalOnProperty(value = "sms.gateway.to.use", havingValue ="NIC_SMS",
+  @ConditionalOnProperty(value = "sms.gateway.to.use", havingValue ="DEFAULT",
   matchIfMissing = true) public class NICSMSServiceImpl implements SMSService {
   
 
