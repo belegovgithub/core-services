@@ -1,4 +1,4 @@
-package org.egov.web.notification.sms.service.impl;
+/*package org.egov.web.notification.sms.service.impl;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -47,7 +47,7 @@ public class TextLocalImpl implements SMSService {
 		
 	}
 
-}
+}*/
 
 
 
