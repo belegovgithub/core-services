@@ -127,7 +127,14 @@ class NICUtils {
         return query_pairs;
     }
     
-     
+    public static void validateTransaction(String txMsg, String secretKey) {
+    	int splitIndex =txMsg.lastIndexOf("|");
+    	String txChecksumvalue =  txMsg.substring(splitIndex+1) ;
+    	String generatedChecksum =generateCRC32Checksum(txMsg.substring(0, splitIndex) , secretKey);
+    	if(!generatedChecksum.equals( txChecksumvalue)){
+    		throw new CustomException("CHECKSUM_VALIDATION_FAILED", "Fraud transaction, Checksum did not match");
+    	}
+    }
     
     
     public static String generateCRC32Checksum(String message, String secretKey) {

@@ -1,10 +1,14 @@
 package org.egov.pg.service.gateways.nic;
 
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.egov.pg.models.Transaction;
 import org.egov.pg.service.Gateway;
+import org.egov.pg.service.gateways.ccavenue.CCAvenueStatusResponse;
 import org.egov.pg.utils.Utils;
+import org.egov.tracer.model.CustomException;
 import org.egov.tracer.model.ServiceCallException;
 import org.omg.IOP.ServiceIdHelper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,14 +23,18 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.io.IOException;
 import java.net.URI;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.TreeMap;
 
 import static org.egov.pg.constants.TransactionAdditionalFields.BANK_ACCOUNT_NUMBER;
 
@@ -64,7 +72,32 @@ public class NICGateway implements Gateway {
     private ObjectMapper objectMapper;
 
     private final boolean ACTIVE;
-
+    
+    private final String REDIRECT_URL;
+    private final String ORIGINAL_RETURN_URL_KEY;
+ 
+    
+    
+    private final String MESSAGE_TYPE_KEY = "messageType";
+    private final String MERCHANT_ID_KEY = "merchantId";
+    
+    private final String SERVICE_ID_KEY = "serviceId";
+    private final String ORDER_ID_KEY = "orderId";
+    private final String CUSTOMER_ID_KEY = "customerId";
+    private final String TRANSACTION_AMOUNT_KEY = "transactionAmount";
+    private final String CURRENCY_CODE_KEY = "currencyCode";
+    private final String REQUEST_DATE_TIME_KEY = "requestDateTime";
+    private final String SUCCESS_URL_KEY = "successUrl";
+    private final String FAIL_URL_KEY = "failUrl";
+    private final String ADDITIONAL_FIELD1_KEY = "additionalFeild1";
+    private final String ADDITIONAL_FIELD2_KEY = "additionalFeild2";
+    private final String ADDITIONAL_FIELD3_KEY = "additionalFeild3";
+    private final String ADDITIONAL_FIELD4_KEY = "additionalFeild4";
+    private final String ADDITIONAL_FIELD5_KEY = "additionalFeild5";
+    private final String GATEWAY_TRANSACTION_STATUS_URL;
+    
+    private static final String SEPERATOR ="|";
+    
     /**
      * Initialize by populating all required config parameters
      *
@@ -89,7 +122,9 @@ public class NICGateway implements Gateway {
         VPC_COMMAND_STATUS = environment.getRequiredProperty("nic.merchant.vpc.command.status");
         MERCHANT_URL_PAY = environment.getRequiredProperty("nic.url.debit");
         MERCHANT_URL_STATUS = environment.getRequiredProperty("nic.url.status");
-        
+        REDIRECT_URL = environment.getRequiredProperty("nic.redirect.url");
+        ORIGINAL_RETURN_URL_KEY = environment.getRequiredProperty("nic.original.return.url.key");
+        GATEWAY_TRANSACTION_STATUS_URL = environment.getRequiredProperty("ccavenue.gateway.status.url");
     }
 
     @Override
@@ -101,42 +136,44 @@ equestDateTime|successUrl|failUrl|additionalFeild1| additionalFeild2| additional
 additionalFeild4| additionalFeild5
  */
     	 Map<String, String> queryMap = new HashMap<>();
-         queryMap.put("messageType", MESSAGE_TYPE);
-         queryMap.put("merchantId", MERCHANT_ID);
-         queryMap.put("serviceId", transaction.getModule());
-         queryMap.put("orderId", transaction.getTxnId());
-         queryMap.put("customerId", transaction.getUser().getUuid());
-         queryMap.put("transactionAmount", String.valueOf(Utils.formatAmtAsPaise(transaction.getTxnAmount())));
-         queryMap.put("currencyCode",CURRENCY_CODE);
+         queryMap.put(MESSAGE_TYPE_KEY, MESSAGE_TYPE);
+         queryMap.put(MERCHANT_ID_KEY, MERCHANT_ID);
+         queryMap.put(SERVICE_ID_KEY, "SecunderabadChhawani");
+         queryMap.put(ORDER_ID_KEY, transaction.getTxnId());
+         queryMap.put(CUSTOMER_ID_KEY, transaction.getUser().getUuid());
+         queryMap.put(TRANSACTION_AMOUNT_KEY, String.valueOf(Utils.formatAmtAsPaise(transaction.getTxnAmount())));
+         queryMap.put(CURRENCY_CODE_KEY,CURRENCY_CODE);
          SimpleDateFormat format = new SimpleDateFormat("ddMMyyyyhhmmss");
-     	 queryMap.put("requestDateTime", format.format(new Date()));
-         queryMap.put("successUrl", transaction.getCallbackUrl());
-         queryMap.put("failUrl", transaction.getCallbackUrl());
-         queryMap.put("additionalField1", ""); //Not in use 
-         queryMap.put("additionalField2", ""); //Not in use 
-         queryMap.put("additionalField3", ""); //Not in use
-         queryMap.put("additionalField4", ""); //Not in use
-         queryMap.put("additionalField5", ""); //Not in use
+     	 queryMap.put(REQUEST_DATE_TIME_KEY, format.format(new Date()));
+         queryMap.put(SUCCESS_URL_KEY, getReturnUrl(transaction.getCallbackUrl(), REDIRECT_URL));
+         queryMap.put(FAIL_URL_KEY, getReturnUrl(transaction.getCallbackUrl(), REDIRECT_URL));
+         queryMap.put(ADDITIONAL_FIELD1_KEY, ""); //Not in use 
+         queryMap.put(ADDITIONAL_FIELD2_KEY, ""); //Not in use 
+         queryMap.put(ADDITIONAL_FIELD3_KEY, ""); //Not in use 
+         queryMap.put(ADDITIONAL_FIELD4_KEY, ""); //Not in use 
+         queryMap.put(ADDITIONAL_FIELD5_KEY, ""); //Not in use 
+         
          
          //Generate Checksum for params  
          ArrayList<String> fields = new ArrayList<String>();
-     	fields.add(queryMap.get("messageType"));
-     	fields.add(queryMap.get("merchantId"));
-     	fields.add(queryMap.get("serviceId"));
-     	fields.add(queryMap.get("orderId"));
-     	fields.add(queryMap.get("customerId"));
-     	fields.add(queryMap.get("transactionAmount"));
-     	fields.add(queryMap.get("currencyCode"));
-     	fields.add(queryMap.get("requestDateTime"));
-     	fields.add(queryMap.get("successUrl"));
-     	fields.add(queryMap.get("failUrl"));
-     	fields.add(queryMap.get("additionalField1"));
-     	fields.add(queryMap.get("additionalField2"));
-     	fields.add(queryMap.get("additionalField3"));
-     	fields.add(queryMap.get("additionalField4"));
-     	fields.add(queryMap.get("additionalField5"));
-        
-     	queryMap.put("checksum", NICUtils.generateCRC32Checksum(String.join("|", fields), SECURE_SECRET));
+     	fields.add(queryMap.get(MESSAGE_TYPE_KEY));
+     	fields.add(queryMap.get(MERCHANT_ID_KEY));
+     	fields.add(queryMap.get(SERVICE_ID_KEY));
+     	fields.add(queryMap.get(ORDER_ID_KEY));
+     	fields.add(queryMap.get(CUSTOMER_ID_KEY));
+     	fields.add(queryMap.get(TRANSACTION_AMOUNT_KEY));
+     	fields.add(queryMap.get(CURRENCY_CODE_KEY));
+     	fields.add(queryMap.get(REQUEST_DATE_TIME_KEY));
+     	fields.add(queryMap.get(SUCCESS_URL_KEY));
+     	fields.add(queryMap.get(FAIL_URL_KEY));
+     	fields.add(queryMap.get(ADDITIONAL_FIELD1_KEY));
+     	fields.add(queryMap.get(ADDITIONAL_FIELD2_KEY));
+     	fields.add(queryMap.get(ADDITIONAL_FIELD3_KEY));
+     	fields.add(queryMap.get(ADDITIONAL_FIELD4_KEY));
+     	fields.add(queryMap.get(ADDITIONAL_FIELD5_KEY));
+     	
+        String message = String.join("|", fields);
+     	queryMap.put("checksum", NICUtils.generateCRC32Checksum(message, SECURE_SECRET));
     	 
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         queryMap.forEach(params::add);
@@ -146,26 +183,37 @@ additionalFeild4| additionalFeild5
 
         return uriComponents.toUri();
     }
+    
+    
+     
+
+    private String getReturnUrl(String callbackUrl, String baseurl) {
+        return UriComponentsBuilder.fromHttpUrl(baseurl).queryParam(ORIGINAL_RETURN_URL_KEY, callbackUrl).build()
+                .encode().toUriString();
+    }
+    
 
     @Override
-    public Transaction fetchStatus(Transaction currentStatus, Map<String, String> params) {
-        String checksum = params.get("vpc_SecureHash");
-        params.remove("vpc_SecureHash");
-        params.remove("vpc_SecureHashType");
+    public Transaction fetchStatus(Transaction currentStatus, Map<String, String> param) {
 
-        if (!StringUtils.isEmpty(checksum)) {
-            if (checksum.equals(NICUtils.SHAhashAllFields(params, SECURE_SECRET))) {
-                MultiValueMap<String, String> resp = new LinkedMultiValueMap<>();
-                params.forEach(resp::add);
-                Transaction txn = transformRawResponse(resp, currentStatus);
-                if (txn.getTxnStatus().equals(Transaction.TxnStatusEnum.PENDING) || txn.getTxnStatus().equals(Transaction.TxnStatusEnum.FAILURE)) {
-                    return txn;
-                }
-            }
+        try {
+
+            String requestmsg =SEPERATOR+ MERCHANT_ID +SEPERATOR+currentStatus.getTxnId();
+            HashMap<String, String> params = new HashMap<>();
+            params.put("requestMsg", requestmsg); 
+            UriComponents uriComponents = UriComponentsBuilder.fromHttpUrl(GATEWAY_TRANSACTION_STATUS_URL).buildAndExpand(params).encode();
+            ResponseEntity<String> response = restTemplate.postForEntity(uriComponents.toUri(),"", String.class);
+            Transaction transaction = transformRawResponse(response.getBody(), currentStatus);
+            log.info("Updated transaction : " + transaction.toString());
+            return transaction;
+        } catch (RestClientException e) {
+            log.error("Unable to fetch status from ccavenue gateway", e);
+            throw new CustomException("UNABLE_TO_FETCH_STATUS", "Unable to fetch status from ccavenue gateway");
+        } catch (Exception e) {
+            log.error("ccavenue Checksum generation failed", e);
+            throw new CustomException("CHECKSUM_GEN_FAILED",
+                    "Hash generation failed, gateway redirect URI cannot be generated");
         }
-
-        return fetchStatusFromGateway(currentStatus);
-
     }
 
     @Override
@@ -183,170 +231,69 @@ additionalFeild4| additionalFeild5
         return "vpc_MerchTxnRef";
     }
 
-    private Transaction fetchStatusFromGateway(Transaction currentStatus) {
-        Map<String, String> fields = new HashMap<>();
+     
 
-        String txnRef = StringUtils.isEmpty(currentStatus.getModule()) ? currentStatus.getTxnId() :
-                currentStatus.getModule() + "-" +currentStatus.getTxnId();
+    private Transaction transformRawResponse(String resp, Transaction currentStatus)
+            throws JsonParseException, JsonMappingException, IOException {
 
- 
-        fields.put("vpc_Command", VPC_COMMAND_STATUS);
-        fields.put("vpc_AccessCode", VPC_ACCESS_CODE);
-        fields.put("vpc_Merchant", MERCHANT_ID);
-        fields.put("vpc_MerchTxnRef", txnRef);
-        fields.put("vpc_User", AMA_USER);
-        fields.put("vpc_Password", AMA_PWD);
+        String decyJsonString= "";
+        Transaction.TxnStatusEnum status = Transaction.TxnStatusEnum.PENDING;
+        
+        
+        
+        CCAvenueStatusResponse statusResponse;
+        Map<String, String> respMap = new HashMap<String, String>();
+        Arrays.asList(resp.split("&")).forEach(
+                param -> respMap.put(param.split("=")[0], param.split("=").length > 1 ? param.split("=")[1] : ""));
 
-        MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
-        fields.forEach(queryParams::add);
+        if (respMap.get("msg")!=null) {
+        	NICUtils.validateTransaction(respMap.get("msg"), SECURE_SECRET); 
+            decyJsonString = null;//statusCCavenueUtil.decrypt(respMap.get("enc_response").replace("\r\n", ""));
+            statusResponse = new ObjectMapper().readValue(decyJsonString,CCAvenueStatusResponse.class);
 
-        UriComponents uriComponents = UriComponentsBuilder.fromHttpUrl(MERCHANT_URL_STATUS).queryParams
-                (queryParams).build().encode();
+            status = decodeMessage(respMap.get("msg")); //Need to modify this
 
-        try {
-            ResponseEntity<String> response = restTemplate.postForEntity(uriComponents.toUriString(), "", String.class);
+            return Transaction.builder().txnId(currentStatus.getTxnId())
+                    .txnAmount(Utils.formatAmtAsRupee(statusResponse.getOrderAmt()))
+                    .txnStatus(status).gatewayTxnId(statusResponse.getReferenceNo())
+                    .gatewayPaymentMode(statusResponse.getOrderOptionType())
+                    .gatewayStatusCode(statusResponse.getOrderStatus())
+                    .responseJson(decyJsonString).build();
 
-            log.info(response.getBody());
-
-            Map<String, List<String>> responseParams = NICUtils.splitQuery(response.getBody());
-
-            log.info(responseParams.toString());
-
-            return transformRawResponse(responseParams, currentStatus);
-        }catch (RestClientException e){
-            log.error("Unable to fetch status from payment gateway for txnid: "+ currentStatus.getTxnId(), e);
-            throw new ServiceCallException("Error occurred while fetching status from payment gateway");
+        } else {
+            log.error("Received error response from status call : " + respMap.get("enc_response"));
+            throw new CustomException("UNABLE_TO_FETCH_STATUS", "Unable to fetch status from ccavenue gateway");
         }
     }
-
-    private Transaction transformRawResponse(Map<String, List<String>> resp, Transaction currentStatus) {
-
-        Transaction.TxnStatusEnum status;
-
-
-        String respMsg = "";
-        List<String> respCodeList = resp.get("vpc_TxnResponseCode");
-        if(Objects.isNull(respCodeList) || respCodeList.isEmpty()){
-            log.error("Transaction not found in the payment gateway");
-            return currentStatus;
-        }
-
-        String respCode = respCodeList.get(0);
-        //TODO Handle error conditions where we dont have response codes?
-
-        switch (respCode) {
-            case "0":
-                respMsg = "Transaction Successful";
-                break;
-            case "1":
-                respMsg = "Transaction Declined";
-                break;
-            case "2":
-                respMsg = "Bank Declined Transaction";
-                break;
-            case "3":
-                respMsg = "No Reply from Bank";
-                break;
-            case "4":
-                respMsg = "Expired Card";
-                break;
-            case "5":
-                respMsg = "Insufficient Funds";
-                break;
-            case "6":
-                respMsg = "Error Communicating with Bank";
-                break;
-            case "7":
-                respMsg = "Payment Server detected an error";
-                break;
-            case "8":
-                respMsg = "Transaction Type Not Supported";
-                break;
-            case "9":
-                respMsg = "Bank declined transaction (Do not contact Bank)";
-                break;
-            case "A":
-                respMsg = "Transaction Aborted";
-                break;
-            case "B":
-                respMsg = "Transaction Declined - Contact the Bank";
-                break;
-            case "C":
-                respMsg = "Transaction Cancelled";
-                break;
-            case "D":
-                respMsg = "Deferred transaction has been received and is awaiting processing";
-                break;
-            case "E":
-                respMsg = "Transaction Declined - Refer to card issuer";
-                break;
-            case "F":
-                respMsg = "3-D Secure Authentication failed";
-                break;
-            case "I":
-                respMsg = "Card Security Code verification failed";
-                break;
-            case "L":
-                respMsg = "Shopping Transaction Locked (Please try the transaction again later)";
-                break;
-            case "M":
-                respMsg = "Transaction Submitted (No response from acquirer)";
-                break;
-            case "N":
-                respMsg = "Cardholder is not enrolled in Authentication scheme";
-                break;
-            case "P":
-                respMsg = "Transaction has been received by the Payment Adaptor and is being processed";
-                break;
-            case "R":
-                respMsg = "Transaction was not processed - Reached limit of retry attempts allowed";
-                break;
-            case "S":
-                respMsg = "Duplicate SessionID";
-                break;
-            case "T":
-                respMsg = "Address Verification Failed";
-                break;
-            case "U":
-                respMsg = "Card Security Code Failed";
-                break;
-            case "V":
-                respMsg = "Address Verification and Card Security Code Failed";
-                break;
-            case "?":
-                respMsg = "Transaction status is unknown";
-                break;
-            default:
-                respMsg = "Unable to be determined";
-                break;
-        }
-
-        if (respCode.equalsIgnoreCase("0")) {
-            status = Transaction.TxnStatusEnum.SUCCESS;
-            return Transaction.builder()
-                    .txnId(currentStatus.getTxnId())
-                    .txnAmount(Utils.convertPaiseToRupee(resp.get("vpc_Amount").get(0)))
-                    .txnStatus(status)
-                    .gatewayTxnId(resp.get("vpc_TransactionNo").get(0))
-                    .gatewayPaymentMode(resp.get("vpc_Card").get(0))
-                    .gatewayStatusCode(respCode)
-                    .gatewayStatusMsg(respMsg)
-                    .responseJson(resp)
-                    .build();
-        } else {
-            status = Transaction.TxnStatusEnum.FAILURE;
-            return Transaction.builder()
-                    .txnId(currentStatus.getTxnId())
-                    .txnAmount(Utils.convertPaiseToRupee(resp.get("vpc_Amount").get(0)))
-                    .txnStatus(status)
-                    .gatewayTxnId(resp.get("vpc_TransactionNo").get(0))
-                    .gatewayStatusCode(respCode)
-                    .gatewayStatusMsg(respMsg)
-                    .responseJson(resp)
-                    .build();
-        }
-
-
+    
+    private Transaction.TxnStatusEnum decodeMessage(String respMsg) {
+    	/*
+    	 *SuccessFlag|MessageType|SurePayMerchantId|ServiceId|OrderId|CustomerId|TransactionAm
+ount|CurrencyCode|PaymentMode|ResponseDateTime|SurePay Txn
+Id|BankTransactionNo|TransactionStatus|AdditionalInfo1|AdditionalInfo2|AdditionalInfo3|Ad
+ditionalInfo4|AdditionalInfo5|ErrorCode|ErrorDescription|CheckSum
+    	 */
+    	Transaction.TxnStatusEnum txStatus = Transaction.TxnStatusEnum.fromValue(respMsg.substring(0, 1));
+    	switch (txStatus) {
+		case SUCCESS:
+			//Define SUCCESS
+			break;
+		case FAILURE:
+			//Define successMessage
+			break;
+		case DECLINE:
+			//Define successMessage
+			break;
+		case INITIATED:
+			//Define successMessage
+			break;
+		default:
+			break;
+		}
+    	 
+    	return txStatus;
+    	
+    	
     }
 
 }
