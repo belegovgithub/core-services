@@ -54,9 +54,7 @@ public class NICGateway implements Gateway {
     private static final String GATEWAY_NAME = "NIC";
     private final String MESSAGE_TYPE;
     private final String MERCHANT_ID; 
-
-    private final String MERCHANT_URL_PAY;
-    private final String MERCHANT_URL_STATUS;
+ 
     
     private final String SECURE_SECRET;
     private final String AMA_USER;
@@ -95,7 +93,7 @@ public class NICGateway implements Gateway {
     private final String ADDITIONAL_FIELD4_KEY = "additionalFeild4";
     private final String ADDITIONAL_FIELD5_KEY = "additionalFeild5";
     private final String GATEWAY_TRANSACTION_STATUS_URL;
-    
+    private final String GATEWAY_URL;
     private static final String SEPERATOR ="|";
     
     /**
@@ -120,21 +118,21 @@ public class NICGateway implements Gateway {
         VPC_ACCESS_CODE = environment.getRequiredProperty("nic.merchant.access.code"); 
         VPC_COMMAND_PAY = environment.getRequiredProperty("nic.merchant.vpc.command.pay");
         VPC_COMMAND_STATUS = environment.getRequiredProperty("nic.merchant.vpc.command.status");
-        MERCHANT_URL_PAY = environment.getRequiredProperty("nic.url.debit");
-        MERCHANT_URL_STATUS = environment.getRequiredProperty("nic.url.status");
+       
         REDIRECT_URL = environment.getRequiredProperty("nic.redirect.url");
         ORIGINAL_RETURN_URL_KEY = environment.getRequiredProperty("nic.original.return.url.key");
-        GATEWAY_TRANSACTION_STATUS_URL = environment.getRequiredProperty("ccavenue.gateway.status.url");
+        GATEWAY_TRANSACTION_STATUS_URL = environment.getRequiredProperty("nic.gateway.status.url");
+        GATEWAY_URL = environment.getRequiredProperty("nic.gateway.url");
     }
 
     @Override
     public URI generateRedirectURI(Transaction transaction) {
-/*
- * 
- messageType|merchantId|serviceId|orderId|customerId|transactionAmount|currencyCode|r
-equestDateTime|successUrl|failUrl|additionalFeild1| additionalFeild2| additionalFeild3|
-additionalFeild4| additionalFeild5
- */
+		/*
+		 * 
+		 messageType|merchantId|serviceId|orderId|customerId|transactionAmount|currencyCode|r
+		equestDateTime|successUrl|failUrl|additionalFeild1| additionalFeild2| additionalFeild3|
+		additionalFeild4| additionalFeild5
+		 */
     	 Map<String, String> queryMap = new HashMap<>();
          queryMap.put(MESSAGE_TYPE_KEY, MESSAGE_TYPE);
          queryMap.put(MERCHANT_ID_KEY, MERCHANT_ID);
@@ -178,11 +176,13 @@ additionalFeild4| additionalFeild5
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         queryMap.forEach(params::add);
 
-        UriComponents uriComponents = UriComponentsBuilder.fromHttpUrl(MERCHANT_URL_PAY).queryParams
+        UriComponents uriComponents = UriComponentsBuilder.fromHttpUrl(GATEWAY_URL).queryParams
                 (params).build().encode();
 
         return uriComponents.toUri();
     }
+    
+    
     
     
      
@@ -200,9 +200,15 @@ additionalFeild4| additionalFeild5
 
             String requestmsg =SEPERATOR+ MERCHANT_ID +SEPERATOR+currentStatus.getTxnId();
             HashMap<String, String> params = new HashMap<>();
+            params.put("username", AMA_USER);
+            params.put("password", AMA_PWD);
             params.put("requestMsg", requestmsg); 
-            UriComponents uriComponents = UriComponentsBuilder.fromHttpUrl(GATEWAY_TRANSACTION_STATUS_URL).buildAndExpand(params).encode();
-            ResponseEntity<String> response = restTemplate.postForEntity(uriComponents.toUri(),"", String.class);
+            MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
+            params.forEach(queryParams::add);
+            UriComponents uriComponents = UriComponentsBuilder.fromHttpUrl(GATEWAY_TRANSACTION_STATUS_URL).queryParams
+                    (queryParams).build().encode();
+            log.debug("Status URL : "+uriComponents.toUriString());
+            ResponseEntity<String> response = restTemplate.postForEntity(uriComponents.toUriString(),"", String.class);
             Transaction transaction = transformRawResponse(response.getBody(), currentStatus);
             log.info("Updated transaction : " + transaction.toString());
             return transaction;
@@ -235,65 +241,96 @@ additionalFeild4| additionalFeild5
 
     private Transaction transformRawResponse(String resp, Transaction currentStatus)
             throws JsonParseException, JsonMappingException, IOException {
-
-        String decyJsonString= "";
+    	
         Transaction.TxnStatusEnum status = Transaction.TxnStatusEnum.PENDING;
-        
-        
-        
-        CCAvenueStatusResponse statusResponse;
+        NICStatusResponse statusResponse;
         Map<String, String> respMap = new HashMap<String, String>();
         Arrays.asList(resp.split("&")).forEach(
                 param -> respMap.put(param.split("=")[0], param.split("=").length > 1 ? param.split("=")[1] : ""));
-
+        log.info("Split Message "+ respMap);
         if (respMap.get("msg")!=null) {
-        	NICUtils.validateTransaction(respMap.get("msg"), SECURE_SECRET); 
-            decyJsonString = null;//statusCCavenueUtil.decrypt(respMap.get("enc_response").replace("\r\n", ""));
-            statusResponse = new ObjectMapper().readValue(decyJsonString,CCAvenueStatusResponse.class);
-
-            status = decodeMessage(respMap.get("msg")); //Need to modify this
-
-            return Transaction.builder().txnId(currentStatus.getTxnId())
-                    .txnAmount(Utils.formatAmtAsRupee(statusResponse.getOrderAmt()))
-                    .txnStatus(status).gatewayTxnId(statusResponse.getReferenceNo())
-                    .gatewayPaymentMode(statusResponse.getOrderOptionType())
-                    .gatewayStatusCode(statusResponse.getOrderStatus())
-                    .responseJson(decyJsonString).build();
-
+        	NICUtils.validateTransaction(respMap.get("msg"), SECURE_SECRET);
+        	statusResponse = decodeMsg(respMap.get("msg"));
+        	return Transaction.builder().txnId(currentStatus.getTxnId())
+                    .txnAmount(Utils.formatAmtAsRupee(statusResponse.getTransactionAmount()))
+                    .txnStatus(status).gatewayTxnId(statusResponse.getSurePayTxnId())
+                    .gatewayPaymentMode(statusResponse.getPaymentMode())
+                    .gatewayStatusCode(statusResponse.getTxStatus().toString())
+                    .responseJson(respMap.get("msg")).build();
         } else {
             log.error("Received error response from status call : " + respMap.get("enc_response"));
-            throw new CustomException("UNABLE_TO_FETCH_STATUS", "Unable to fetch status from ccavenue gateway");
+            throw new CustomException("UNABLE_TO_FETCH_STATUS", "Unable to fetch status from nic gateway");
         }
     }
     
-    private Transaction.TxnStatusEnum decodeMessage(String respMsg) {
-    	/*
-    	 *SuccessFlag|MessageType|SurePayMerchantId|ServiceId|OrderId|CustomerId|TransactionAm
-ount|CurrencyCode|PaymentMode|ResponseDateTime|SurePay Txn
-Id|BankTransactionNo|TransactionStatus|AdditionalInfo1|AdditionalInfo2|AdditionalInfo3|Ad
-ditionalInfo4|AdditionalInfo5|ErrorCode|ErrorDescription|CheckSum
-    	 */
-    	Transaction.TxnStatusEnum txStatus = Transaction.TxnStatusEnum.fromValue(respMsg.substring(0, 1));
-    	switch (txStatus) {
+    private NICStatusResponse decodeMsg(String respMsg) {
+    	String[] splitArray = respMsg.split("[|]");
+    	NICStatusResponse txResp = new NICStatusResponse(splitArray[0]);
+    	switch (txResp.getTxStatus()) {
 		case SUCCESS:
-			//Define SUCCESS
+			/*For Success : 
+			SuccessFlag|MessageType|SurePayMerchantId|ServiceId|OrderId|CustomerId|TransactionAmount|
+			CurrencyCode|PaymentMode|ResponseDateTime|SurePayTxnId|
+			BankTransactionNo|TransactionStatus|AdditionalInfo1|AdditionalInfo2|AdditionalInfo3|
+			AdditionalInfo4|AdditionalInfo5|ErrorCode|ErrorDescription|CheckSum*/
+			
+			txResp.setMessageType(splitArray[1]);
+			txResp.setSurePayMerchantId(splitArray[2]);
+			txResp.setServiceId(splitArray[3]);
+			txResp.setOrderId(splitArray[4]);
+			txResp.setCustomerId(splitArray[5]);
+			txResp.setTransactionAmount(splitArray[6]);
+			txResp.setCurrencyCode(splitArray[7]);
+			txResp.setPaymentMode(splitArray[8]);
+			txResp.setResponseDateTime(splitArray[9]);
+			txResp.setSurePayTxnId(splitArray[10]);
+			txResp.setBankTransactionNo(splitArray[11]);
+			txResp.setTransactionStatus(splitArray[12]);
+			txResp.setAdditionalInfo1(splitArray[13]);
+			txResp.setAdditionalInfo2(splitArray[14]);
+			txResp.setAdditionalInfo3(splitArray[15]);
+			txResp.setAdditionalInfo4(splitArray[16]);
+			txResp.setAdditionalInfo5(splitArray[17]);
+			txResp.setErrorCode(splitArray[18]);
+			txResp.setErrorDescription(splitArray[19]);
+			txResp.setCheckSum(splitArray[20]);
+			
 			break;
 		case FAILURE:
-			//Define successMessage
-			break;
 		case DECLINE:
-			//Define successMessage
+			
+			/*For Failure : 
+			 FailureFlag|SurePayMerchantId|OrderId|ServiceId|PaymentMode|BankTransactionNo|
+			 ErrorCode|ErrorMessage|ErrorDescription|ResponseDateTime|CheckSum
+			 */
+			txResp.setSurePayMerchantId(splitArray[1]);
+			txResp.setOrderId(splitArray[2]);
+			txResp.setServiceId(splitArray[3]);
+			txResp.setPaymentMode(splitArray[4]);
+			txResp.setBankTransactionNo(splitArray[5]);
+			txResp.setErrorCode(splitArray[6]);
+			txResp.setErrorMessage(splitArray[7]);
+			txResp.setErrorDescription(splitArray[8]);
+			txResp.setResponseDateTime(splitArray[9]);
+			txResp.setCheckSum(splitArray[10]);
+			
 			break;
 		case INITIATED:
-			//Define successMessage
-			break;
-		default:
+			/* For Initiated : 
+			 InitiatedFlag|SurePayMerchantId|OrderId|ServiceId|PaymentMode|ErrorDescription|
+			 ResponseDateTime|CheckSum
+			 */
+			txResp.setSurePayMerchantId(splitArray[1]);
+			txResp.setOrderId(splitArray[2]);
+			txResp.setServiceId(splitArray[3]);
+			txResp.setPaymentMode(splitArray[4]);
+			txResp.setErrorDescription(splitArray[5]);
+			txResp.setResponseDateTime(splitArray[6]);
+			txResp.setCheckSum(splitArray[7]);
 			break;
 		}
-    	 
-    	return txStatus;
-    	
-    	
+    	return txResp;
     }
+     
 
 }
