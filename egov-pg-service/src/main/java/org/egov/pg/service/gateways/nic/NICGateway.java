@@ -59,8 +59,7 @@ public class NICGateway implements Gateway {
     private final String SECURE_SECRET;
     private final String AMA_USER;
     private final String AMA_PWD;
-
-    private final String VPC_ACCESS_CODE; 
+ 
     private final String VPC_COMMAND_PAY;
     private final String VPC_COMMAND_STATUS;
  
@@ -115,7 +114,6 @@ public class NICGateway implements Gateway {
         SECURE_SECRET = environment.getRequiredProperty("nic.merchant.secret.key");
         AMA_USER = environment.getRequiredProperty("nic.merchant.user");
         AMA_PWD = environment.getRequiredProperty("nic.merchant.pwd");
-        VPC_ACCESS_CODE = environment.getRequiredProperty("nic.merchant.access.code"); 
         VPC_COMMAND_PAY = environment.getRequiredProperty("nic.merchant.vpc.command.pay");
         VPC_COMMAND_STATUS = environment.getRequiredProperty("nic.merchant.vpc.command.status");
        
@@ -197,18 +195,15 @@ public class NICGateway implements Gateway {
     public Transaction fetchStatus(Transaction currentStatus, Map<String, String> param) {
 
         try {
-
-            String requestmsg =SEPERATOR+ MERCHANT_ID +SEPERATOR+currentStatus.getTxnId();
+        	String requestmsg =SEPERATOR+ MERCHANT_ID +SEPERATOR+currentStatus.getTxnId();
             HashMap<String, String> params = new HashMap<>();
             params.put("username", AMA_USER);
             params.put("password", AMA_PWD);
-            params.put("requestMsg", requestmsg); 
-            MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
-            params.forEach(queryParams::add);
-            UriComponents uriComponents = UriComponentsBuilder.fromHttpUrl(GATEWAY_TRANSACTION_STATUS_URL).queryParams
-                    (queryParams).build().encode();
+            params.put("request_Msg", requestmsg); 
+            UriComponents uriComponents = UriComponentsBuilder.fromHttpUrl(GATEWAY_TRANSACTION_STATUS_URL)
+                    .buildAndExpand(params).encode();
             log.debug("Status URL : "+uriComponents.toUriString());
-            ResponseEntity<String> response = restTemplate.postForEntity(uriComponents.toUriString(),"", String.class);
+            ResponseEntity<String> response = restTemplate.postForEntity(uriComponents.toUri(),"", String.class);
             Transaction transaction = transformRawResponse(response.getBody(), currentStatus);
             log.info("Updated transaction : " + transaction.toString());
             return transaction;
