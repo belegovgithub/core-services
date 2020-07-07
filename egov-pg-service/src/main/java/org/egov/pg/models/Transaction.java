@@ -177,15 +177,11 @@ public class Transaction {
      * Current status of the transaction
      */
     public enum TxnStatusEnum {
-        SUCCESS("S"),
+        SUCCESS("SUCCESS"),
 
-        FAILURE("F"),
+        FAILURE("FAILURE"),
 
-        PENDING("P"),
-        
-        INITIATED("I"),
-        
-    	DECLINE("D");
+        PENDING("PENDING");
 
         private String value;
 

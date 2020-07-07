@@ -1,15 +1,15 @@
 package org.egov.pg.service.gateways.nic;
 
-import org.egov.pg.models.Transaction;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@ToString
 public class NICStatusResponse {
 	//Message Format
 	/*For Success : 
@@ -29,10 +29,10 @@ public class NICStatusResponse {
 	
 	
 	public NICStatusResponse(String status) {
-		txStatus = Transaction.TxnStatusEnum.fromValue(status);
+		txFlag = status;
 	}
 	
-	private Transaction.TxnStatusEnum txStatus;
+	private String txFlag;
 	private String messageType;
 	private String surePayMerchantId;
 	private String serviceId;

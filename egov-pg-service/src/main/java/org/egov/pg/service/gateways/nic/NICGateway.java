@@ -45,36 +45,23 @@ import static org.egov.pg.constants.TransactionAdditionalFields.BANK_ACCOUNT_NUM
 @Slf4j
 public class NICGateway implements Gateway {
 
-	/*
-	 * 
-	 messageType|merchantId|serviceId|orderId|customerId|transactionAmount|currencyCode|r
-	equestDateTime|successUrl|failUrl|additionalFeild1| additionalFeild2| additionalFeild3|
-	additionalFeild4| additionalFeild5
-	 */
     private static final String GATEWAY_NAME = "NIC";
     private final String MESSAGE_TYPE;
     private final String MERCHANT_ID; 
  
-    
     private final String SECURE_SECRET;
     private final String AMA_USER;
     private final String AMA_PWD;
  
-    private final String VPC_COMMAND_PAY;
-    private final String VPC_COMMAND_STATUS;
- 
     private final String CURRENCY_CODE;
 
     private final RestTemplate restTemplate;
-    private ObjectMapper objectMapper;
-
+ 
     private final boolean ACTIVE;
     
     private final String REDIRECT_URL;
     private final String ORIGINAL_RETURN_URL_KEY;
  
-    
-    
     private final String MESSAGE_TYPE_KEY = "messageType";
     private final String MERCHANT_ID_KEY = "merchantId";
     
@@ -104,8 +91,7 @@ public class NICGateway implements Gateway {
     @Autowired
     public NICGateway(RestTemplate restTemplate, Environment environment, ObjectMapper objectMapper) {
         this.restTemplate = restTemplate;
-        this.objectMapper = objectMapper;
-
+        
         ACTIVE = Boolean.valueOf(environment.getRequiredProperty("nic.active"));
         MESSAGE_TYPE = environment.getRequiredProperty("nic.messageType");
         
@@ -114,9 +100,7 @@ public class NICGateway implements Gateway {
         SECURE_SECRET = environment.getRequiredProperty("nic.merchant.secret.key");
         AMA_USER = environment.getRequiredProperty("nic.merchant.user");
         AMA_PWD = environment.getRequiredProperty("nic.merchant.pwd");
-        VPC_COMMAND_PAY = environment.getRequiredProperty("nic.merchant.vpc.command.pay");
-        VPC_COMMAND_STATUS = environment.getRequiredProperty("nic.merchant.vpc.command.status");
-       
+        
         REDIRECT_URL = environment.getRequiredProperty("nic.redirect.url");
         ORIGINAL_RETURN_URL_KEY = environment.getRequiredProperty("nic.original.return.url.key");
         GATEWAY_TRANSACTION_STATUS_URL = environment.getRequiredProperty("nic.gateway.status.url");
@@ -202,7 +186,7 @@ public class NICGateway implements Gateway {
             params.put("request_Msg", requestmsg); 
             UriComponents uriComponents = UriComponentsBuilder.fromHttpUrl(GATEWAY_TRANSACTION_STATUS_URL)
                     .buildAndExpand(params).encode();
-            log.debug("Status URL : "+uriComponents.toUriString());
+            log.debug("Status URL : "+uriComponents.toUri());
             ResponseEntity<String> response = restTemplate.postForEntity(uriComponents.toUri(),"", String.class);
             Transaction transaction = transformRawResponse(response.getBody(), currentStatus);
             log.info("Updated transaction : " + transaction.toString());
@@ -213,7 +197,7 @@ public class NICGateway implements Gateway {
         } catch (Exception e) {
             log.error("ccavenue Checksum generation failed", e);
             throw new CustomException("CHECKSUM_GEN_FAILED",
-                    "Hash generation failed, gateway redirect URI cannot be generated");
+                    "Checksum generation failed, gateway redirect URI cannot be generated");
         }
     }
 
@@ -236,7 +220,7 @@ public class NICGateway implements Gateway {
 
     private Transaction transformRawResponse(String resp, Transaction currentStatus)
             throws JsonParseException, JsonMappingException, IOException {
-    	
+    	log.info("NICGateway.transformRawResponse()"+resp);
         Transaction.TxnStatusEnum status = Transaction.TxnStatusEnum.PENDING;
         NICStatusResponse statusResponse;
         Map<String, String> respMap = new HashMap<String, String>();
@@ -244,13 +228,24 @@ public class NICGateway implements Gateway {
                 param -> respMap.put(param.split("=")[0], param.split("=").length > 1 ? param.split("=")[1] : ""));
         log.info("Split Message "+ respMap);
         if (respMap.get("msg")!=null) {
+        	log.info(" respMap.get(\"msg\")+> "+respMap.get("msg"));
+        	//Validate the response against the checksum
+        	
         	NICUtils.validateTransaction(respMap.get("msg"), SECURE_SECRET);
-        	statusResponse = decodeMsg(respMap.get("msg"));
+        	
+        	statusResponse = decodeResponseMsg(respMap.get("msg"));
+        	log.info(" statusResponse => "+statusResponse);
+        	if (statusResponse.getTxFlag().equalsIgnoreCase("S"))
+                    status = Transaction.TxnStatusEnum.SUCCESS;
+                else if (statusResponse.getTxFlag().equalsIgnoreCase("F")|| statusResponse.getTxFlag().equalsIgnoreCase("D"))
+                    status = Transaction.TxnStatusEnum.FAILURE;
+        	
+        	
         	return Transaction.builder().txnId(currentStatus.getTxnId())
                     .txnAmount(Utils.formatAmtAsRupee(statusResponse.getTransactionAmount()))
                     .txnStatus(status).gatewayTxnId(statusResponse.getSurePayTxnId())
                     .gatewayPaymentMode(statusResponse.getPaymentMode())
-                    .gatewayStatusCode(statusResponse.getTxStatus().toString())
+                    .gatewayStatusCode(statusResponse.getTxFlag())
                     .responseJson(respMap.get("msg")).build();
         } else {
             log.error("Received error response from status call : " + respMap.get("enc_response"));
@@ -258,11 +253,11 @@ public class NICGateway implements Gateway {
         }
     }
     
-    private NICStatusResponse decodeMsg(String respMsg) {
+    private NICStatusResponse decodeResponseMsg(String respMsg) {
     	String[] splitArray = respMsg.split("[|]");
     	NICStatusResponse txResp = new NICStatusResponse(splitArray[0]);
-    	switch (txResp.getTxStatus()) {
-		case SUCCESS:
+    	switch (txResp.getTxFlag()) {
+		case "S":
 			/*For Success : 
 			SuccessFlag|MessageType|SurePayMerchantId|ServiceId|OrderId|CustomerId|TransactionAmount|
 			CurrencyCode|PaymentMode|ResponseDateTime|SurePayTxnId|
@@ -291,8 +286,8 @@ public class NICGateway implements Gateway {
 			txResp.setCheckSum(splitArray[20]);
 			
 			break;
-		case FAILURE:
-		case DECLINE:
+		case "F":
+		case "D":
 			
 			/*For Failure : 
 			 FailureFlag|SurePayMerchantId|OrderId|ServiceId|PaymentMode|BankTransactionNo|
@@ -310,7 +305,7 @@ public class NICGateway implements Gateway {
 			txResp.setCheckSum(splitArray[10]);
 			
 			break;
-		case INITIATED:
+		case "I":
 			/* For Initiated : 
 			 InitiatedFlag|SurePayMerchantId|OrderId|ServiceId|PaymentMode|ErrorDescription|
 			 ResponseDateTime|CheckSum
