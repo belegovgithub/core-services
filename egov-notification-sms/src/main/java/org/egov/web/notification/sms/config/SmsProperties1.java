@@ -81,6 +81,16 @@ public class SmsProperties1 {
         System.out.println("mob : "+getMobileNumberWithPrefix(sms.getMobileNumber()));
         return map;
     }
+    
+    public String queryParams(Sms sms) {
+    	String final_data="";
+    	final_data+=userParameterName +"="+ userName+"&";
+    	final_data+=passwordParameterName +"="+ password+"&";
+    	final_data+=messageParameterName +"="+ sms.getMessage()+"&";
+    	final_data+=mobileNumberParameterName +"="+ getMobileNumberWithPrefix(sms.getMobileNumber())+"&";
+    	final_data+=senderIdParameterName +"="+ smsSender;
+    	return final_data;
+    }
 
 	/*
 	 * private void populateSmsPriority(Priority priority, MultiValueMap<String,

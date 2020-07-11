@@ -44,6 +44,8 @@ package org.egov.web.notification.sms.service.impl;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.util.List;
+import java.util.Map.Entry;
 
 import javax.net.ssl.SSLContext;
 
@@ -160,11 +162,11 @@ public class ExternalSMSService implements SMSService {
                     throw new RuntimeException(SMS_RESPONSE_NOT_SUCCESSFUL);
                 }
             } else {*/
-                final MultiValueMap<String, String> requestBody = smsProperties.getSmsRequestBody(sms);
+                //final MultiValueMap<String, String> requestBody = smsProperties.getSmsRequestBody(sms);
 
-
-                String final_url = UriComponentsBuilder.fromHttpUrl(url).queryParams(requestBody).toUriString();
-
+                System.out.println("url "+url);
+                //String final_url = UriComponentsBuilder.fromHttpUrl(url).queryParams(requestBody).toUriString();
+                String final_url =url+smsProperties.queryParams(sms);
 				/*
 				 * if (dontEncodeURL) { final_url = final_url.replace("%20", " ").replace("%2B",
 				 * "+"); }
