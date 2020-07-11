@@ -22,8 +22,6 @@ WORKDIR /opt/egov
 
 COPY --from=build /app/target/*.jar /app/start.sh /opt/egov/
 
-COPY build/cacerts /etc/ssl/certs/java/cacerts
-
-RUN chown root:root /etc/ssl/certs/java/cacerts && chmod 0444 /etc/ssl/certs/java/cacerts && chmod +x /opt/egov/start.sh
+RUN chmod +x /opt/egov/start.sh
 
 CMD ["/opt/egov/start.sh"]
