@@ -36,9 +36,7 @@ public class TransactionService {
     private AppProperties appProperties;
     private TransactionRepository transactionRepository;
     private PaymentsService paymentsService;
-
-    @Autowired
-    private MDMSService mdmsService;
+ 
 
     @Autowired
     TransactionService(TransactionValidator validator, GatewayService gatewayService, Producer producer,
@@ -67,8 +65,7 @@ public class TransactionService {
      * @param transactionRequest Valid transaction request for which transaction needs to be initiated
      * @return Redirect URI to the gateway for the particular transaction
      */
-    public Transaction initiateTransaction(TransactionRequest transactionRequest) {
-    	Object mdmsData = mdmsService.mDMSCall(transactionRequest.getRequestInfo(), "pb");
+    public Transaction initiateTransaction(TransactionRequest transactionRequest) { 
         validator.validateCreateTxn(transactionRequest);
         
         // Enrich transaction by generating txnid, audit details, default status
