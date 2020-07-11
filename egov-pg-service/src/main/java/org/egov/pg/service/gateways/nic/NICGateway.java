@@ -1,6 +1,7 @@
 package org.egov.pg.service.gateways.nic;
 
 import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -109,13 +110,19 @@ public class NICGateway implements Gateway {
 
     @Override
     public URI generateRedirectURI(Transaction transaction) {
+    	return null;
+    }
+    
+    @Override
+    public String generateRedirectURIPost(Transaction transaction) {
 		/*
 		 * 
 		 messageType|merchantId|serviceId|orderId|customerId|transactionAmount|currencyCode|r
 		equestDateTime|successUrl|failUrl|additionalFeild1| additionalFeild2| additionalFeild3|
 		additionalFeild4| additionalFeild5
 		 */
-    	 Map<String, String> queryMap = new HashMap<>();
+    	String urlData =null;
+    	HashMap<String, String> queryMap = new HashMap<>();
          queryMap.put(MESSAGE_TYPE_KEY, MESSAGE_TYPE);
          queryMap.put(MERCHANT_ID_KEY, MERCHANT_ID);
          queryMap.put(SERVICE_ID_KEY, "SecunderabadChhawani");
@@ -133,6 +140,8 @@ public class NICGateway implements Gateway {
          queryMap.put(ADDITIONAL_FIELD4_KEY, ""); //Not in use 
          queryMap.put(ADDITIONAL_FIELD5_KEY, ""); //Not in use 
          
+         
+         System.out.println("queryMap  "+ queryMap);
          
          //Generate Checksum for params  
          ArrayList<String> fields = new ArrayList<String>();
@@ -154,18 +163,18 @@ public class NICGateway implements Gateway {
      	
         String message = String.join("|", fields);
      	queryMap.put("checksum", NICUtils.generateCRC32Checksum(message, SECURE_SECRET));
-    	 
-        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-        queryMap.forEach(params::add);
-
-        UriComponents uriComponents = UriComponentsBuilder.fromHttpUrl(GATEWAY_URL).queryParams
-                (params).build().encode();
-
-        return uriComponents.toUri();
+     	queryMap.put("txURL",GATEWAY_URL);
+     	ObjectMapper mapper = new ObjectMapper();
+     	try {
+     		urlData= mapper.writeValueAsString(queryMap);
+		} catch (JsonProcessingException e) {
+			// TODO Auto-generated catch block
+			log.error("NIC URL generation failed", e);
+            throw new CustomException("URL_GEN_FAILED",
+                    "NIC URL generation failed, gateway redirect URI cannot be generated");
+		}
+    	return urlData;
     }
-    
-    
-    
     
      
 

@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
@@ -266,5 +267,11 @@ public class PayuGateway implements Gateway {
 
         return hexString.toString();
     }
+
+	@Override
+	public String generateRedirectURIPost(Transaction transaction) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
 }

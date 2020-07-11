@@ -22,6 +22,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -156,4 +157,10 @@ public class PaytmGateway implements Gateway {
 
 
     }
+
+	@Override
+	public String generateRedirectURIPost(Transaction transaction) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

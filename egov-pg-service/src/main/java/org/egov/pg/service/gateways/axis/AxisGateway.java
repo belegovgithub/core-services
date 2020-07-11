@@ -314,4 +314,10 @@ public class AxisGateway implements Gateway {
 
     }
 
+	@Override
+	public String generateRedirectURIPost(Transaction transaction) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

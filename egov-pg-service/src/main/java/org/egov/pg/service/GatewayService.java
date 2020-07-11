@@ -8,6 +8,8 @@ import org.egov.tracer.model.CustomException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.google.gson.JsonObject;
+
 import java.net.URI;
 import java.util.*;
 
@@ -71,6 +73,20 @@ public class GatewayService {
 
         Gateway gateway = getGateway(transaction.getGateway());
         return gateway.generateRedirectURI(transaction);
+    }
+    /**
+     * Returns the redirectURI with parameter from the requested gateway if exists
+     * else throws CustomException
+     *
+     * @param transaction Txn for which payment should be initiated
+     * @return Redirect URL with parameter as json string to the gateway
+     */
+    String initiateTxnPost(Transaction transaction) {
+        if (!isGatewayActive(transaction.getGateway()))
+            throw new CustomException("INVALID_PAYMENT_GATEWAY", "Invalid or inactive payment gateway provided");
+
+        Gateway gateway = getGateway(transaction.getGateway());
+        return gateway.generateRedirectURIPost(transaction);
     }
 
     /**

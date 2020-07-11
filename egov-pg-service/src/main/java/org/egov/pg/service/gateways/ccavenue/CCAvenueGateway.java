@@ -197,4 +197,10 @@ public class CCAvenueGateway implements Gateway {
             throw new CustomException("UNABLE_TO_FETCH_STATUS", "Unable to fetch status from ccavenue gateway");
         }
     }
+
+	@Override
+	public String generateRedirectURIPost(Transaction transaction) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

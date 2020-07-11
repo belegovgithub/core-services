@@ -3,6 +3,7 @@ package org.egov.pg.service;
 import org.egov.pg.models.Transaction;
 
 import java.net.URI;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -55,4 +56,15 @@ public interface Gateway {
      * @return Transaction ID
      */
     String transactionIdKeyInResponse();
+    /**
+     * Generate a json String to the gateway using the transaction object
+     * 1. Convert to appropriate currency representation, app default is rupee, ex 51.23
+     * 2. Compute hash
+     * 3. Assemble request, makes call to gateway if necessary
+     * 4. Return final redirect URL and parameter in json object String
+     *
+     * @param transaction for which payment gateway redirect URI is to be generated
+     * @return redirect URL with parameter 
+     */
+	String generateRedirectURIPost(Transaction transaction);
 }

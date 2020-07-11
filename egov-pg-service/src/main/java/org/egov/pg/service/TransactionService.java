@@ -37,7 +37,8 @@ public class TransactionService {
     private TransactionRepository transactionRepository;
     private PaymentsService paymentsService;
 
-
+    @Autowired
+    private MDMSService mdmsService;
 
     @Autowired
     TransactionService(TransactionValidator validator, GatewayService gatewayService, Producer producer,
@@ -67,8 +68,9 @@ public class TransactionService {
      * @return Redirect URI to the gateway for the particular transaction
      */
     public Transaction initiateTransaction(TransactionRequest transactionRequest) {
+    	Object mdmsData = mdmsService.mDMSCall(transactionRequest.getRequestInfo(), "pb");
         validator.validateCreateTxn(transactionRequest);
-
+        
         // Enrich transaction by generating txnid, audit details, default status
         enrichmentService.enrichCreateTransaction(transactionRequest);
 
@@ -86,9 +88,16 @@ public class TransactionService {
         }
         else{
             URI uri = gatewayService.initiateTxn(transaction);
-            transaction.setRedirectUrl(uri.toString());
-
-            dump.setTxnRequest(uri.toString());
+            String data =null;
+            if(uri!=null) {
+            	data=uri.toString();
+            }else {
+            	data = gatewayService.initiateTxnPost(transaction);
+            }
+            transaction.setRedirectUrl(data);
+        	dump.setTxnRequest(data);
+            
+            
         }
 
         // Persist transaction and transaction dump objects

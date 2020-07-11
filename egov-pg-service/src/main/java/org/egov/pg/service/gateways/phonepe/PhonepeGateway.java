@@ -21,6 +21,7 @@ import java.net.URISyntaxException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -185,5 +186,12 @@ public class PhonepeGateway implements Gateway {
         }
 
     }
+
+
+	@Override
+	public String generateRedirectURIPost(Transaction transaction) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
 }
