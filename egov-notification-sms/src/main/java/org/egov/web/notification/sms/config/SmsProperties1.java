@@ -70,9 +70,10 @@ public class SmsProperties1 {
         MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
         map.add(userParameterName, userName);
         map.add(passwordParameterName, password);
-        map.add(senderIdParameterName, smsSender);
-        map.add(mobileNumberParameterName, getMobileNumberWithPrefix(sms.getMobileNumber()));
         map.add(messageParameterName, sms.getMessage());
+        map.add(mobileNumberParameterName, getMobileNumberWithPrefix(sms.getMobileNumber()));
+        map.add(senderIdParameterName, smsSender);
+        
 		/*
 		 * populateSmsPriority(sms.getPriority(), map);
 		 * populateAdditionalSmsParameters(map);
@@ -132,11 +133,11 @@ public class SmsProperties1 {
     private String mobileNumberPrefix;
 
 	
-	  @Value("#{'${sms.error.codes}'.split(',')}")
+    /* @Value("#{'${sms.error.codes}'.split(',')}")
 	  
 	  @Getter private List<String> smsErrorCodes;
 	  
-		/*
+		
 		 * private String getSmsPriority(Priority priority) { return
 		 * getProperty(String.format(SMS_PRIORITY_PARAM_VALUE, priority.toString())); }
 		 */

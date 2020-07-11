@@ -83,20 +83,23 @@ public class ExternalSMSService implements SMSService {
     private SmsProperties1 smsProperties;
     private RestTemplate restTemplate;
 
-    @Value("${sms.sender.requestType:POST}")
-    private String requestType;
+	/*
+	 * @Value("${sms.sender.requestType:POST}") private String requestType;
+	 */
 
-    @Value("${sms.verify.response:false}")
-    private boolean verifyResponse;
-
-    @Value("${sms.verify.responseContains:}")
-    private String verifyResponseContains;
+	/*
+	 * @Value("${sms.verify.response:false}") private boolean verifyResponse;
+	 * 
+	 * @Value("${sms.verify.responseContains:}") private String
+	 * verifyResponseContains;
+	 */
 
     @Value("${sms.verify.ssl:true}")
     private boolean verifySSL;
 
-    @Value("${sms.url.dont_encode_url:true}")
-    private boolean dontEncodeURL;
+	
+	/* @Value("${sms.url.dont_encode_url:true}") private boolean dontEncodeURL; */
+	 
 
 
     @Autowired
@@ -147,54 +150,65 @@ public class ExternalSMSService implements SMSService {
         try {
         	
             String url = smsProperties.getSmsProviderURL();
-            System.out.println("about to send : "+url );
-            ResponseEntity<String> response = new ResponseEntity<String>(HttpStatus.OK);
+            /*ResponseEntity<String> response = new ResponseEntity<String>(HttpStatus.OK);
             if (requestType.equals("POST")) {
             	System.out.println("in post");
                 HttpEntity<MultiValueMap<String, String>> request = getRequest(sms);
                 response = restTemplate.postForEntity(url, request, String.class);
+                System.out.println(""+response);
                 if (isResponseCodeInKnownErrorCodeList(response)) {
                     throw new RuntimeException(SMS_RESPONSE_NOT_SUCCESSFUL);
                 }
-            } else {
-            	System.out.println("else post");
+            } else {*/
                 final MultiValueMap<String, String> requestBody = smsProperties.getSmsRequestBody(sms);
 
 
                 String final_url = UriComponentsBuilder.fromHttpUrl(url).queryParams(requestBody).toUriString();
 
-                if (dontEncodeURL) {
-                    final_url = final_url.replace("%20", " ").replace("%2B", "+");
-                }
-
+				/*
+				 * if (dontEncodeURL) { final_url = final_url.replace("%20", " ").replace("%2B",
+				 * "+"); }
+				 */
+                System.out.println("final url "+final_url);
                 String responseString = restTemplate.getForObject(final_url, String.class);
-
-                if (verifyResponse && !responseString.contains(verifyResponseContains)) {
-                    LOGGER.error("Response from API - " + responseString);
-                    throw new RuntimeException(SMS_RESPONSE_NOT_SUCCESSFUL);
-                }
-            }
+                System.out.println("responsestring "+responseString);
+				/*
+				 * if (verifyResponse && !responseString.contains(verifyResponseContains)) {
+				 * LOGGER.error("Response from API - " + responseString); throw new
+				 * RuntimeException(SMS_RESPONSE_NOT_SUCCESSFUL); }
+				 */
+          //  }
 
         } catch (RestClientException e) {
             LOGGER.error("Error occurred while sending SMS to " + sms.getMobileNumber(), e);
             throw e;
         }
+        catch(Exception e) {
+        	e.printStackTrace();
+        	LOGGER.error("Error occurred while sending SMS to : " + sms.getMobileNumber(), e);
+            throw e;
+        }
     }
 
-    private boolean isResponseCodeInKnownErrorCodeList(ResponseEntity<?> response) {
-        final String responseCode = Integer.toString(response.getStatusCodeValue());
-        return smsProperties.getSmsErrorCodes().stream().anyMatch(errorCode -> errorCode.equals(responseCode));
-    }
+	/*
+	 * private boolean isResponseCodeInKnownErrorCodeList(ResponseEntity<?>
+	 * response) { final String responseCode =
+	 * Integer.toString(response.getStatusCodeValue()); return
+	 * smsProperties.getSmsErrorCodes().stream().anyMatch(errorCode ->
+	 * errorCode.equals(responseCode)); }
+	 */
 
-    private HttpEntity<MultiValueMap<String, String>> getRequest(Sms sms) {
-        final MultiValueMap<String, String> requestBody = smsProperties.getSmsRequestBody(sms);
-        return new HttpEntity<>(requestBody, getHttpHeaders());
-    }
+	/*
+	 * private HttpEntity<MultiValueMap<String, String>> getRequest(Sms sms) { final
+	 * MultiValueMap<String, String> requestBody =
+	 * smsProperties.getSmsRequestBody(sms); return new HttpEntity<>(requestBody,
+	 * getHttpHeaders()); }
+	 */
 
-    private HttpHeaders getHttpHeaders() {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-        return headers;
-    }
+	/*
+	 * private HttpHeaders getHttpHeaders() { HttpHeaders headers = new
+	 * HttpHeaders(); headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+	 * return headers; }
+	 */
 
 }
