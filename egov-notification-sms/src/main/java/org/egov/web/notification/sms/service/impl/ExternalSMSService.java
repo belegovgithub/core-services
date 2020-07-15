@@ -90,7 +90,7 @@ public class ExternalSMSService implements SMSService {
     private void submitToExternalSmsService(Sms sms) {
         try {
         	KeyStore trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
-    		File file = new File(System.getenv("JAVA_HOME")+"\\lib\\security\\cacerts");
+    		File file = new File(System.getenv("JAVA_HOME")+"/lib/security/cacerts");
             InputStream is = new FileInputStream(file);
     		trustStore.load(is, "changeit".toCharArray());
     		TrustManagerFactory trustFactory = TrustManagerFactory
