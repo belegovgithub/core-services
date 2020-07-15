@@ -41,36 +41,28 @@
 package org.egov.web.notification.sms.service.impl;
 
 
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.URL;
+import java.security.KeyStore;
 
+import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.TrustManagerFactory;
 
-import org.apache.http.conn.ssl.NoopHostnameVerifier;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.conn.ssl.TrustStrategy;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
 import org.egov.web.notification.sms.config.SmsProperties1;
 import org.egov.web.notification.sms.models.Sms;
 import org.egov.web.notification.sms.service.SMSService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
-import org.springframework.util.MultiValueMap;
-import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriComponentsBuilder;
 
 
 @Service
@@ -78,60 +70,12 @@ import org.springframework.web.util.UriComponentsBuilder;
 public class ExternalSMSService implements SMSService {
     private static final Logger LOGGER = LoggerFactory.getLogger(ExternalSMSService.class);
 
-    private static final String SMS_RESPONSE_NOT_SUCCESSFUL = "Sms response not successful";
-
     private SmsProperties1 smsProperties;
-    private RestTemplate restTemplate;
-
-    @Value("${sms.sender.requestType:POST}")
-    private String requestType;
-
-    @Value("${sms.verify.response:false}")
-    private boolean verifyResponse;
-
-    @Value("${sms.verify.responseContains:}")
-    private String verifyResponseContains;
-
-    @Value("${sms.verify.ssl:true}")
-    private boolean verifySSL;
-
-    @Value("${sms.url.dont_encode_url:true}")
-    private boolean dontEncodeURL;
-
 
     @Autowired
     public ExternalSMSService(SmsProperties1 smsProperties, RestTemplate restTemplate) {
 
         this.smsProperties = smsProperties;
-        this.restTemplate = restTemplate;
-
-        if (!verifySSL) {
-        	System.out.println("indide ssl check");
-            TrustStrategy acceptingTrustStrategy = new TrustStrategy() {
-                @Override
-                public boolean isTrusted(java.security.cert.X509Certificate[] x509Certificates, String s) {
-                    return true;
-                }
-
-            };
-
-            SSLContext sslContext = null;
-            try {
-                sslContext = org.apache.http.ssl.SSLContexts.custom().loadTrustMaterial(null, acceptingTrustStrategy)
-                        .build();
-            } catch (NoSuchAlgorithmException e) {
-                e.printStackTrace();
-            } catch (KeyManagementException e) {
-                e.printStackTrace();
-            } catch (KeyStoreException e) {
-                e.printStackTrace();
-            }
-            SSLConnectionSocketFactory csf = new SSLConnectionSocketFactory(sslContext, new NoopHostnameVerifier());
-            CloseableHttpClient httpClient = HttpClients.custom().setSSLSocketFactory(csf).build();
-            HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
-            requestFactory.setHttpClient(httpClient);
-            restTemplate.setRequestFactory(requestFactory);
-        }
     }
 
     @Override
@@ -145,56 +89,61 @@ public class ExternalSMSService implements SMSService {
 
     private void submitToExternalSmsService(Sms sms) {
         try {
-        	
-            String url = smsProperties.getSmsProviderURL();
-            System.out.println("about to send : "+url );
-            ResponseEntity<String> response = new ResponseEntity<String>(HttpStatus.OK);
-            if (requestType.equals("POST")) {
-            	System.out.println("in post");
-                HttpEntity<MultiValueMap<String, String>> request = getRequest(sms);
-                response = restTemplate.postForEntity(url, request, String.class);
-                if (isResponseCodeInKnownErrorCodeList(response)) {
-                    throw new RuntimeException(SMS_RESPONSE_NOT_SUCCESSFUL);
-                }
-            } else {
-            	System.out.println("else post");
-                final MultiValueMap<String, String> requestBody = smsProperties.getSmsRequestBody(sms);
-
-
-                String final_url = UriComponentsBuilder.fromHttpUrl(url).queryParams(requestBody).toUriString();
-
-                if (dontEncodeURL) {
-                    final_url = final_url.replace("%20", " ").replace("%2B", "+");
-                }
-
-                String responseString = restTemplate.getForObject(final_url, String.class);
-
-                if (verifyResponse && !responseString.contains(verifyResponseContains)) {
-                    LOGGER.error("Response from API - " + responseString);
-                    throw new RuntimeException(SMS_RESPONSE_NOT_SUCCESSFUL);
-                }
-            }
-
-        } catch (RestClientException e) {
-            LOGGER.error("Error occurred while sending SMS to " + sms.getMobileNumber(), e);
-            throw e;
+        	KeyStore trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
+    		File file = new File(System.getenv("JAVA_HOME")+"/lib/security/cacerts");
+            InputStream is = new FileInputStream(file);
+    		trustStore.load(is, "changeit".toCharArray());
+    		TrustManagerFactory trustFactory = TrustManagerFactory
+    				.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+    		trustFactory.init(trustStore);
+    		
+    		TrustManager[] trustManagers = trustFactory.getTrustManagers();
+    		SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
+    		
+    		sslContext.init(null, trustManagers, null);
+    		SSLContext.setDefault(sslContext);
+			String url = smsProperties.getSmsProviderURL();
+			String data = smsProperties.queryParams(sms);
+			System.out.println("ssl check done. URL about to hit");
+			HttpsURLConnection conn = (HttpsURLConnection) new URL(url).openConnection();
+			conn.setSSLSocketFactory(sslContext.getSocketFactory());
+			conn.setDoOutput(true);
+			conn.setRequestMethod("POST");
+			conn.setRequestProperty("Content-Length", Integer.toString(data.length()));
+			conn.getOutputStream().write(data.getBytes("UTF-8"));
+			final BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+			final StringBuffer stringBuffer = new StringBuffer();
+			String line;
+			while ((line = rd.readLine()) != null) {
+				stringBuffer.append(line);
+			}
+			rd.close();
+        }
+        catch(Exception e) {
+        	e.printStackTrace();
+        	LOGGER.error("Error occurred while sending SMS to : " + sms.getMobileNumber(), e);
         }
     }
 
-    private boolean isResponseCodeInKnownErrorCodeList(ResponseEntity<?> response) {
-        final String responseCode = Integer.toString(response.getStatusCodeValue());
-        return smsProperties.getSmsErrorCodes().stream().anyMatch(errorCode -> errorCode.equals(responseCode));
-    }
+	/*
+	 * private boolean isResponseCodeInKnownErrorCodeList(ResponseEntity<?>
+	 * response) { final String responseCode =
+	 * Integer.toString(response.getStatusCodeValue()); return
+	 * smsProperties.getSmsErrorCodes().stream().anyMatch(errorCode ->
+	 * errorCode.equals(responseCode)); }
+	 */
 
-    private HttpEntity<MultiValueMap<String, String>> getRequest(Sms sms) {
-        final MultiValueMap<String, String> requestBody = smsProperties.getSmsRequestBody(sms);
-        return new HttpEntity<>(requestBody, getHttpHeaders());
-    }
+	/*
+	 * private HttpEntity<MultiValueMap<String, String>> getRequest(Sms sms) { final
+	 * MultiValueMap<String, String> requestBody =
+	 * smsProperties.getSmsRequestBody(sms); return new HttpEntity<>(requestBody,
+	 * getHttpHeaders()); }
+	 */
 
-    private HttpHeaders getHttpHeaders() {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-        return headers;
-    }
+	/*
+	 * private HttpHeaders getHttpHeaders() { HttpHeaders headers = new
+	 * HttpHeaders(); headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+	 * return headers; }
+	 */
 
 }
