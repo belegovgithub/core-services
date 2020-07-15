@@ -42,6 +42,9 @@ package org.egov.web.notification.sms.service.impl;
 
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.security.KeyStore;
@@ -86,17 +89,19 @@ public class ExternalSMSService implements SMSService {
 
     private void submitToExternalSmsService(Sms sms) {
         try {
-        	
-			KeyStore trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
-			TrustManagerFactory trustFactory = TrustManagerFactory
-					.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-			trustFactory.init(trustStore);
-			
-			TrustManager[] trustManagers = trustFactory.getTrustManagers();
-			SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
-			
-			sslContext.init(null, trustManagers, null);
-			SSLContext.setDefault(sslContext);
+        	KeyStore trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
+    		File file = new File(System.getenv("JAVA_HOME")+"\\lib\\security\\cacerts");
+            InputStream is = new FileInputStream(file);
+    		trustStore.load(is, "changeit".toCharArray());
+    		TrustManagerFactory trustFactory = TrustManagerFactory
+    				.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+    		trustFactory.init(trustStore);
+    		
+    		TrustManager[] trustManagers = trustFactory.getTrustManagers();
+    		SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
+    		
+    		sslContext.init(null, trustManagers, null);
+    		SSLContext.setDefault(sslContext);
 			String url = smsProperties.getSmsProviderURL();
 			String data = smsProperties.queryParams(sms);
 			System.out.println("ssl check done. URL about to hit");
