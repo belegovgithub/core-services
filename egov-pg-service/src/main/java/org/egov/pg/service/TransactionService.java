@@ -38,7 +38,6 @@ public class TransactionService {
     private AppProperties appProperties;
     private TransactionRepository transactionRepository;
     private PaymentsService paymentsService;
-    @Autowired
     private PgDetailRepository pgDetailRepository;
 
     @Autowired
@@ -46,7 +45,7 @@ public class TransactionService {
                        TransactionRepository
                                transactionRepository, PaymentsService paymentsService,
                        EnrichmentService enrichmentService,
-                       AppProperties appProperties) {
+                       AppProperties appProperties,PgDetailRepository pgDetailRepository) {
         this.validator = validator;
         this.gatewayService = gatewayService;
         this.producer = producer;
@@ -54,6 +53,7 @@ public class TransactionService {
         this.paymentsService = paymentsService;
         this.enrichmentService = enrichmentService;
         this.appProperties = appProperties;
+        this.pgDetailRepository=pgDetailRepository;
     }
 
     /**

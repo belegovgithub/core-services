@@ -56,15 +56,15 @@ public class PgDetailRepository {
             if( response.getPgDetail().size() == 1 )
                 return response.getPgDetail().get(0);
             else {
-                log.error("Expected to find one bank account for tenant " +
+                log.error("Expected to fetch payment gateway detail for tenant " +
                         "{}, instead found {}", tenantId, response.getPgDetail().size());
                 throw new CustomException("PG_DETAIL_FETCH_ERROR", "Unable to fetch payment gateway credential");
             }
         } catch (HttpClientErrorException e) {
-            log.error("Unable to fetch bank account for tenant " + tenantId, e);
+            log.error("Unable to fetch payment gateway detail for tenant " + tenantId, e);
             throw new ServiceCallException(e.getResponseBodyAsString());
         } catch (Exception e) {
-            log.error("Unable to fetch bank account for tenant "+ tenantId, e);
+            log.error("Unable to fetch payment gateway detail for tenant "+ tenantId, e);
             throw new CustomException("PG_DETAIL_SEARCH_ERROR", "Failed to fetch payment gateway credential, unknown error " +
                     "occurred");
         }

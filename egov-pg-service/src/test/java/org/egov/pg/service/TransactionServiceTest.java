@@ -4,10 +4,12 @@ import org.egov.common.contract.request.RequestInfo;
 import org.egov.pg.config.AppProperties;
 import org.egov.pg.models.Bill;
 import org.egov.pg.models.BillDetail;
+import org.egov.pg.models.PgDetail;
 import org.egov.pg.models.Receipt;
 import org.egov.pg.models.Transaction;
 import org.egov.pg.models.Transaction.TxnStatusEnum;
 import org.egov.pg.producer.Producer;
+import org.egov.pg.repository.PgDetailRepository;
 import org.egov.pg.repository.TransactionRepository;
 import org.egov.pg.validator.TransactionValidator;
 import org.egov.pg.web.models.TransactionCriteria;
@@ -62,6 +64,9 @@ public class TransactionServiceTest {
     
     @Mock
     private PaymentsService paymentsService;
+    
+    @Mock
+    private PgDetailRepository pgDetailRepository;
 
     private User user;
     private RequestInfo requestInfo;
@@ -81,7 +86,7 @@ public class TransactionServiceTest {
         this.transactionService = new TransactionService(validator, gatewayService, producer, transactionRepository,
         		paymentsService,
                 enrichmentService,
-                appProperties);
+                appProperties,pgDetailRepository);
     }
 
     /**
@@ -204,7 +209,11 @@ public class TransactionServiceTest {
                 .productInfo("Property Tax Payment")
                 .gateway("PAYTM")
                 .build();
-
+        PgDetail pgDetail = PgDetail.builder().merchantId("merchantId")
+        		.merchantUserName("merchantUserName").merchantPassword("merchantPassword")
+        		.merchantSecretKey("merchantSecretKey").merchantServiceId("merchantServiceId")
+        		.build();
+        when(pgDetailRepository.getPgDetailByTenantId(requestInfo, "pb")).thenReturn(pgDetail);
         when(validator.validateUpdateTxn(any(Map.class))).thenReturn(txnStatus);
         when(validator.skipGateway(any(Transaction.class))).thenReturn(false);
         when(validator.shouldGenerateReceipt(any(Transaction.class), any(Transaction.class))).thenReturn(true);
