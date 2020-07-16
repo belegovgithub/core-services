@@ -1,5 +1,5 @@
 
-FROM egovio/alpine-maven-builder-jdk-8:gcp AS build  
+FROM egovio/alpine-maven-builder-jdk-8:10-helm-6036091e AS build  
 ARG WORK_DIR
 WORKDIR /app
 
@@ -22,6 +22,8 @@ WORKDIR /opt/egov
 
 COPY --from=build /app/target/*.jar /app/start.sh /opt/egov/
 
-RUN chmod +x /opt/egov/start.sh
+COPY build/cacerts /etc/ssl/certs/java/cacerts
+
+RUN chown root:root /etc/ssl/certs/java/cacerts && chmod 0444 /etc/ssl/certs/java/cacerts && chmod +x /opt/egov/start.sh
 
 CMD ["/opt/egov/start.sh"]
