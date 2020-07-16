@@ -4,6 +4,8 @@ const envVariables = {
     process.env.EGOV_LOCALISATION_HOST || "http://egov-localization:8080",
   EGOV_FILESTORE_SERVICE_HOST:
     process.env.EGOV_FILESTORE_SERVICE_HOST || "http://egov-filestore:8080",
+  EGOV_HOST:
+    process.env.EGOV_HOST || "https://13.71.65.215.nip.io/",    
   SERVER_PORT: process.env.SERVER_PORT || 8080,
 
   KAFKA_BROKER_HOST: process.env.KAFKA_BROKER_HOST || "localhost:9092",
