@@ -27,10 +27,12 @@ public class RedirectController {
 
     @RequestMapping(value = "/transaction/v1/_redirect", method = RequestMethod.POST, consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     public ResponseEntity<Object> method(@RequestBody MultiValueMap<String, String> formData) {
-
+    	log.error("RedirectController.method()" + formData);
+    	    	
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.setLocation(UriComponentsBuilder.fromHttpUrl(formData.get(returnUrlKey).get(0))
                 .queryParams(formData).build().encode().toUri());
+        log.error(httpHeaders!=null ? httpHeaders.toString(): "http header is null ");
         return new ResponseEntity<>(httpHeaders, HttpStatus.FOUND);
     }
 
