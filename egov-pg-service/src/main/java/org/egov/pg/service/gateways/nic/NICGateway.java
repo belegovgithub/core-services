@@ -130,7 +130,7 @@ public class NICGateway implements Gateway {
          queryMap.put(CUSTOMER_ID_KEY, transaction.getUser().getUuid());
          queryMap.put(TRANSACTION_AMOUNT_KEY, String.valueOf(Utils.formatAmtAsPaise(transaction.getTxnAmount())));
          queryMap.put(CURRENCY_CODE_KEY,CURRENCY_CODE);
-         SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyyHH:mm:SSS");
+         SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy HH:mm:SS");
      	 queryMap.put(REQUEST_DATE_TIME_KEY, format.format(new Date()));
          queryMap.put(SUCCESS_URL_KEY, getReturnUrl(transaction.getCallbackUrl(), REDIRECT_URL));
          queryMap.put(FAIL_URL_KEY, getReturnUrl(transaction.getCallbackUrl(), REDIRECT_URL));
