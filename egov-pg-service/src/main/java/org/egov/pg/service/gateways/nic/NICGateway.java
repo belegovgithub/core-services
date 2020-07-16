@@ -43,7 +43,7 @@ import java.util.TreeMap;
 import static org.egov.pg.constants.TransactionAdditionalFields.BANK_ACCOUNT_NUMBER;
 
 /**
- * AXIS Gateway implementation
+ * NIC Gateway implementation
  */
 @Component
 @Slf4j
@@ -80,6 +80,7 @@ public class NICGateway implements Gateway {
     private final String ADDITIONAL_FIELD3_KEY = "additionalFeild3";
     private final String ADDITIONAL_FIELD4_KEY = "additionalFeild4";
     private final String ADDITIONAL_FIELD5_KEY = "additionalFeild5";
+    private final String ADDITIONAL_FIELD_VALUE = "111111";
     private final String GATEWAY_TRANSACTION_STATUS_URL;
     private final String GATEWAY_URL;
     private static final String SEPERATOR ="|";
@@ -137,11 +138,11 @@ public class NICGateway implements Gateway {
      	 queryMap.put(REQUEST_DATE_TIME_KEY, format.format(new Date()));
          queryMap.put(SUCCESS_URL_KEY, getReturnUrl(transaction.getCallbackUrl(), REDIRECT_URL));
          queryMap.put(FAIL_URL_KEY, getReturnUrl(transaction.getCallbackUrl(), REDIRECT_URL));
-         queryMap.put(ADDITIONAL_FIELD1_KEY, ""); //Not in use 
-         queryMap.put(ADDITIONAL_FIELD2_KEY, ""); //Not in use 
-         queryMap.put(ADDITIONAL_FIELD3_KEY, ""); //Not in use 
-         queryMap.put(ADDITIONAL_FIELD4_KEY, ""); //Not in use 
-         queryMap.put(ADDITIONAL_FIELD5_KEY, ""); //Not in use 
+         queryMap.put(ADDITIONAL_FIELD1_KEY, ADDITIONAL_FIELD_VALUE); //Not in use 
+         queryMap.put(ADDITIONAL_FIELD2_KEY, ADDITIONAL_FIELD_VALUE); //Not in use 
+         queryMap.put(ADDITIONAL_FIELD3_KEY, ADDITIONAL_FIELD_VALUE); //Not in use 
+         queryMap.put(ADDITIONAL_FIELD4_KEY, ADDITIONAL_FIELD_VALUE); //Not in use 
+         queryMap.put(ADDITIONAL_FIELD5_KEY, ADDITIONAL_FIELD_VALUE); //Not in use 
          
          
          
