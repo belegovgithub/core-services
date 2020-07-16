@@ -2,6 +2,8 @@ package org.egov.pg.service.gateways.paytm;
 
 import com.paytm.pg.merchant.CheckSumServiceHelper;
 import lombok.extern.slf4j.Slf4j;
+
+import org.egov.pg.models.PgDetail;
 import org.egov.pg.models.Transaction;
 import org.egov.pg.service.Gateway;
 import org.egov.pg.utils.Utils;
@@ -158,9 +160,10 @@ public class PaytmGateway implements Gateway {
 
     }
 
-	@Override
-	public String generateRedirectURIPost(Transaction transaction) {
+    @Override
+	public String generateRedirectURI(Transaction transaction, PgDetail pgDetail) {
 		// TODO Auto-generated method stub
 		return null;
 	}
+
 }

@@ -7,10 +7,12 @@ import java.util.Map;
 
 import org.egov.common.contract.request.RequestInfo;
 import org.egov.pg.config.AppProperties;
+import org.egov.pg.models.PgDetail;
 import org.egov.pg.models.Transaction;
 import org.egov.pg.models.TransactionDump;
 import org.egov.pg.models.TransactionDumpRequest;
 import org.egov.pg.producer.Producer;
+import org.egov.pg.repository.PgDetailRepository;
 import org.egov.pg.repository.TransactionRepository;
 import org.egov.pg.validator.TransactionValidator;
 import org.egov.pg.web.models.TransactionCriteria;
@@ -36,7 +38,8 @@ public class TransactionService {
     private AppProperties appProperties;
     private TransactionRepository transactionRepository;
     private PaymentsService paymentsService;
- 
+    @Autowired
+    private PgDetailRepository pgDetailRepository;
 
     @Autowired
     TransactionService(TransactionValidator validator, GatewayService gatewayService, Producer producer,
@@ -89,7 +92,8 @@ public class TransactionService {
             if(uri!=null) {
             	data=uri.toString();
             }else {
-            	data = gatewayService.initiateTxnPost(transaction);
+            	PgDetail pgDetail = pgDetailRepository.getPgDetailByTenantId(transactionRequest.getRequestInfo(), transaction.getTenantId());
+            	data = gatewayService.initiateTxn(transaction,pgDetail);
             }
             transaction.setRedirectUrl(data);
         	dump.setTxnRequest(data);
@@ -151,6 +155,13 @@ public class TransactionService {
             newTxn = currentTxnStatus;
 
         } else{
+        	PgDetail pgDetail = pgDetailRepository.getPgDetailByTenantId(requestInfo, currentTxnStatus.getTenantId());
+        	if(pgDetail!=null) {
+        		requestParams.put("merchantUserName", pgDetail.getMerchantUserName());
+        		requestParams.put("merchantPassword", pgDetail.getMerchantPassword());
+        		requestParams.put("merchantId", pgDetail.getMerchantId());
+        		requestParams.put("merchantSecretKey", pgDetail.getMerchantSecretKey());
+        	}
             newTxn = gatewayService.getLiveStatus(currentTxnStatus, requestParams);
 
             // Enrich the new transaction status before persisting

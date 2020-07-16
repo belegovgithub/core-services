@@ -45,6 +45,10 @@ public class AppProperties {
 
     private final String bankAccountPath;
 
+    private final String pgDetailHost;
+
+	private final String pgDetailPath;
+    
     @Autowired
     public AppProperties(Environment environment){
         this.earlyReconcileJobRunInterval = Integer.valueOf(environment.getRequiredProperty("pg.earlyReconcileJobRunInterval.mins"));
@@ -63,6 +67,8 @@ public class AppProperties {
         this.bankAccountPath = environment.getRequiredProperty("egov.bankaccountservice.path");
         this.paymentCreatePath = environment.getRequiredProperty("egov.collectionservice.payment.create.path");
         this.paymentValidatePath = environment.getRequiredProperty("egov.collectionservice.payment.validate.path");
+        this.pgDetailHost = environment.getRequiredProperty("egov.pgdetail.host");
+        this.pgDetailPath = environment.getRequiredProperty("egov.pgdetail.path");
     }
 
 }

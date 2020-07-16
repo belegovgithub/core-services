@@ -5,7 +5,10 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+
+import org.egov.pg.models.PgDetail;
 import org.egov.pg.models.Transaction;
+import org.egov.pg.repository.PgDetailRepository;
 import org.egov.pg.service.Gateway;
 import org.egov.pg.service.gateways.ccavenue.CCAvenueStatusResponse;
 import org.egov.pg.utils.Utils;
@@ -48,11 +51,9 @@ public class NICGateway implements Gateway {
 
     private static final String GATEWAY_NAME = "NIC";
     private final String MESSAGE_TYPE;
-    private final String MERCHANT_ID; 
  
-    private final String SECURE_SECRET;
-    private final String AMA_USER;
-    private final String AMA_PWD;
+ 
+ 
  
     private final String CURRENCY_CODE;
 
@@ -82,6 +83,9 @@ public class NICGateway implements Gateway {
     private final String GATEWAY_TRANSACTION_STATUS_URL;
     private final String GATEWAY_URL;
     private static final String SEPERATOR ="|";
+    private String TX_DATE_FORMAT;
+    
+    
     
     /**
      * Initialize by populating all required config parameters
@@ -97,15 +101,13 @@ public class NICGateway implements Gateway {
         MESSAGE_TYPE = environment.getRequiredProperty("nic.messageType");
         
         CURRENCY_CODE = environment.getRequiredProperty("nic.currency");
-        MERCHANT_ID = environment.getRequiredProperty("nic.merchant.id");
-        SECURE_SECRET = environment.getRequiredProperty("nic.merchant.secret.key");
-        AMA_USER = environment.getRequiredProperty("nic.merchant.user");
-        AMA_PWD = environment.getRequiredProperty("nic.merchant.pwd");
+        
         
         REDIRECT_URL = environment.getRequiredProperty("nic.redirect.url");
         ORIGINAL_RETURN_URL_KEY = environment.getRequiredProperty("nic.original.return.url.key");
         GATEWAY_TRANSACTION_STATUS_URL = environment.getRequiredProperty("nic.gateway.status.url");
         GATEWAY_URL = environment.getRequiredProperty("nic.gateway.url");
+        TX_DATE_FORMAT =environment.getRequiredProperty("nic.dateformat");
     }
 
     @Override
@@ -114,8 +116,9 @@ public class NICGateway implements Gateway {
     }
     
     @Override
-    public String generateRedirectURIPost(Transaction transaction) {
-		/*
+    public String generateRedirectURI(Transaction transaction, PgDetail pgDetail) {
+    	
+    	/*
 		 * 
 		 messageType|merchantId|serviceId|orderId|customerId|transactionAmount|currencyCode|r
 		equestDateTime|successUrl|failUrl|additionalFeild1| additionalFeild2| additionalFeild3|
@@ -124,13 +127,13 @@ public class NICGateway implements Gateway {
     	String urlData =null;
     	HashMap<String, String> queryMap = new HashMap<>();
          queryMap.put(MESSAGE_TYPE_KEY, MESSAGE_TYPE);
-         queryMap.put(MERCHANT_ID_KEY, MERCHANT_ID);
-         queryMap.put(SERVICE_ID_KEY, "SecunderabadChhawani");
+         queryMap.put(MERCHANT_ID_KEY, pgDetail.getMerchantId());
+         queryMap.put(SERVICE_ID_KEY, pgDetail.getMerchantServiceId());
          queryMap.put(ORDER_ID_KEY, transaction.getTxnId());
          queryMap.put(CUSTOMER_ID_KEY, transaction.getUser().getUuid());
          queryMap.put(TRANSACTION_AMOUNT_KEY, String.valueOf(Utils.formatAmtAsPaise(transaction.getTxnAmount())));
          queryMap.put(CURRENCY_CODE_KEY,CURRENCY_CODE);
-         SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy HH:mm:SS");
+         SimpleDateFormat format = new SimpleDateFormat(TX_DATE_FORMAT);
      	 queryMap.put(REQUEST_DATE_TIME_KEY, format.format(new Date()));
          queryMap.put(SUCCESS_URL_KEY, getReturnUrl(transaction.getCallbackUrl(), REDIRECT_URL));
          queryMap.put(FAIL_URL_KEY, getReturnUrl(transaction.getCallbackUrl(), REDIRECT_URL));
@@ -141,7 +144,6 @@ public class NICGateway implements Gateway {
          queryMap.put(ADDITIONAL_FIELD5_KEY, ""); //Not in use 
          
          
-         System.out.println("queryMap  "+ queryMap);
          
          //Generate Checksum for params  
          ArrayList<String> fields = new ArrayList<String>();
@@ -162,7 +164,7 @@ public class NICGateway implements Gateway {
      	fields.add(queryMap.get(ADDITIONAL_FIELD5_KEY));
      	
         String message = String.join("|", fields);
-     	queryMap.put("checksum", NICUtils.generateCRC32Checksum(message, SECURE_SECRET));
+     	queryMap.put("checksum", NICUtils.generateCRC32Checksum(message, pgDetail.getMerchantSecretKey()));
      	queryMap.put("txURL",GATEWAY_URL);
      	ObjectMapper mapper = new ObjectMapper();
      	try {
@@ -188,16 +190,16 @@ public class NICGateway implements Gateway {
     public Transaction fetchStatus(Transaction currentStatus, Map<String, String> param) {
 
         try {
-        	String requestmsg =SEPERATOR+ MERCHANT_ID +SEPERATOR+currentStatus.getTxnId();
+        	String requestmsg =SEPERATOR+ param.get("merchantId") +SEPERATOR+currentStatus.getTxnId();
             HashMap<String, String> params = new HashMap<>();
-            params.put("username", AMA_USER);
-            params.put("password", AMA_PWD);
+            params.put("username", param.get("merchantUserName"));
+            params.put("password", param.get("merchantPassword"));
             params.put("request_Msg", requestmsg); 
             UriComponents uriComponents = UriComponentsBuilder.fromHttpUrl(GATEWAY_TRANSACTION_STATUS_URL)
                     .buildAndExpand(params).encode();
             log.debug("Status URL : "+uriComponents.toUri());
             ResponseEntity<String> response = restTemplate.postForEntity(uriComponents.toUri(),"", String.class);
-            Transaction transaction = transformRawResponse(response.getBody(), currentStatus);
+            Transaction transaction = transformRawResponse(response.getBody(), currentStatus, param.get("merchantSecretKey"));
             log.info("Updated transaction : " + transaction.toString());
             return transaction;
         } catch (RestClientException e) {
@@ -227,7 +229,7 @@ public class NICGateway implements Gateway {
 
      
 
-    private Transaction transformRawResponse(String resp, Transaction currentStatus)
+    private Transaction transformRawResponse(String resp, Transaction currentStatus, String secretKey)
             throws JsonParseException, JsonMappingException, IOException {
     	log.info("NICGateway.transformRawResponse()"+resp);
         Transaction.TxnStatusEnum status = Transaction.TxnStatusEnum.PENDING;
@@ -240,7 +242,7 @@ public class NICGateway implements Gateway {
         	log.info(" respMap.get(\"msg\")+> "+respMap.get("msg"));
         	//Validate the response against the checksum
         	
-        	NICUtils.validateTransaction(respMap.get("msg"), SECURE_SECRET);
+        	NICUtils.validateTransaction(respMap.get("msg"), secretKey);
         	
         	statusResponse = decodeResponseMsg(respMap.get("msg"));
         	log.info(" statusResponse => "+statusResponse);

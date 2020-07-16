@@ -2,6 +2,8 @@ package org.egov.pg.service.gateways.axis;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+
+import org.egov.pg.models.PgDetail;
 import org.egov.pg.models.Transaction;
 import org.egov.pg.service.Gateway;
 import org.egov.pg.utils.Utils;
@@ -315,9 +317,11 @@ public class AxisGateway implements Gateway {
     }
 
 	@Override
-	public String generateRedirectURIPost(Transaction transaction) {
+	public String generateRedirectURI(Transaction transaction, PgDetail pgDetail) {
 		// TODO Auto-generated method stub
 		return null;
 	}
+
+	 
 
 }

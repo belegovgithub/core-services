@@ -3,6 +3,8 @@ package org.egov.pg.service.gateways.payu;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+
+import org.egov.pg.models.PgDetail;
 import org.egov.pg.models.Transaction;
 import org.egov.pg.service.Gateway;
 import org.egov.pg.utils.Utils;
@@ -268,10 +270,11 @@ public class PayuGateway implements Gateway {
         return hexString.toString();
     }
 
-	@Override
-	public String generateRedirectURIPost(Transaction transaction) {
+    @Override
+	public String generateRedirectURI(Transaction transaction, PgDetail pgDetail) {
 		// TODO Auto-generated method stub
 		return null;
 	}
+
 
 }

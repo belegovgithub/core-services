@@ -12,6 +12,7 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import org.egov.pg.models.PgDetail;
 import org.egov.pg.models.Transaction;
 import org.egov.pg.service.Gateway;
 import org.egov.pg.utils.Utils;
@@ -198,9 +199,10 @@ public class CCAvenueGateway implements Gateway {
         }
     }
 
-	@Override
-	public String generateRedirectURIPost(Transaction transaction) {
+    @Override
+	public String generateRedirectURI(Transaction transaction, PgDetail pgDetail) {
 		// TODO Auto-generated method stub
 		return null;
 	}
+
 }

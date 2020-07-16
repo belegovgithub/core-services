@@ -1,5 +1,6 @@
 package org.egov.pg.service;
 
+import org.egov.pg.models.PgDetail;
 import org.egov.pg.models.Transaction;
 
 import java.net.URI;
@@ -66,5 +67,5 @@ public interface Gateway {
      * @param transaction for which payment gateway redirect URI is to be generated
      * @return redirect URL with parameter 
      */
-	String generateRedirectURIPost(Transaction transaction);
+	String generateRedirectURI(Transaction transaction, PgDetail pgDetail);
 }
