@@ -2,6 +2,7 @@ package org.egov.pg.service;
 
 import java.net.URI;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -146,8 +147,8 @@ public class TransactionService {
 
         Transaction currentTxnStatus = validator.validateUpdateTxn(requestParams);
 
-        log.debug(currentTxnStatus.toString());
-        log.debug(requestParams.toString());
+        log.debug("Current Tx Status "+currentTxnStatus.toString());
+        log.debug("Request param "+ requestParams.toString());
 
         Transaction newTxn = null;
 
@@ -157,12 +158,19 @@ public class TransactionService {
         } else{
         	PgDetail pgDetail = pgDetailRepository.getPgDetailByTenantId(requestInfo, currentTxnStatus.getTenantId());
         	if(pgDetail!=null) {
-        		requestParams.put("merchantUserName", pgDetail.getMerchantUserName());
-        		requestParams.put("merchantPassword", pgDetail.getMerchantPassword());
-        		requestParams.put("merchantId", pgDetail.getMerchantId());
-        		requestParams.put("merchantSecretKey", pgDetail.getMerchantSecretKey());
+        		
+        		Map<String, String> requestParamsWithGateway = new HashMap<String, String>(); 
+        		requestParamsWithGateway.put("merchantUserName", pgDetail.getMerchantUserName());
+        		requestParamsWithGateway.put("merchantPassword", pgDetail.getMerchantPassword());
+        		requestParamsWithGateway.put("merchantId", pgDetail.getMerchantId());
+        		requestParamsWithGateway.put("merchantSecretKey", pgDetail.getMerchantSecretKey());
+        		requestParamsWithGateway.putAll(requestParams);
+        		log.info("Updated Request Param "+requestParamsWithGateway);
+        		newTxn = gatewayService.getLiveStatus(currentTxnStatus, requestParamsWithGateway); 
+        	}else {
+        		newTxn = gatewayService.getLiveStatus(currentTxnStatus, requestParams);
         	}
-            newTxn = gatewayService.getLiveStatus(currentTxnStatus, requestParams);
+            
 
             // Enrich the new transaction status before persisting
             enrichmentService.enrichUpdateTransaction(new TransactionRequest(requestInfo, currentTxnStatus), newTxn);
