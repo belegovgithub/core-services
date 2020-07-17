@@ -75,11 +75,11 @@ public class NICGateway implements Gateway {
     private final String REQUEST_DATE_TIME_KEY = "requestDateTime";
     private final String SUCCESS_URL_KEY = "successUrl";
     private final String FAIL_URL_KEY = "failUrl";
-    private final String ADDITIONAL_FIELD1_KEY = "additionalFeild1";
-    private final String ADDITIONAL_FIELD2_KEY = "additionalFeild2";
-    private final String ADDITIONAL_FIELD3_KEY = "additionalFeild3";
-    private final String ADDITIONAL_FIELD4_KEY = "additionalFeild4";
-    private final String ADDITIONAL_FIELD5_KEY = "additionalFeild5";
+    private final String ADDITIONAL_FIELD1_KEY = "additionalField1";
+    private final String ADDITIONAL_FIELD2_KEY = "additionalField2";
+    private final String ADDITIONAL_FIELD3_KEY = "additionalField3";
+    private final String ADDITIONAL_FIELD4_KEY = "additionalField4";
+    private final String ADDITIONAL_FIELD5_KEY = "additionalField5";
     private final String ADDITIONAL_FIELD_VALUE = "111111";
     private final String GATEWAY_TRANSACTION_STATUS_URL;
     private final String GATEWAY_URL;
@@ -122,8 +122,8 @@ public class NICGateway implements Gateway {
     	/*
 		 * 
 		 messageType|merchantId|serviceId|orderId|customerId|transactionAmount|currencyCode|r
-		equestDateTime|successUrl|failUrl|additionalFeild1| additionalFeild2| additionalFeild3|
-		additionalFeild4| additionalFeild5
+		equestDateTime|successUrl|failUrl|additionalField1| additionalField2| additionalField3|
+		additionalField4| additionalField5
 		 */
     	String urlData =null;
     	HashMap<String, String> queryMap = new HashMap<>();
