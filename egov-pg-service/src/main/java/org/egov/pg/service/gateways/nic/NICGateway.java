@@ -16,6 +16,7 @@ import org.egov.tracer.model.CustomException;
 import org.egov.tracer.model.ServiceCallException;
 import org.omg.IOP.ServiceIdHelper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.core.env.Environment;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
@@ -82,10 +83,13 @@ public class NICGateway implements Gateway {
     private final String ADDITIONAL_FIELD5_KEY = "additionalField5";
     private final String ADDITIONAL_FIELD_VALUE = "111111";
     private final String GATEWAY_TRANSACTION_STATUS_URL;
+    private final String GATEWAY_TRANSACTION_STATUS_URL1;
+    private final String GATEWAY_TRANSACTION_STATUS_URL2;
     private final String GATEWAY_URL;
     private static final String SEPERATOR ="|";
     private String TX_DATE_FORMAT;
-    
+    @Autowired
+    private RestTemplateBuilder restTemplateBuilder;
     
     
     /**
@@ -107,6 +111,9 @@ public class NICGateway implements Gateway {
         REDIRECT_URL = environment.getRequiredProperty("nic.redirect.url");
         ORIGINAL_RETURN_URL_KEY = environment.getRequiredProperty("nic.original.return.url.key");
         GATEWAY_TRANSACTION_STATUS_URL = environment.getRequiredProperty("nic.gateway.status.url");
+        GATEWAY_TRANSACTION_STATUS_URL1 = environment.getRequiredProperty("nic.gateway.status.url1");
+        GATEWAY_TRANSACTION_STATUS_URL2 = environment.getRequiredProperty("nic.gateway.status.url2");
+        
         GATEWAY_URL = environment.getRequiredProperty("nic.gateway.url");
         TX_DATE_FORMAT =environment.getRequiredProperty("nic.dateformat");
     }
@@ -186,11 +193,54 @@ public class NICGateway implements Gateway {
                 .encode().toUriString();
     }
     
+    class RequestMsg{
+    	private String requestMsg;
+    	public RequestMsg() {
+    		
+    	}
+    	public RequestMsg(String msg) {
+    		this.requestMsg= msg;
+    	}
+		public String getRequestMsg() {
+			return requestMsg;
+		}
+		public void setRequestMsg(String requestMsg) {
+			this.requestMsg = requestMsg;
+		}
+		@Override
+		public String toString() {
+			return "RequestMsg [requestMsg=" + requestMsg + "]";
+		}
+		
+    	
+    }
+    
+    
+    class QueryApiRequest{
+    	List<RequestMsg> queryApiRequest= new ArrayList<RequestMsg>();
+
+		public List<RequestMsg> getQueryApiRequest() {
+			return queryApiRequest;
+		}
+
+		public void setQueryApiRequest(List<RequestMsg> queryApiRequest) {
+			this.queryApiRequest = queryApiRequest;
+		}
+
+		@Override
+		public String toString() {
+			return "QueryApiRequest [queryApiRequest=" + queryApiRequest + "]";
+		}
+		
+    	
+    }
 
     @Override
     public Transaction fetchStatus(Transaction currentStatus, Map<String, String> param) {
-
+    	Transaction transaction;
         try {
+        	log.debug("Approach 1: ");
+            
         	String requestmsg =SEPERATOR+ param.get("merchantId") +SEPERATOR+currentStatus.getTxnId();
             HashMap<String, String> params = new HashMap<>();
             params.put("username", param.get("merchantUserName"));
@@ -200,9 +250,9 @@ public class NICGateway implements Gateway {
                     .buildAndExpand(params).encode();
             log.debug("Status URL : "+uriComponents.toUri());
             ResponseEntity<String> response = restTemplate.postForEntity(uriComponents.toUri(),"", String.class);
-            Transaction transaction = transformRawResponse(response.getBody(), currentStatus, param.get("merchantSecretKey"));
+            transaction = transformRawResponse(response.getBody(), currentStatus, param.get("merchantSecretKey"));
             log.info("Updated transaction : " + transaction.toString());
-            return transaction;
+            
         } catch (RestClientException e) {
             log.error("Unable to fetch status from ccavenue gateway", e);
             throw new CustomException("UNABLE_TO_FETCH_STATUS", "Unable to fetch status from ccavenue gateway");
@@ -211,6 +261,49 @@ public class NICGateway implements Gateway {
             throw new CustomException("CHECKSUM_GEN_FAILED",
                     "Checksum generation failed, gateway redirect URI cannot be generated");
         }
+        try {
+        	log.debug("Approach 2: ");
+            
+        	RestTemplate template =restTemplateBuilder.basicAuthorization(param.get("merchantUserName"), param.get("merchantPassword")).build();
+        	
+        	String requestmsg =SEPERATOR+ param.get("merchantId") +SEPERATOR+currentStatus.getTxnId();
+            HashMap<String, String> params = new HashMap<>();
+            params.put("request_Msg", requestmsg); 
+            UriComponents uriComponents = UriComponentsBuilder.fromHttpUrl(GATEWAY_TRANSACTION_STATUS_URL1)
+                    .buildAndExpand(params).encode();
+            log.debug("Status URL : "+uriComponents.toUri());
+            ResponseEntity<String> response = template.postForEntity(uriComponents.toUri(),"", String.class);
+            log.debug("Status URL Response Entity "+response);
+        } catch (RestClientException e) {
+            log.error("Unable to fetch status from ccavenue gateway1", e);
+            throw new CustomException("UNABLE_TO_FETCH_STATUS", "Unable to fetch status from ccavenue gateway");
+        } catch (Exception e) {
+            log.error("ccavenue Checksum generation failed1", e);
+            throw new CustomException("CHECKSUM_GEN_FAILED",
+                    "Checksum generation failed, gateway redirect URI cannot be generated");
+        }
+        try {
+        	log.debug("Approach 3: ");
+            
+        	RestTemplate template =restTemplateBuilder.basicAuthorization(param.get("merchantUserName"), param.get("merchantPassword")).build();
+        	String requestmsg =SEPERATOR+ param.get("merchantId") +SEPERATOR+currentStatus.getTxnId();
+            
+        	log.debug("Status URL : "+GATEWAY_TRANSACTION_STATUS_URL2);
+        	QueryApiRequest queryApiRequest = new QueryApiRequest();
+        	queryApiRequest.getQueryApiRequest().add(new RequestMsg(requestmsg));
+        	log.debug("queryApiRequest " +queryApiRequest);
+            ResponseEntity response = template.postForObject(GATEWAY_TRANSACTION_STATUS_URL2,queryApiRequest, ResponseEntity.class);
+            log.debug("Status URL Response Entity 333"+response);
+        } catch (RestClientException e) {
+            log.error("Unable to fetch status from ccavenue gateway1", e);
+            throw new CustomException("UNABLE_TO_FETCH_STATUS", "Unable to fetch status from ccavenue gateway");
+        } catch (Exception e) {
+            log.error("ccavenue Checksum generation failed1", e);
+            throw new CustomException("CHECKSUM_GEN_FAILED",
+                    "Checksum generation failed, gateway redirect URI cannot be generated");
+        }
+        
+        return transaction;
     }
 
     @Override
