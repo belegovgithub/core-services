@@ -237,7 +237,8 @@ public class NICGateway implements Gateway {
 
     @Override
     public Transaction fetchStatus(Transaction currentStatus, Map<String, String> param) {
-    	Transaction transaction;
+    	Transaction transaction=null;
+    	boolean flag =false;
         try {
         	log.debug("Approach 1: ");
             
@@ -255,11 +256,12 @@ public class NICGateway implements Gateway {
             
         } catch (RestClientException e) {
             log.error("Unable to fetch status from ccavenue gateway", e);
-            throw new CustomException("UNABLE_TO_FETCH_STATUS", "Unable to fetch status from ccavenue gateway");
+            flag =true;
+            //throw new CustomException("UNABLE_TO_FETCH_STATUS", "Unable to fetch status from ccavenue gateway");
         } catch (Exception e) {
             log.error("ccavenue Checksum generation failed", e);
-            throw new CustomException("CHECKSUM_GEN_FAILED",
-                    "Checksum generation failed, gateway redirect URI cannot be generated");
+            flag =true;
+            //throw new CustomException("CHECKSUM_GEN_FAILED","Checksum generation failed, gateway redirect URI cannot be generated");
         }
         try {
         	log.debug("Approach 2: ");
@@ -275,12 +277,13 @@ public class NICGateway implements Gateway {
             ResponseEntity<String> response = template.postForEntity(uriComponents.toUri(),"", String.class);
             log.debug("Status URL Response Entity "+response);
         } catch (RestClientException e) {
-            log.error("Unable to fetch status from ccavenue gateway1", e);
-            throw new CustomException("UNABLE_TO_FETCH_STATUS", "Unable to fetch status from ccavenue gateway");
+            log.error("Unable to fetch status2 from ccavenue gateway", e);
+            flag =true;
+            //throw new CustomException("UNABLE_TO_FETCH_STATUS", "Unable to fetch status from ccavenue gateway");
         } catch (Exception e) {
-            log.error("ccavenue Checksum generation failed1", e);
-            throw new CustomException("CHECKSUM_GEN_FAILED",
-                    "Checksum generation failed, gateway redirect URI cannot be generated");
+            log.error("ccavenue Checksum generation failed", e);
+            flag =true;
+            //throw new CustomException("CHECKSUM_GEN_FAILED","Checksum generation failed, gateway redirect URI cannot be generated");
         }
         try {
         	log.debug("Approach 3: ");
@@ -295,14 +298,17 @@ public class NICGateway implements Gateway {
             ResponseEntity response = template.postForObject(GATEWAY_TRANSACTION_STATUS_URL2,queryApiRequest, ResponseEntity.class);
             log.debug("Status URL Response Entity 333"+response);
         } catch (RestClientException e) {
-            log.error("Unable to fetch status from ccavenue gateway1", e);
-            throw new CustomException("UNABLE_TO_FETCH_STATUS", "Unable to fetch status from ccavenue gateway");
+            log.error("Unable to fetch status from ccavenue gateway", e);
+            flag =true;
+            //throw new CustomException("UNABLE_TO_FETCH_STATUS", "Unable to fetch status from ccavenue gateway");
         } catch (Exception e) {
-            log.error("ccavenue Checksum generation failed1", e);
-            throw new CustomException("CHECKSUM_GEN_FAILED",
-                    "Checksum generation failed, gateway redirect URI cannot be generated");
+            log.error("ccavenue Checksum generation failed", e);
+            flag =true;
+            //throw new CustomException("CHECKSUM_GEN_FAILED","Checksum generation failed, gateway redirect URI cannot be generated");
         }
-        
+        if (flag) {
+        	throw new CustomException("UNABLE_TO_FETCH_STATUS", "Unable to fetch status from ccavenue gateway");
+        }
         return transaction;
     }
 
