@@ -1,7 +1,11 @@
 package org.egov.pg.service.gateways.nic;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
+import java.security.KeyStore;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -11,12 +15,19 @@ import java.util.List;
 import java.util.Map;
 
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.TrustManagerFactory;
 
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.conn.ssl.AllowAllHostnameVerifier;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
+import org.apache.http.conn.ssl.TrustStrategy;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.ssl.SSLContexts;
 import org.egov.pg.models.PgDetail;
 import org.egov.pg.models.Transaction;
 import org.egov.pg.service.Gateway;
@@ -25,12 +36,18 @@ import org.egov.tracer.model.CustomException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.core.env.Environment;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.fasterxml.jackson.core.JsonParseException;
@@ -244,23 +261,43 @@ public class NICGateway implements Gateway {
     	Transaction transaction=null;
     	boolean flag =false;
         try {
-        	log.info("Fetch the detail from Gateway: call 1");
-        	SSLContext context = SSLContext.getInstance("TLSv1.2");
-        	context.init(null, null, null);
+        	
+        	KeyStore trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
+    		File file = new File(System.getenv("JAVA_HOME")+"/lib/security/cacerts");
+            InputStream is = new FileInputStream(file);
+    		trustStore.load(is, "changeit".toCharArray());
+    		TrustManagerFactory trustFactory = TrustManagerFactory
+    				.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+    		trustFactory.init(trustStore);
+    		
+    		TrustManager[] trustManagers = trustFactory.getTrustManagers();
+    		SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
+    		sslContext.init(null, trustManagers, null);
+    		 
+
+        	
+//        	TrustStrategy acceptTrustStrategy = (cert, authType) -> true;
+//        	log.info("Fetch the detail from Gateway: call 1");
+//        	SSLContext context = SSLContexts.custom().loadTrustMaterial(null, acceptTrustStrategy).build();
         	BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
         	credentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(param.get("merchantUserName"), param.get("merchantPassword")));
         	 
-        	CloseableHttpClient httpClient = HttpClientBuilder.create().setSSLContext(context).setDefaultCredentialsProvider(credentialsProvider)
-        	    .build();
+        	CloseableHttpClient httpClient = HttpClientBuilder.create().setSSLContext(sslContext).
+        			setDefaultCredentialsProvider(credentialsProvider).build();
         	HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(httpClient);
         	RestTemplate template =restTemplateBuilder.requestFactory(factory).build();
+        	
+        	
+            	
+        	MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         	String requestmsg =SEPERATOR+ param.get("merchantId") +SEPERATOR+currentStatus.getTxnId();
-            
-        	log.info("Status URL : "+GATEWAY_TRANSACTION_STATUS_URL2);
-        	QueryApiRequest queryApiRequest = new QueryApiRequest();
-        	queryApiRequest.getQueryApiRequest().add(new RequestMsg(requestmsg));
-        	log.info("queryApiRequest " +queryApiRequest);
-            ResponseEntity response = template.postForObject(GATEWAY_TRANSACTION_STATUS_URL2,queryApiRequest, ResponseEntity.class);
+            params.add("requestMsg", requestmsg);
+        	
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+        	HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(params, headers);
+        	
+            ResponseEntity response = template.postForEntity(GATEWAY_TRANSACTION_STATUS_URL2,entity, ResponseEntity.class);
             log.info("Status URL Response Entity "+response);
         } catch (RestClientException e) {
             log.error("Unable to fetch status from NIC gateway", e);
