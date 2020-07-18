@@ -236,7 +236,7 @@ public class NICGateway implements Gateway {
     	Transaction transaction=null;
     	boolean flag =false;
         try {
-        	log.debug("Fetch the detail from Gateway: ");
+        	log.info("Fetch the detail from Gateway: ");
         	SSLContext context = SSLContext.getInstance("TLSv1.2");
         	context.init(null, null, null);
         	BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
@@ -248,12 +248,12 @@ public class NICGateway implements Gateway {
         	RestTemplate template =restTemplateBuilder.requestFactory(factory).build();
         	String requestmsg =SEPERATOR+ param.get("merchantId") +SEPERATOR+currentStatus.getTxnId();
             
-        	log.debug("Status URL : "+GATEWAY_TRANSACTION_STATUS_URL2);
+        	log.info("Status URL : "+GATEWAY_TRANSACTION_STATUS_URL2);
         	QueryApiRequest queryApiRequest = new QueryApiRequest();
         	queryApiRequest.getQueryApiRequest().add(new RequestMsg(requestmsg));
-        	log.debug("queryApiRequest " +queryApiRequest);
+        	log.info("queryApiRequest " +queryApiRequest);
             ResponseEntity response = template.postForObject(GATEWAY_TRANSACTION_STATUS_URL2,queryApiRequest, ResponseEntity.class);
-            log.debug("Status URL Response Entity "+response);
+            log.info("Status URL Response Entity "+response);
         } catch (RestClientException e) {
             log.error("Unable to fetch status from NIC gateway", e);
             flag =true;
