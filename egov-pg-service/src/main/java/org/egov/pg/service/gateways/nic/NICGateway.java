@@ -27,7 +27,11 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
-
+import javax.net.ssl.SSLContext;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.web.client.RestTemplate;
 import java.io.IOException;
 import java.net.URI;
 import java.text.SimpleDateFormat;
@@ -239,56 +243,16 @@ public class NICGateway implements Gateway {
     public Transaction fetchStatus(Transaction currentStatus, Map<String, String> param) {
     	Transaction transaction=null;
     	boolean flag =false;
-        try {
-        	log.debug("Approach 1: ");
-            
-        	String requestmsg =SEPERATOR+ param.get("merchantId") +SEPERATOR+currentStatus.getTxnId();
-            HashMap<String, String> params = new HashMap<>();
-            params.put("username", param.get("merchantUserName"));
-            params.put("password", param.get("merchantPassword"));
-            params.put("request_Msg", requestmsg); 
-            UriComponents uriComponents = UriComponentsBuilder.fromHttpUrl(GATEWAY_TRANSACTION_STATUS_URL)
-                    .buildAndExpand(params).encode();
-            log.debug("Status URL : "+uriComponents.toUri());
-            ResponseEntity<String> response = restTemplate.postForEntity(uriComponents.toUri(),"", String.class);
-            transaction = transformRawResponse(response.getBody(), currentStatus, param.get("merchantSecretKey"));
-            log.info("Updated transaction : " + transaction.toString());
-            
-        } catch (RestClientException e) {
-            log.error("Unable to fetch status from ccavenue gateway", e);
-            flag =true;
-            //throw new CustomException("UNABLE_TO_FETCH_STATUS", "Unable to fetch status from ccavenue gateway");
-        } catch (Exception e) {
-            log.error("ccavenue Checksum generation failed", e);
-            flag =true;
-            //throw new CustomException("CHECKSUM_GEN_FAILED","Checksum generation failed, gateway redirect URI cannot be generated");
-        }
-        try {
-        	log.debug("Approach 2: ");
-            
-        	RestTemplate template =restTemplateBuilder.basicAuthorization(param.get("merchantUserName"), param.get("merchantPassword")).build();
-        	
-        	String requestmsg =SEPERATOR+ param.get("merchantId") +SEPERATOR+currentStatus.getTxnId();
-            HashMap<String, String> params = new HashMap<>();
-            params.put("request_Msg", requestmsg); 
-            UriComponents uriComponents = UriComponentsBuilder.fromHttpUrl(GATEWAY_TRANSACTION_STATUS_URL1)
-                    .buildAndExpand(params).encode();
-            log.debug("Status URL : "+uriComponents.toUri());
-            ResponseEntity<String> response = template.postForEntity(uriComponents.toUri(),"", String.class);
-            log.debug("Status URL Response Entity "+response);
-        } catch (RestClientException e) {
-            log.error("Unable to fetch status2 from ccavenue gateway", e);
-            flag =true;
-            //throw new CustomException("UNABLE_TO_FETCH_STATUS", "Unable to fetch status from ccavenue gateway");
-        } catch (Exception e) {
-            log.error("ccavenue Checksum generation failed", e);
-            flag =true;
-            //throw new CustomException("CHECKSUM_GEN_FAILED","Checksum generation failed, gateway redirect URI cannot be generated");
-        }
+         
         try {
         	log.debug("Approach 3: ");
-            
-        	RestTemplate template =restTemplateBuilder.basicAuthorization(param.get("merchantUserName"), param.get("merchantPassword")).build();
+        	SSLContext context = SSLContext.getInstance("TLSv1.2");
+        	context.init(null, null, null);
+
+        	CloseableHttpClient httpClient = HttpClientBuilder.create().setSSLContext(context)
+        	    .build();
+        	HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(httpClient);
+        	RestTemplate template =restTemplateBuilder.requestFactory(factory).basicAuthorization(param.get("merchantUserName"), param.get("merchantPassword")).build();
         	String requestmsg =SEPERATOR+ param.get("merchantId") +SEPERATOR+currentStatus.getTxnId();
             
         	log.debug("Status URL : "+GATEWAY_TRANSACTION_STATUS_URL2);
