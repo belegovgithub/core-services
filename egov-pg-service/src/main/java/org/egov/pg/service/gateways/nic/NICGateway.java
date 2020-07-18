@@ -236,7 +236,7 @@ public class NICGateway implements Gateway {
     	Transaction transaction=null;
     	boolean flag =false;
         try {
-        	log.debug("Approach 4: ");
+        	log.debug("Fetch the detail from Gateway: ");
         	SSLContext context = SSLContext.getInstance("TLSv1.2");
         	context.init(null, null, null);
         	BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
@@ -253,19 +253,17 @@ public class NICGateway implements Gateway {
         	queryApiRequest.getQueryApiRequest().add(new RequestMsg(requestmsg));
         	log.debug("queryApiRequest " +queryApiRequest);
             ResponseEntity response = template.postForObject(GATEWAY_TRANSACTION_STATUS_URL2,queryApiRequest, ResponseEntity.class);
-            log.debug("Status URL Response Entity 333"+response);
+            log.debug("Status URL Response Entity "+response);
         } catch (RestClientException e) {
             log.error("Unable to fetch status from NIC gateway", e);
             flag =true;
-            //throw new CustomException("UNABLE_TO_FETCH_STATUS", "Unable to fetch status from ccavenue gateway");
+            throw new CustomException("UNABLE_TO_FETCH_STATUS", "Unable to fetch status from NIC gateway");
         } catch (Exception e) {
             log.error("NIC Checksum generation failed", e);
             flag =true;
-            //throw new CustomException("CHECKSUM_GEN_FAILED","Checksum generation failed, gateway redirect URI cannot be generated");
+            throw new CustomException("CHECKSUM_GEN_FAILED","Checksum generation failed, gateway redirect URI cannot be generated");
         }
-        if (flag) {
-        	throw new CustomException("UNABLE_TO_FETCH_STATUS", "Unable to fetch status from ccavenue gateway");
-        }
+        
         return transaction;
     }
 
