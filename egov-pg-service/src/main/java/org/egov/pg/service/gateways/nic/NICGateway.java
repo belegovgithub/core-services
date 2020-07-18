@@ -1,51 +1,43 @@
 package org.egov.pg.service.gateways.nic;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.extern.slf4j.Slf4j;
-
-import org.egov.pg.models.PgDetail;
-import org.egov.pg.models.Transaction;
-import org.egov.pg.repository.PgDetailRepository;
-import org.egov.pg.service.Gateway;
-import org.egov.pg.service.gateways.ccavenue.CCAvenueStatusResponse;
-import org.egov.pg.utils.Utils;
-import org.egov.tracer.model.CustomException;
-import org.egov.tracer.model.ServiceCallException;
-import org.omg.IOP.ServiceIdHelper;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.core.env.Environment;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Component;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
-import org.springframework.util.StringUtils;
-import org.springframework.web.client.RestClientException;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriComponents;
-import org.springframework.web.util.UriComponentsBuilder;
-import javax.net.ssl.SSLContext;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
-import org.springframework.web.client.RestTemplate;
 import java.io.IOException;
 import java.net.URI;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.TreeMap;
 
-import static org.egov.pg.constants.TransactionAdditionalFields.BANK_ACCOUNT_NUMBER;
+import javax.net.ssl.SSLContext;
+
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.egov.pg.models.PgDetail;
+import org.egov.pg.models.Transaction;
+import org.egov.pg.service.Gateway;
+import org.egov.pg.utils.Utils;
+import org.egov.tracer.model.CustomException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.core.env.Environment;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
+
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * NIC Gateway implementation
@@ -243,16 +235,17 @@ public class NICGateway implements Gateway {
     public Transaction fetchStatus(Transaction currentStatus, Map<String, String> param) {
     	Transaction transaction=null;
     	boolean flag =false;
-         
         try {
-        	log.debug("Approach 3: ");
+        	log.debug("Approach 4: ");
         	SSLContext context = SSLContext.getInstance("TLSv1.2");
         	context.init(null, null, null);
-
-        	CloseableHttpClient httpClient = HttpClientBuilder.create().setSSLContext(context)
+        	BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+        	credentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(param.get("merchantUserName"), param.get("merchantPassword")));
+        	 
+        	CloseableHttpClient httpClient = HttpClientBuilder.create().setSSLContext(context).setDefaultCredentialsProvider(credentialsProvider)
         	    .build();
         	HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(httpClient);
-        	RestTemplate template =restTemplateBuilder.requestFactory(factory).basicAuthorization(param.get("merchantUserName"), param.get("merchantPassword")).build();
+        	RestTemplate template =restTemplateBuilder.requestFactory(factory).build();
         	String requestmsg =SEPERATOR+ param.get("merchantId") +SEPERATOR+currentStatus.getTxnId();
             
         	log.debug("Status URL : "+GATEWAY_TRANSACTION_STATUS_URL2);
@@ -262,11 +255,11 @@ public class NICGateway implements Gateway {
             ResponseEntity response = template.postForObject(GATEWAY_TRANSACTION_STATUS_URL2,queryApiRequest, ResponseEntity.class);
             log.debug("Status URL Response Entity 333"+response);
         } catch (RestClientException e) {
-            log.error("Unable to fetch status from ccavenue gateway", e);
+            log.error("Unable to fetch status from NIC gateway", e);
             flag =true;
             //throw new CustomException("UNABLE_TO_FETCH_STATUS", "Unable to fetch status from ccavenue gateway");
         } catch (Exception e) {
-            log.error("ccavenue Checksum generation failed", e);
+            log.error("NIC Checksum generation failed", e);
             flag =true;
             //throw new CustomException("CHECKSUM_GEN_FAILED","Checksum generation failed, gateway redirect URI cannot be generated");
         }
