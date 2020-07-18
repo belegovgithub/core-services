@@ -20,9 +20,6 @@ import javax.net.ssl.TrustManagerFactory;
 
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
-import org.apache.http.conn.ssl.AllowAllHostnameVerifier;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
 import org.apache.http.conn.ssl.TrustStrategy;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -44,7 +41,6 @@ import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponents;
@@ -97,8 +93,7 @@ public class NICGateway implements Gateway {
     private final String ADDITIONAL_FIELD5_KEY = "additionalField5";
     private final String ADDITIONAL_FIELD_VALUE = "111111";
     private final String GATEWAY_TRANSACTION_STATUS_URL;
-    private final String GATEWAY_TRANSACTION_STATUS_URL1;
-    private final String GATEWAY_TRANSACTION_STATUS_URL2;
+    private final String GATEWAY_TRANSACTION_STATUS_URL_HOST; 
     private final String GATEWAY_URL;
     private final String CITIZEN_URL;
     private static final String SEPERATOR ="|";
@@ -127,8 +122,7 @@ public class NICGateway implements Gateway {
         REDIRECT_URL = environment.getRequiredProperty("nic.redirect.url");
         ORIGINAL_RETURN_URL_KEY = environment.getRequiredProperty("nic.original.return.url.key");
         GATEWAY_TRANSACTION_STATUS_URL = environment.getRequiredProperty("nic.gateway.status.url");
-        GATEWAY_TRANSACTION_STATUS_URL1 = environment.getRequiredProperty("nic.gateway.status.url1");
-        GATEWAY_TRANSACTION_STATUS_URL2 = environment.getRequiredProperty("nic.gateway.status.url2");
+        GATEWAY_TRANSACTION_STATUS_URL_HOST = environment.getRequiredProperty("nic.gateway.status.host"); 
         CITIZEN_URL = environment.getRequiredProperty("egov.default.citizen.url");
         GATEWAY_URL = environment.getRequiredProperty("nic.gateway.url");
         TX_DATE_FORMAT =environment.getRequiredProperty("nic.dateformat");
@@ -283,7 +277,7 @@ public class NICGateway implements Gateway {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
         	HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(params, headers);
-        	UriComponents uriComponents = UriComponentsBuilder.newInstance().scheme("https").host("121.242.223.194").path
+        	UriComponents uriComponents = UriComponentsBuilder.newInstance().scheme("https").host(GATEWAY_TRANSACTION_STATUS_URL_HOST).path
                     ("SurePayPayment/queryPaymentStatus").build();
         	
             ResponseEntity response = template.postForEntity(uriComponents.toUriString(),entity, ResponseEntity.class);
@@ -333,7 +327,7 @@ public class NICGateway implements Gateway {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
         	HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(params, headers);
-        	UriComponents uriComponents = UriComponentsBuilder.newInstance().scheme("https").host("121.242.223.194").path
+        	UriComponents uriComponents = UriComponentsBuilder.newInstance().scheme("https").host(GATEWAY_TRANSACTION_STATUS_URL_HOST).path
                     ("SurePayPayment/queryPaymentStatus").build();
         	
             ResponseEntity response = template.postForEntity(uriComponents.toUriString(),entity, ResponseEntity.class);
@@ -361,11 +355,11 @@ public class NICGateway implements Gateway {
         	RestTemplate template =restTemplateBuilder.requestFactory(factory).build();
         	String requestmsg =SEPERATOR+ param.get("merchantId") +SEPERATOR+currentStatus.getTxnId();
             
-        	log.info("Status URL : "+GATEWAY_TRANSACTION_STATUS_URL2);
+        	log.info("Status URL : "+GATEWAY_TRANSACTION_STATUS_URL);
         	QueryApiRequest queryApiRequest = new QueryApiRequest();
         	queryApiRequest.getQueryApiRequest().add(new RequestMsg(requestmsg));
         	log.info("queryApiRequest " +queryApiRequest);
-            ResponseEntity response = template.postForObject(GATEWAY_TRANSACTION_STATUS_URL2,queryApiRequest, ResponseEntity.class);
+            ResponseEntity response = template.postForObject(GATEWAY_TRANSACTION_STATUS_URL,queryApiRequest, ResponseEntity.class);
             log.info("Status URL Response Entity "+response);
         } catch (RestClientException e) {
             log.error("Unable to fetch status from NIC gateway 2", e);
