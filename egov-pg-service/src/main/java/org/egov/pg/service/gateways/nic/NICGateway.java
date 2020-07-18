@@ -28,6 +28,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -82,10 +83,12 @@ public class NICGateway implements Gateway {
     private final String GATEWAY_TRANSACTION_STATUS_URL1;
     private final String GATEWAY_TRANSACTION_STATUS_URL2;
     private final String GATEWAY_URL;
+    private final String CITIZEN_URL;
     private static final String SEPERATOR ="|";
     private String TX_DATE_FORMAT;
     @Autowired
     private RestTemplateBuilder restTemplateBuilder;
+    
     
     
     /**
@@ -109,7 +112,7 @@ public class NICGateway implements Gateway {
         GATEWAY_TRANSACTION_STATUS_URL = environment.getRequiredProperty("nic.gateway.status.url");
         GATEWAY_TRANSACTION_STATUS_URL1 = environment.getRequiredProperty("nic.gateway.status.url1");
         GATEWAY_TRANSACTION_STATUS_URL2 = environment.getRequiredProperty("nic.gateway.status.url2");
-        
+        CITIZEN_URL = environment.getRequiredProperty("egov.default.citizen.url");
         GATEWAY_URL = environment.getRequiredProperty("nic.gateway.url");
         TX_DATE_FORMAT =environment.getRequiredProperty("nic.dateformat");
     }
@@ -135,12 +138,17 @@ public class NICGateway implements Gateway {
          queryMap.put(SERVICE_ID_KEY, pgDetail.getMerchantServiceId());
          queryMap.put(ORDER_ID_KEY, transaction.getTxnId());
          queryMap.put(CUSTOMER_ID_KEY, transaction.getUser().getUuid());
-         queryMap.put(TRANSACTION_AMOUNT_KEY, String.valueOf(Utils.formatAmtAsPaise(transaction.getTxnAmount())));
+         queryMap.put(TRANSACTION_AMOUNT_KEY, String.valueOf( transaction.getTxnAmount()));
          queryMap.put(CURRENCY_CODE_KEY,CURRENCY_CODE);
          SimpleDateFormat format = new SimpleDateFormat(TX_DATE_FORMAT);
      	 queryMap.put(REQUEST_DATE_TIME_KEY, format.format(new Date()));
-         queryMap.put(SUCCESS_URL_KEY, getReturnUrl(transaction.getCallbackUrl(), REDIRECT_URL));
-         queryMap.put(FAIL_URL_KEY, getReturnUrl(transaction.getCallbackUrl(), REDIRECT_URL));
+     	 String returnUrl = transaction.getCallbackUrl().replace(CITIZEN_URL, "");
+     	 
+     	 
+     	 
+     	 
+         queryMap.put(SUCCESS_URL_KEY, getReturnUrl(returnUrl, REDIRECT_URL));
+         queryMap.put(FAIL_URL_KEY, getReturnUrl(returnUrl, REDIRECT_URL));
          queryMap.put(ADDITIONAL_FIELD1_KEY, ADDITIONAL_FIELD_VALUE); //Not in use 
          queryMap.put(ADDITIONAL_FIELD2_KEY, ADDITIONAL_FIELD_VALUE); //Not in use 
          queryMap.put(ADDITIONAL_FIELD3_KEY, ADDITIONAL_FIELD_VALUE); //Not in use 
@@ -236,7 +244,7 @@ public class NICGateway implements Gateway {
     	Transaction transaction=null;
     	boolean flag =false;
         try {
-        	log.info("Fetch the detail from Gateway: ");
+        	log.info("Fetch the detail from Gateway: call 1");
         	SSLContext context = SSLContext.getInstance("TLSv1.2");
         	context.init(null, null, null);
         	BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
@@ -257,11 +265,39 @@ public class NICGateway implements Gateway {
         } catch (RestClientException e) {
             log.error("Unable to fetch status from NIC gateway", e);
             flag =true;
-            throw new CustomException("UNABLE_TO_FETCH_STATUS", "Unable to fetch status from NIC gateway");
+            //throw new CustomException("UNABLE_TO_FETCH_STATUS", "Unable to fetch status from NIC gateway");
         } catch (Exception e) {
             log.error("NIC Checksum generation failed", e);
             flag =true;
-            throw new CustomException("CHECKSUM_GEN_FAILED","Checksum generation failed, gateway redirect URI cannot be generated");
+            //throw new CustomException("CHECKSUM_GEN_FAILED","Checksum generation failed, gateway redirect URI cannot be generated");
+        }
+        try {
+        	log.info("Fetch the detail from Gateway: call 2");
+        	SSLContext context = SSLContext.getInstance("TLSv1.2");
+        	context.init(null, null, null);
+        	BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+        	credentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(param.get("merchantUserName"), param.get("merchantPassword")));
+        	 
+        	CloseableHttpClient httpClient = HttpClientBuilder.create().setSSLContext(context).setDefaultCredentialsProvider(credentialsProvider)
+        	    .build();
+        	HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(httpClient);
+        	RestTemplate template =restTemplateBuilder.requestFactory(factory).build();
+        	String requestmsg =SEPERATOR+ param.get("merchantId") +SEPERATOR+currentStatus.getTxnId();
+            
+        	log.info("Status URL : "+GATEWAY_TRANSACTION_STATUS_URL2);
+        	QueryApiRequest queryApiRequest = new QueryApiRequest();
+        	queryApiRequest.getQueryApiRequest().add(new RequestMsg(requestmsg));
+        	log.info("queryApiRequest " +queryApiRequest);
+            ResponseEntity response = template.postForObject(GATEWAY_TRANSACTION_STATUS_URL2,queryApiRequest, ResponseEntity.class);
+            log.info("Status URL Response Entity "+response);
+        } catch (RestClientException e) {
+            log.error("Unable to fetch status from NIC gateway", e);
+            flag =true;
+            //throw new CustomException("UNABLE_TO_FETCH_STATUS", "Unable to fetch status from NIC gateway");
+        } catch (Exception e) {
+            log.error("NIC Checksum generation failed", e);
+            flag =true;
+            //throw new CustomException("CHECKSUM_GEN_FAILED","Checksum generation failed, gateway redirect URI cannot be generated");
         }
         
         return transaction;
