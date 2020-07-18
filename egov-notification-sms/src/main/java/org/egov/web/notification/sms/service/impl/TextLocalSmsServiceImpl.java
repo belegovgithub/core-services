@@ -14,7 +14,7 @@ import org.springframework.stereotype.Service;
 
 import lombok.extern.slf4j.Slf4j;
 @Service
-@ConditionalOnProperty(value = "sms.gateway.to.use", havingValue ="TEXTLOCAL_SMS", matchIfMissing = true)
+@ConditionalOnProperty(value = "sms.gateway.to.use", havingValue ="TEXTLOCAL", matchIfMissing = true)
 @Slf4j
 public class TextLocalSmsServiceImpl implements SMSService {
 	

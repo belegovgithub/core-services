@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 
 
 @Service
-@ConditionalOnProperty(value = "sms.gateway.to.use", havingValue ="CONSOLE_SMS", matchIfMissing = true)
+@ConditionalOnProperty(value = "sms.gateway.to.use", havingValue ="CONSOLE", matchIfMissing = true)
 public class ConsoleSmsServiceImpl implements SMSService{
 	
 	@Override

@@ -24,7 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 
 
 @Service
-@ConditionalOnProperty(value = "sms.gateway.to.use", havingValue = "NIC_SMS", matchIfMissing = true)
+@ConditionalOnProperty(value = "sms.gateway.to.use", havingValue = "NIC", matchIfMissing = true)
 @Slf4j
 public class NICSMSServiceImpl implements SMSService {
     
