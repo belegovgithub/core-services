@@ -21,6 +21,7 @@ import javax.net.ssl.TrustManagerFactory;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.conn.ssl.TrustStrategy;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -50,6 +51,8 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -279,6 +282,7 @@ public class NICGateway implements Gateway {
         	HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(params, headers);
         	UriComponents uriComponents = UriComponentsBuilder.newInstance().scheme("https").host(GATEWAY_TRANSACTION_STATUS_URL_HOST).path
                     ("SurePayPayment/queryPaymentStatus").build();
+        	log.info("uriComponents.toUriString()  "+uriComponents.toUriString());
         	
             ResponseEntity response = template.postForEntity(uriComponents.toUriString(),entity, ResponseEntity.class);
             log.info("Status URL Response Entity "+response);
@@ -291,6 +295,55 @@ public class NICGateway implements Gateway {
             flag =true;
             //throw new CustomException("CHECKSUM_GEN_FAILED","Checksum generation failed, gateway redirect URI cannot be generated");
         }
+    	try {
+        	log.info("Approach 0.1 ");
+        	 
+
+        	
+        	TrustStrategy acceptTrustStrategy = (cert, authType) -> true;
+        	log.info("Fetch the detail from Gateway: call 1");
+        	SSLContext context = SSLContexts.custom().loadTrustMaterial(null, acceptTrustStrategy).build();
+        	BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+        	credentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(param.get("merchantUserName"), param.get("merchantPassword")));
+        	 
+        	CloseableHttpClient httpClient = HttpClientBuilder.create().setSSLContext(context).
+        			setDefaultCredentialsProvider(credentialsProvider).build();
+        	HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(httpClient);
+        	RestTemplate template =restTemplateBuilder.requestFactory(factory).build();
+        	
+        	MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+        	String requestmsg =SEPERATOR+ param.get("merchantId") +SEPERATOR+currentStatus.getTxnId();
+            params.add("requestMsg", requestmsg);
+        	
+            Gson         gson          = new Gson();
+ 
+            QueryApiRequest queryApiRequest = new QueryApiRequest();
+        	queryApiRequest.getQueryApiRequest().add(new RequestMsg(requestmsg));
+        	HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            StringEntity postingString = new StringEntity(gson.toJson(queryApiRequest));
+            log.info("queryApiRequest " +postingString);
+        	
+            HttpEntity  entity = new HttpEntity<>(postingString, headers);
+        	
+            
+            
+            UriComponents uriComponents = UriComponentsBuilder.newInstance().scheme("https").host(GATEWAY_TRANSACTION_STATUS_URL_HOST).path
+                    ("SurePayPayment/queryPaymentStatus").build();
+        	log.info("uriComponents.toUriString()  "+uriComponents.toUriString());
+        	
+        	ResponseEntity response = template.postForEntity(uriComponents.toUriString(),entity, ResponseEntity.class);
+            log.info("Status URL Response Entity "+response);
+        } catch (RestClientException e) {
+            log.error("Unable to fetch status from NIC gateway 0", e);
+            flag =true;
+            //throw new CustomException("UNABLE_TO_FETCH_STATUS", "Unable to fetch status from NIC gateway");
+        } catch (Exception e) {
+            log.error("NIC Checksum generation failed 0", e);
+            flag =true;
+            //throw new CustomException("CHECKSUM_GEN_FAILED","Checksum generation failed, gateway redirect URI cannot be generated");
+        }
+    	
         try {
         	log.info("Approach 1 ");
         	KeyStore trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
