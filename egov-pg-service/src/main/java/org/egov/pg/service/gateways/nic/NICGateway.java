@@ -256,9 +256,7 @@ public class NICGateway implements Gateway {
     @Override
     public Transaction fetchStatus(Transaction currentStatus, Map<String, String> param) {
     	try {
-        	log.info("Approach 0 ");
         	TrustStrategy acceptTrustStrategy = (cert, authType) -> true;
-        	log.info("Fetch the detail from Gateway: call 1");
         	SSLContext context = SSLContexts.custom().loadTrustMaterial(null, acceptTrustStrategy).build();
         	BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
         	credentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(param.get("merchantUserName"), param.get("merchantPassword")));
@@ -277,11 +275,8 @@ public class NICGateway implements Gateway {
         	HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(params, headers);
         	UriComponents uriComponents = UriComponentsBuilder.newInstance().scheme("https").host(GATEWAY_TRANSACTION_STATUS_URL_HOST).path
                     ("SurePayPayment/queryPaymentStatus").build();
-        	log.info("uriComponents.toUriString()  "+uriComponents.toUriString());
         	
         	ResponseEntity<String> response = template.postForEntity(uriComponents.toUriString(),entity, String.class);
-            log.info("Status URL Response Entity "+response);
-            log.info("Status URL Response Entity "+response.getBody());
             return transformRawResponse(response.getBody(), currentStatus, param.get("merchantSecretKey"));
         } catch (RestClientException e) {
             log.error("Unable to fetch status from NIC gateway ", e);
@@ -311,21 +306,16 @@ public class NICGateway implements Gateway {
 
     private Transaction transformRawResponse(String resp, Transaction currentStatus, String secretKey)
             throws JsonParseException, JsonMappingException, IOException {
-    	log.info("NICGateway.transformRawResponse()"+resp);
+    	log.info("Response Data "+resp);
         Transaction.TxnStatusEnum status = Transaction.TxnStatusEnum.PENDING;
         NICStatusResponse statusResponse;
-        Map<String, String> respMap = new HashMap<String, String>();
-        Arrays.asList(resp.split("&")).forEach(
-                param -> respMap.put(param.split("=")[0], param.split("=").length > 1 ? param.split("=")[1] : ""));
-        log.info("Split Message "+ respMap);
-        if (respMap.get("msg")!=null) {
-        	log.info(" respMap.get(\"msg\")+> "+respMap.get("msg"));
+        if (resp!=null) {
+        	
         	//Validate the response against the checksum
+        	NICUtils.validateTransaction(resp, secretKey);
         	
-        	NICUtils.validateTransaction(respMap.get("msg"), secretKey);
-        	
-        	statusResponse = decodeResponseMsg(respMap.get("msg"));
-        	log.info(" statusResponse => "+statusResponse);
+        	statusResponse = decodeResponseMsg(resp);
+        	log.info("Decoded Response => "+statusResponse);
         	if (statusResponse.getTxFlag().equalsIgnoreCase("S"))
                     status = Transaction.TxnStatusEnum.SUCCESS;
                 else if (statusResponse.getTxFlag().equalsIgnoreCase("F")|| statusResponse.getTxFlag().equalsIgnoreCase("D"))
@@ -337,9 +327,9 @@ public class NICGateway implements Gateway {
                     .txnStatus(status).gatewayTxnId(statusResponse.getSurePayTxnId())
                     .gatewayPaymentMode(statusResponse.getPaymentMode())
                     .gatewayStatusCode(statusResponse.getTxFlag())
-                    .responseJson(respMap.get("msg")).build();
+                    .responseJson(resp).build();
         } else {
-            log.error("Received error response from status call : " + respMap.get("enc_response"));
+            log.error("Received error response from status call : " + resp);
             throw new CustomException("UNABLE_TO_FETCH_STATUS", "Unable to fetch status from nic gateway");
         }
     }
@@ -347,6 +337,7 @@ public class NICGateway implements Gateway {
     private NICStatusResponse decodeResponseMsg(String respMsg) {
     	String[] splitArray = respMsg.split("[|]");
     	NICStatusResponse txResp = new NICStatusResponse(splitArray[0]);
+    	int index =0;
     	switch (txResp.getTxFlag()) {
 		case "S":
 			/*For Success : 
@@ -354,46 +345,51 @@ public class NICGateway implements Gateway {
 			CurrencyCode|PaymentMode|ResponseDateTime|SurePayTxnId|
 			BankTransactionNo|TransactionStatus|AdditionalInfo1|AdditionalInfo2|AdditionalInfo3|
 			AdditionalInfo4|AdditionalInfo5|ErrorCode|ErrorDescription|CheckSum*/
+			/*
+			 * Sample Response :
+			 * "S|0100|UATSCBSG0000000207|SecuChhawani|PB_PG_2020_07_20_000150_18|9eb6f880-c22f-4c1e-8f99-106bb3e0e60a|100.00|INR|
+			 * 20-07-2020|13542|pay_FGg5RgurAcHWDg|A|111111|111111|111111|111111|111111|||168076949"; 
+			 */
 			
-			txResp.setMessageType(splitArray[1]);
-			txResp.setSurePayMerchantId(splitArray[2]);
-			txResp.setServiceId(splitArray[3]);
-			txResp.setOrderId(splitArray[4]);
-			txResp.setCustomerId(splitArray[5]);
-			txResp.setTransactionAmount(splitArray[6]);
-			txResp.setCurrencyCode(splitArray[7]);
-			txResp.setPaymentMode(splitArray[8]);
-			txResp.setResponseDateTime(splitArray[9]);
-			txResp.setSurePayTxnId(splitArray[10]);
-			txResp.setBankTransactionNo(splitArray[11]);
-			txResp.setTransactionStatus(splitArray[12]);
-			txResp.setAdditionalInfo1(splitArray[13]);
-			txResp.setAdditionalInfo2(splitArray[14]);
-			txResp.setAdditionalInfo3(splitArray[15]);
-			txResp.setAdditionalInfo4(splitArray[16]);
-			txResp.setAdditionalInfo5(splitArray[17]);
-			txResp.setErrorCode(splitArray[18]);
-			txResp.setErrorDescription(splitArray[19]);
-			txResp.setCheckSum(splitArray[20]);
+			txResp.setMessageType(splitArray[++index]);
+			txResp.setSurePayMerchantId(splitArray[++index]);
+			txResp.setServiceId(splitArray[++index]);
+			txResp.setOrderId(splitArray[++index]);
+			txResp.setCustomerId(splitArray[++index]);
+			txResp.setTransactionAmount(splitArray[++index]);
+			txResp.setCurrencyCode(splitArray[++index]);
+			//txResp.setPaymentMode(splitArray[++index]);
+			txResp.setResponseDateTime(splitArray[++index]);
+			txResp.setSurePayTxnId(splitArray[++index]);
+			txResp.setBankTransactionNo(splitArray[++index]);
+			txResp.setTransactionStatus(splitArray[++index]);
+			txResp.setAdditionalInfo1(splitArray[++index]);
+			txResp.setAdditionalInfo2(splitArray[++index]);
+			txResp.setAdditionalInfo3(splitArray[++index]);
+			txResp.setAdditionalInfo4(splitArray[++index]);
+			txResp.setAdditionalInfo5(splitArray[++index]);
+			txResp.setErrorCode(splitArray[++index]);
+			txResp.setErrorDescription(splitArray[++index]);
+			txResp.setCheckSum(splitArray[++index]);
 			
 			break;
 		case "F":
 		case "D":
-			
+			index =0;
 			/*For Failure : 
 			 FailureFlag|SurePayMerchantId|OrderId|ServiceId|PaymentMode|BankTransactionNo|
 			 ErrorCode|ErrorMessage|ErrorDescription|ResponseDateTime|CheckSum
 			 */
-			txResp.setSurePayMerchantId(splitArray[1]);
-			txResp.setOrderId(splitArray[2]);
-			txResp.setServiceId(splitArray[3]);
-			txResp.setPaymentMode(splitArray[4]);
-			txResp.setBankTransactionNo(splitArray[5]);
-			txResp.setErrorCode(splitArray[6]);
-			txResp.setErrorMessage(splitArray[7]);
-			txResp.setErrorDescription(splitArray[8]);
-			txResp.setResponseDateTime(splitArray[9]);
-			txResp.setCheckSum(splitArray[10]);
+			txResp.setSurePayMerchantId(splitArray[++index]);
+			txResp.setOrderId(splitArray[++index]);
+			txResp.setServiceId(splitArray[++index]);
+			txResp.setPaymentMode(splitArray[++index]);
+			txResp.setBankTransactionNo(splitArray[++index]);
+			txResp.setErrorCode(splitArray[++index]);
+			txResp.setErrorMessage(splitArray[++index]);
+			txResp.setErrorDescription(splitArray[++index]);
+			txResp.setResponseDateTime(splitArray[++index]);
+			txResp.setCheckSum(splitArray[++index]);
 			
 			break;
 		case "I":
@@ -401,15 +397,17 @@ public class NICGateway implements Gateway {
 			 InitiatedFlag|SurePayMerchantId|OrderId|ServiceId|PaymentMode|ErrorDescription|
 			 ResponseDateTime|CheckSum
 			 */
-			txResp.setSurePayMerchantId(splitArray[1]);
-			txResp.setOrderId(splitArray[2]);
-			txResp.setServiceId(splitArray[3]);
-			txResp.setPaymentMode(splitArray[4]);
-			txResp.setErrorDescription(splitArray[5]);
-			txResp.setResponseDateTime(splitArray[6]);
-			txResp.setCheckSum(splitArray[7]);
+			txResp.setSurePayMerchantId(splitArray[++index]);
+			txResp.setOrderId(splitArray[++index]);
+			txResp.setServiceId(splitArray[++index]);
+			txResp.setPaymentMode(splitArray[++index]);
+			txResp.setErrorDescription(splitArray[++index]);
+			txResp.setResponseDateTime(splitArray[++index]);
+			txResp.setCheckSum(splitArray[++index]);
 			break;
 		}
+    	log.info("Encoded value "+respMsg);
+    	log.info("txResp --> "+txResp);
     	return txResp;
     }
      
