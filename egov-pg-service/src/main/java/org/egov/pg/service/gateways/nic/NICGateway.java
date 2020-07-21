@@ -94,10 +94,9 @@ public class NICGateway implements Gateway {
     private final String ADDITIONAL_FIELD3_KEY = "additionalField3";
     private final String ADDITIONAL_FIELD4_KEY = "additionalField4";
     private final String ADDITIONAL_FIELD5_KEY = "additionalField5";
-    private final String ADDITIONAL_FIELD_VALUE = "111111";
-    private final String GATEWAY_TRANSACTION_STATUS_URL;
-    private final String GATEWAY_TRANSACTION_STATUS_URL_HOST; 
-    private final String GATEWAY_TRANSACTION_STATUS_URL_PATH; 
+    private final String ADDITIONAL_FIELD_VALUE = "";
+    private final String GATEWAY_TRANSACTION_STATUS_URL; 
+    private final String GATEWAY_TRANSACTION_STATUS_URL_WITHIP; 
     private final String GATEWAY_URL;
     private final String CITIZEN_URL;
     private static final String SEPERATOR ="|";
@@ -116,18 +115,13 @@ public class NICGateway implements Gateway {
     @Autowired
     public NICGateway(RestTemplate restTemplate, Environment environment, ObjectMapper objectMapper) {
         this.restTemplate = restTemplate;
-        
         ACTIVE = Boolean.valueOf(environment.getRequiredProperty("nic.active"));
         MESSAGE_TYPE = environment.getRequiredProperty("nic.messageType");
-        
         CURRENCY_CODE = environment.getRequiredProperty("nic.currency");
-        
-        
         REDIRECT_URL = environment.getRequiredProperty("nic.redirect.url");
         ORIGINAL_RETURN_URL_KEY = environment.getRequiredProperty("nic.original.return.url.key");
         GATEWAY_TRANSACTION_STATUS_URL = environment.getRequiredProperty("nic.gateway.status.url");
-        GATEWAY_TRANSACTION_STATUS_URL_HOST = environment.getRequiredProperty("nic.gateway.status.host"); 
-        GATEWAY_TRANSACTION_STATUS_URL_PATH = environment.getRequiredProperty("nic.gateway.status.path"); 
+        GATEWAY_TRANSACTION_STATUS_URL_WITHIP= environment.getRequiredProperty("nic.gateway.status.url.withip");
         CITIZEN_URL = environment.getRequiredProperty("egov.default.citizen.url");
         GATEWAY_URL = environment.getRequiredProperty("nic.gateway.url");
         TX_DATE_FORMAT =environment.getRequiredProperty("nic.dateformat");
@@ -258,7 +252,7 @@ public class NICGateway implements Gateway {
     @Override
     public Transaction fetchStatus(Transaction currentStatus, Map<String, String> param) {
     	try {
-    		log.info("Approach 1");
+    		log.info("Approach 1 With IP");
         	TrustStrategy acceptTrustStrategy = (cert, authType) -> true;
         	SSLContext context = SSLContexts.custom().loadTrustMaterial(null, acceptTrustStrategy).build();
         	BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
@@ -276,9 +270,10 @@ public class NICGateway implements Gateway {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
         	HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(params, headers);
-        	log.info("Approach 1 URL "+"https://pilot.surepay.ndml.in/SurePayPayment/v1/queryPaymentStatus");
-        	ResponseEntity<String> response = template.postForEntity("https://pilot.surepay.ndml.in/SurePayPayment/v1/queryPaymentStatus",entity, String.class);
-            transformRawResponse(response.getBody(), currentStatus, param.get("merchantSecretKey"));
+        	log.info("Approach 1 URL "+GATEWAY_TRANSACTION_STATUS_URL_WITHIP);
+        	ResponseEntity<String> response = template.postForEntity(GATEWAY_TRANSACTION_STATUS_URL_WITHIP,entity, String.class);
+        	Transaction resp =transformRawResponse(response.getBody(), currentStatus, param.get("merchantSecretKey"));
+            log.info("Response "+(resp!=null ? resp.toString():""));
         } catch (RestClientException e) {
             log.error("Unable to fetch status from NIC gateway ", e);
         } catch (Exception e) {
@@ -304,38 +299,9 @@ public class NICGateway implements Gateway {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
         	HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(params, headers);
-        	log.info("Approach 2 URL "+"https://121.242.223.194/SurePayPayment/v1/queryPaymentStatus");
-        	ResponseEntity<String> response = template.postForEntity("https://121.242.223.194/SurePayPayment/v1/queryPaymentStatus",entity, String.class);
-            transformRawResponse(response.getBody(), currentStatus, param.get("merchantSecretKey"));
-        } catch (RestClientException e) {
-            log.error("Unable to fetch status from NIC gateway ", e);
-        } catch (Exception e) {
-            log.error("NIC Checksum validation failed ", e);
-        }
-    	
-    	try {
-    		log.info("Approach 3");
-        	TrustStrategy acceptTrustStrategy = (cert, authType) -> true;
-        	SSLContext context = SSLContexts.custom().loadTrustMaterial(null, acceptTrustStrategy).build();
-        	BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-        	credentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(param.get("merchantUserName"), param.get("merchantPassword")));
-        	 
-        	CloseableHttpClient httpClient = HttpClientBuilder.create().setSSLContext(context).
-        			setDefaultCredentialsProvider(credentialsProvider).build();
-        	HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(httpClient);
-        	RestTemplate template =restTemplateBuilder.requestFactory(factory).build();
-        	
-        	MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-        	String requestmsg =SEPERATOR+ param.get("merchantId") +SEPERATOR+currentStatus.getTxnId();
-            params.add("requestMsg", requestmsg);
-        	
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-        	HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(params, headers);
-        	UriComponents uriComponents = UriComponentsBuilder.newInstance().scheme("https").host(GATEWAY_TRANSACTION_STATUS_URL_HOST).path
-                    ("SurePayPayment/queryPaymentStatus").build();
-        	log.info("Approach 3 URL "+uriComponents.toUriString());
-        	ResponseEntity<String> response = template.postForEntity(uriComponents.toUriString(),entity, String.class);
+ 
+        	log.info("Approach URL "+GATEWAY_TRANSACTION_STATUS_URL);
+        	ResponseEntity<String> response = template.postForEntity(GATEWAY_TRANSACTION_STATUS_URL,entity, String.class);
             return transformRawResponse(response.getBody(), currentStatus, param.get("merchantSecretKey"));
         } catch (RestClientException e) {
             log.error("Unable to fetch status from NIC gateway ", e);
