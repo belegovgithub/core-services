@@ -276,6 +276,7 @@ public class NICGateway implements Gateway {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
         	HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(params, headers);
+        	log.info("Approach 1 URL "+"https://pilot.surepay.ndml.in/SurePayPayment/v1/queryPaymentStatus");
         	ResponseEntity<String> response = template.postForEntity("https://pilot.surepay.ndml.in/SurePayPayment/v1/queryPaymentStatus",entity, String.class);
             transformRawResponse(response.getBody(), currentStatus, param.get("merchantSecretKey"));
         } catch (RestClientException e) {
@@ -283,6 +284,7 @@ public class NICGateway implements Gateway {
         } catch (Exception e) {
             log.error("NIC Checksum validation failed ", e);
         }
+    	
     	try {
     		log.info("Approach 2");
         	TrustStrategy acceptTrustStrategy = (cert, authType) -> true;
@@ -302,9 +304,37 @@ public class NICGateway implements Gateway {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
         	HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(params, headers);
+        	log.info("Approach 2 URL "+"https://121.242.223.194/SurePayPayment/v1/queryPaymentStatus");
+        	ResponseEntity<String> response = template.postForEntity("https://121.242.223.194/SurePayPayment/v1/queryPaymentStatus",entity, String.class);
+            transformRawResponse(response.getBody(), currentStatus, param.get("merchantSecretKey"));
+        } catch (RestClientException e) {
+            log.error("Unable to fetch status from NIC gateway ", e);
+        } catch (Exception e) {
+            log.error("NIC Checksum validation failed ", e);
+        }
+    	
+    	try {
+    		log.info("Approach 3");
+        	TrustStrategy acceptTrustStrategy = (cert, authType) -> true;
+        	SSLContext context = SSLContexts.custom().loadTrustMaterial(null, acceptTrustStrategy).build();
+        	BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+        	credentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(param.get("merchantUserName"), param.get("merchantPassword")));
+        	 
+        	CloseableHttpClient httpClient = HttpClientBuilder.create().setSSLContext(context).
+        			setDefaultCredentialsProvider(credentialsProvider).build();
+        	HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(httpClient);
+        	RestTemplate template =restTemplateBuilder.requestFactory(factory).build();
+        	
+        	MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+        	String requestmsg =SEPERATOR+ param.get("merchantId") +SEPERATOR+currentStatus.getTxnId();
+            params.add("requestMsg", requestmsg);
+        	
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+        	HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(params, headers);
         	UriComponents uriComponents = UriComponentsBuilder.newInstance().scheme("https").host(GATEWAY_TRANSACTION_STATUS_URL_HOST).path
                     ("SurePayPayment/queryPaymentStatus").build();
-        	
+        	log.info("Approach 3 URL "+uriComponents.toUriString());
         	ResponseEntity<String> response = template.postForEntity(uriComponents.toUriString(),entity, String.class);
             return transformRawResponse(response.getBody(), currentStatus, param.get("merchantSecretKey"));
         } catch (RestClientException e) {
@@ -314,6 +344,8 @@ public class NICGateway implements Gateway {
             log.error("NIC Checksum validation failed ", e);
             throw new CustomException("CHECKSUM_GEN_FAILED","Checksum generation failed, gateway redirect URI cannot be generated");
         }
+    	
+    	
     }
 
     @Override
