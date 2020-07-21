@@ -94,7 +94,7 @@ public class NICGateway implements Gateway {
     private final String ADDITIONAL_FIELD3_KEY = "additionalField3";
     private final String ADDITIONAL_FIELD4_KEY = "additionalField4";
     private final String ADDITIONAL_FIELD5_KEY = "additionalField5";
-    private final String ADDITIONAL_FIELD_VALUE = "";
+    private final String ADDITIONAL_FIELD_VALUE = "111111";
     private final String GATEWAY_TRANSACTION_STATUS_URL; 
     private final String GATEWAY_TRANSACTION_STATUS_URL_WITHIP; 
     private final String GATEWAY_URL;
@@ -116,7 +116,7 @@ public class NICGateway implements Gateway {
     public NICGateway(RestTemplate restTemplate, Environment environment, ObjectMapper objectMapper) {
         this.restTemplate = restTemplate;
         ACTIVE = Boolean.valueOf(environment.getRequiredProperty("nic.active"));
-        MESSAGE_TYPE = environment.getRequiredProperty("nic.messageType");
+        MESSAGE_TYPE = environment.getRequiredProperty("nic.messagetype");
         CURRENCY_CODE = environment.getRequiredProperty("nic.currency");
         REDIRECT_URL = environment.getRequiredProperty("nic.redirect.url");
         ORIGINAL_RETURN_URL_KEY = environment.getRequiredProperty("nic.original.return.url.key");
@@ -252,28 +252,30 @@ public class NICGateway implements Gateway {
     @Override
     public Transaction fetchStatus(Transaction currentStatus, Map<String, String> param) {
     	try {
-    		log.info("Approach 1 With IP");
-        	TrustStrategy acceptTrustStrategy = (cert, authType) -> true;
-        	SSLContext context = SSLContexts.custom().loadTrustMaterial(null, acceptTrustStrategy).build();
-        	BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-        	credentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(param.get("merchantUserName"), param.get("merchantPassword")));
-        	 
-        	CloseableHttpClient httpClient = HttpClientBuilder.create().setSSLContext(context).
-        			setDefaultCredentialsProvider(credentialsProvider).build();
-        	HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(httpClient);
-        	RestTemplate template =restTemplateBuilder.requestFactory(factory).build();
-        	
-        	MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-        	String requestmsg =SEPERATOR+ param.get("merchantId") +SEPERATOR+currentStatus.getTxnId();
-            params.add("requestMsg", requestmsg);
-        	
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-        	HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(params, headers);
-        	log.info("Approach 1 URL "+GATEWAY_TRANSACTION_STATUS_URL_WITHIP);
-        	ResponseEntity<String> response = template.postForEntity(GATEWAY_TRANSACTION_STATUS_URL_WITHIP,entity, String.class);
-        	Transaction resp =transformRawResponse(response.getBody(), currentStatus, param.get("merchantSecretKey"));
-            log.info("Response "+(resp!=null ? resp.toString():""));
+    		if(GATEWAY_TRANSACTION_STATUS_URL_WITHIP!=null && !GATEWAY_TRANSACTION_STATUS_URL_WITHIP.isEmpty()) {
+	    		log.info("Approach 1 With IP");
+	        	TrustStrategy acceptTrustStrategy = (cert, authType) -> true;
+	        	SSLContext context = SSLContexts.custom().loadTrustMaterial(null, acceptTrustStrategy).build();
+	        	BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+	        	credentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(param.get("merchantUserName"), param.get("merchantPassword")));
+	        	 
+	        	CloseableHttpClient httpClient = HttpClientBuilder.create().setSSLContext(context).
+	        			setDefaultCredentialsProvider(credentialsProvider).build();
+	        	HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(httpClient);
+	        	RestTemplate template =restTemplateBuilder.requestFactory(factory).build();
+	        	
+	        	MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+	        	String requestmsg =SEPERATOR+ param.get("merchantId") +SEPERATOR+currentStatus.getTxnId();
+	            params.add("requestMsg", requestmsg);
+	        	
+	            HttpHeaders headers = new HttpHeaders();
+	            headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+	        	HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(params, headers);
+	        	log.info("Approach 1 URL "+GATEWAY_TRANSACTION_STATUS_URL_WITHIP);
+	        	ResponseEntity<String> response = template.postForEntity(GATEWAY_TRANSACTION_STATUS_URL_WITHIP,entity, String.class);
+	        	Transaction resp =transformRawResponse(response.getBody(), currentStatus, param.get("merchantSecretKey"));
+	            log.info("Response "+(resp!=null ? resp.toString():""));
+    		}
         } catch (RestClientException e) {
             log.error("Unable to fetch status from NIC gateway ", e);
         } catch (Exception e) {
