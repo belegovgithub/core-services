@@ -11,7 +11,7 @@ import logger from "../config/logger";
 import envVariables from "../EnvironmentVariables";
 const egovFileHost = envVariables.EGOV_FILESTORE_SERVICE_HOST;
 const egovHost = envVariables.EGOV_HOST;
-
+let egovHostUrl = envVariables.EGOV_HOST_LOGO_URL;
 /**
  *
  * @param {*} key -name of the key used to identify module configs. Provided request URL
@@ -163,6 +163,20 @@ export const externalAPIMapping = async function(
         { RequestInfo: requestInfo },
         headers
       );
+      if(key == "tradelicense-appl-receipt" || key == "tradelicense-receipt" || key == "consolidatedreceipt")
+      {
+       // console.warn("calling in---"+JSON.stringify(res));
+        if(null!=res.MdmsRes.tenant.tenants)
+        {
+          if(res.MdmsRes.tenant.tenants.length>0)
+          {
+        
+        let tempObj = res.MdmsRes.tenant.tenants[0].logoIdPdf;
+        res.MdmsRes.tenant.tenants[0].logoIdPdf = egovHostUrl.concat(tempObj);
+        //console.warn("respo is tempObj--->>"+res.MdmsRes.tenant.tenants[0].logoIdPdf);
+          }
+        }
+      }
     } else {
       var apires = await axios.get(
         externalAPIArray[i].uri + "?" + externalAPIArray[i].queryParams,
