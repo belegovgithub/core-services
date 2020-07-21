@@ -7,6 +7,11 @@ import {
   getValue
 } from "./commons";
 import logger from "../config/logger";
+
+import envVariables from "../EnvironmentVariables";
+const egovFileHost = envVariables.EGOV_FILESTORE_SERVICE_HOST;
+const egovHost = envVariables.EGOV_HOST;
+
 /**
  *
  * @param {*} key -name of the key used to identify module configs. Provided request URL
@@ -166,6 +171,21 @@ export const externalAPIMapping = async function(
         }
       );
       res = apires.data;
+      console.log("default resp-->>"+JSON.stringify(res));
+      console.log("file store url-->>"+egovFileHost);
+      if(null!=res)
+      {
+        if(null!=res.fileStoreIds)
+        {
+          if(res.fileStoreIds.length>0)
+          {
+              let tempUrl = res.fileStoreIds[0].url;
+              console.log("temp url old--"+tempUrl);
+              res.fileStoreIds[0].url = tempUrl.replace(egovHost,egovFileHost);
+              console.log("temp new --"+res.fileStoreIds[0].url);
+          }
+        }
+      }
     }
     //putting required data from external API call in format config
 
