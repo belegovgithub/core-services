@@ -333,112 +333,135 @@ public class NICGateway implements Gateway {
 
      
 
+    /**
+     * Transform the Response string into NICStatusResponse object and return the transaction detail 
+     * @param resp
+     * @param currentStatus
+     * @param secretKey
+     * @return
+     * @throws JsonParseException
+     * @throws JsonMappingException
+     * @throws IOException
+     */
     private Transaction transformRawResponse(String resp, Transaction currentStatus, String secretKey)
             throws JsonParseException, JsonMappingException, IOException {
     	log.info("Response Data "+resp);
-        Transaction.TxnStatusEnum status = Transaction.TxnStatusEnum.PENDING;
-        NICStatusResponse statusResponse;
         if (resp!=null) {
         	
         	//Validate the response against the checksum
         	NICUtils.validateTransaction(resp, secretKey);
         	
-        	statusResponse = decodeResponseMsg(resp);
-        	log.info("Decoded Response => "+statusResponse);
-        	if (statusResponse.getTxFlag().equalsIgnoreCase("S"))
-                    status = Transaction.TxnStatusEnum.SUCCESS;
-                else if (statusResponse.getTxFlag().equalsIgnoreCase("F")|| statusResponse.getTxFlag().equalsIgnoreCase("D"))
-                    status = Transaction.TxnStatusEnum.FAILURE;
-        	
-        	
-        	return Transaction.builder().txnId(currentStatus.getTxnId())
-                    .txnAmount(Utils.formatAmtAsRupee(statusResponse.getTransactionAmount()))
-                    .txnStatus(status).gatewayTxnId(statusResponse.getSurePayTxnId())
-                    .gatewayPaymentMode(statusResponse.getPaymentMode())
-                    .gatewayStatusCode(statusResponse.getTxFlag())
-                    .responseJson(resp).build();
+        	String[] splitArray = resp.split("[|]");
+        	Transaction txStatus=null;
+        	NICStatusResponse statusResponse = new NICStatusResponse(splitArray[0]);
+        	int index =0;
+        	switch (statusResponse.getTxFlag()) {
+    		case "S":
+    			/*For Success : 
+    			SuccessFlag|MessageType|SurePayMerchantId|ServiceId|OrderId|CustomerId|TransactionAmount|
+    			CurrencyCode|PaymentMode|ResponseDateTime|SurePayTxnId|
+    			BankTransactionNo|TransactionStatus|AdditionalInfo1|AdditionalInfo2|AdditionalInfo3|
+    			AdditionalInfo4|AdditionalInfo5|ErrorCode|ErrorDescription|CheckSum*/
+    			/*
+    			 * Sample Response :
+    			 * S|0100|UATSCBSG0000000207|SecuChhawani|PB_PG_2020_07_20_000153_16|
+    			 * 9eb6f880-c22f-4c1e-8f99-106bb3e0e60a|600.00|INR|UPI|20-07-2020|13557|pay_FGkHC8M8edSAmW|A|111111|111111|111111|111111|111111||| 
+    			 */
+    			
+    			statusResponse.setMessageType(splitArray[++index]);
+    			statusResponse.setSurePayMerchantId(splitArray[++index]);
+    			statusResponse.setServiceId(splitArray[++index]);
+    			statusResponse.setOrderId(splitArray[++index]);
+    			statusResponse.setCustomerId(splitArray[++index]);
+    			statusResponse.setTransactionAmount(splitArray[++index]);
+    			statusResponse.setCurrencyCode(splitArray[++index]);
+    			statusResponse.setPaymentMode(splitArray[++index]);
+    			statusResponse.setResponseDateTime(splitArray[++index]);
+    			statusResponse.setSurePayTxnId(splitArray[++index]);
+    			statusResponse.setBankTransactionNo(splitArray[++index]);
+    			statusResponse.setTransactionStatus(splitArray[++index]);
+    			statusResponse.setAdditionalInfo1(splitArray[++index]);
+    			statusResponse.setAdditionalInfo2(splitArray[++index]);
+    			statusResponse.setAdditionalInfo3(splitArray[++index]);
+    			statusResponse.setAdditionalInfo4(splitArray[++index]);
+    			statusResponse.setAdditionalInfo5(splitArray[++index]);
+    			statusResponse.setErrorCode(splitArray[++index]);
+    			statusResponse.setErrorDescription(splitArray[++index]);
+    			statusResponse.setCheckSum(splitArray[++index]);
+    			//Build tx Response object
+    			txStatus = Transaction.builder().txnId(currentStatus.getTxnId())
+                        .txnAmount(Utils.formatAmtAsRupee(statusResponse.getTransactionAmount()))
+                        .txnStatus(Transaction.TxnStatusEnum.SUCCESS).gatewayTxnId(statusResponse.getSurePayTxnId())
+                        .gatewayPaymentMode(statusResponse.getPaymentMode())
+                        .gatewayStatusCode(statusResponse.getTxFlag()).gatewayStatusMsg(statusResponse.getTransactionStatus())
+                        .responseJson(resp).build();
+    			
+    			break;
+    		case "F":
+    		case "D":
+    			index =0;
+    			/*For Failure : 
+    			 FailureFlag|SurePayMerchantId|OrderId|ServiceId|PaymentMode|BankTransactionNo|
+    			 ErrorCode|ErrorMessage|ErrorDescription|ResponseDateTime|CheckSum
+    			 
+    			 D|UATCBLSG0000000205|PB_PG_2020_07_22_000167_61|
+    			 LuckChhawani||PAYMENT_DECLINED_M|2020-07-22 09:55:56.236|1250432021
+    			 */
+    			statusResponse.setSurePayMerchantId(splitArray[++index]);
+    			statusResponse.setOrderId(splitArray[++index]);
+    			statusResponse.setServiceId(splitArray[++index]);
+    			statusResponse.setPaymentMode(splitArray[++index]);
+    			//txResp.setBankTransactionNo(splitArray[++index]);
+    			//txResp.setErrorCode(splitArray[++index]);
+    			//txResp.setErrorMessage(splitArray[++index]);
+    			statusResponse.setErrorDescription(splitArray[++index]);
+    			statusResponse.setResponseDateTime(splitArray[++index]);
+    			statusResponse.setCheckSum(splitArray[++index]);
+    			//Build tx Response object
+    			txStatus = Transaction.builder().txnId(currentStatus.getTxnId())
+                        .txnStatus(Transaction.TxnStatusEnum.FAILURE).gatewayTxnId(statusResponse.getSurePayTxnId())
+                        .gatewayPaymentMode(statusResponse.getPaymentMode())
+                        .gatewayStatusCode(statusResponse.getTxFlag()).gatewayStatusMsg(statusResponse.getErrorDescription())
+                        .responseJson(resp).build();
+    			
+    			break;
+    		case "I":
+    			/* For Initiated : 
+    			 InitiatedFlag|SurePayMerchantId|OrderId|ServiceId|PaymentMode|ErrorDescription|
+    			 ResponseDateTime|CheckSum
+    			 
+    			 I|UATSCBSG0000000207|PB_PG_2020_07_22_000168_45|SecuChhawani||
+    			 ORDER_INITIATED|2020-07-22 10:27:28.312|481313839
+    			 */
+    			statusResponse.setSurePayMerchantId(splitArray[++index]);
+    			statusResponse.setOrderId(splitArray[++index]);
+    			statusResponse.setServiceId(splitArray[++index]);
+    			statusResponse.setPaymentMode(splitArray[++index]);
+    			statusResponse.setErrorDescription(splitArray[++index]);
+    			statusResponse.setResponseDateTime(splitArray[++index]);
+    			statusResponse.setCheckSum(splitArray[++index]);
+    			//Build tx Response object
+    			txStatus = Transaction.builder().txnId(currentStatus.getTxnId())
+                        .txnStatus(Transaction.TxnStatusEnum.PENDING)
+                        .gatewayPaymentMode(statusResponse.getPaymentMode())
+                        .gatewayStatusCode(statusResponse.getTxFlag())
+                        .gatewayStatusMsg(statusResponse.getErrorDescription())
+                        .responseJson(resp).build();
+    			break;
+    		  default : 
+    			  throw new CustomException("UNABLE_TO_FETCH_STATUS", "Unable to fetch Status of transaction");
+    		}
+        	log.info("Encoded value "+resp);
+        	log.info("txResp --> "+statusResponse);
+        	log.info("txResp --> "+txStatus);
+        	return txStatus;
         } else {
             log.error("Received error response from status call : " + resp);
             throw new CustomException("UNABLE_TO_FETCH_STATUS", "Unable to fetch status from nic gateway");
         }
     }
     
-    private NICStatusResponse decodeResponseMsg(String respMsg) {
-    	String[] splitArray = respMsg.split("[|]");
-    	NICStatusResponse txResp = new NICStatusResponse(splitArray[0]);
-    	int index =0;
-    	switch (txResp.getTxFlag()) {
-		case "S":
-			/*For Success : 
-			SuccessFlag|MessageType|SurePayMerchantId|ServiceId|OrderId|CustomerId|TransactionAmount|
-			CurrencyCode|PaymentMode|ResponseDateTime|SurePayTxnId|
-			BankTransactionNo|TransactionStatus|AdditionalInfo1|AdditionalInfo2|AdditionalInfo3|
-			AdditionalInfo4|AdditionalInfo5|ErrorCode|ErrorDescription|CheckSum*/
-			/*
-			 * Sample Response :
-			 * S|0100|UATSCBSG0000000207|SecuChhawani|PB_PG_2020_07_20_000153_16|
-			 * 9eb6f880-c22f-4c1e-8f99-106bb3e0e60a|600.00|INR|UPI|20-07-2020|13557|pay_FGkHC8M8edSAmW|A|111111|111111|111111|111111|111111||| 
-			 */
-			
-			txResp.setMessageType(splitArray[++index]);
-			txResp.setSurePayMerchantId(splitArray[++index]);
-			txResp.setServiceId(splitArray[++index]);
-			txResp.setOrderId(splitArray[++index]);
-			txResp.setCustomerId(splitArray[++index]);
-			txResp.setTransactionAmount(splitArray[++index]);
-			txResp.setCurrencyCode(splitArray[++index]);
-			txResp.setPaymentMode(splitArray[++index]);
-			txResp.setResponseDateTime(splitArray[++index]);
-			txResp.setSurePayTxnId(splitArray[++index]);
-			txResp.setBankTransactionNo(splitArray[++index]);
-			txResp.setTransactionStatus(splitArray[++index]);
-			txResp.setAdditionalInfo1(splitArray[++index]);
-			txResp.setAdditionalInfo2(splitArray[++index]);
-			txResp.setAdditionalInfo3(splitArray[++index]);
-			txResp.setAdditionalInfo4(splitArray[++index]);
-			txResp.setAdditionalInfo5(splitArray[++index]);
-			txResp.setErrorCode(splitArray[++index]);
-			txResp.setErrorDescription(splitArray[++index]);
-			txResp.setCheckSum(splitArray[++index]);
-			
-			break;
-		case "F":
-		case "D":
-			index =0;
-			/*For Failure : 
-			 FailureFlag|SurePayMerchantId|OrderId|ServiceId|PaymentMode|BankTransactionNo|
-			 ErrorCode|ErrorMessage|ErrorDescription|ResponseDateTime|CheckSum
-			 */
-			txResp.setSurePayMerchantId(splitArray[++index]);
-			txResp.setOrderId(splitArray[++index]);
-			txResp.setServiceId(splitArray[++index]);
-			txResp.setPaymentMode(splitArray[++index]);
-			txResp.setBankTransactionNo(splitArray[++index]);
-			txResp.setErrorCode(splitArray[++index]);
-			txResp.setErrorMessage(splitArray[++index]);
-			txResp.setErrorDescription(splitArray[++index]);
-			txResp.setResponseDateTime(splitArray[++index]);
-			txResp.setCheckSum(splitArray[++index]);
-			
-			break;
-		case "I":
-			/* For Initiated : 
-			 InitiatedFlag|SurePayMerchantId|OrderId|ServiceId|PaymentMode|ErrorDescription|
-			 ResponseDateTime|CheckSum
-			 */
-			txResp.setSurePayMerchantId(splitArray[++index]);
-			txResp.setOrderId(splitArray[++index]);
-			txResp.setServiceId(splitArray[++index]);
-			txResp.setPaymentMode(splitArray[++index]);
-			txResp.setErrorDescription(splitArray[++index]);
-			txResp.setResponseDateTime(splitArray[++index]);
-			txResp.setCheckSum(splitArray[++index]);
-			break;
-		}
-    	log.info("Encoded value "+respMsg);
-    	log.info("txResp --> "+txResp);
-    	return txResp;
-    }
+     
      
 
 }
