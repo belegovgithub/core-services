@@ -398,6 +398,30 @@ public class NICGateway implements Gateway {
     			
     			break;
     		case "F":
+    			/*
+    			 * FailureFlag|SurePayMerchantId|OrderId|ServiceId|PaymentMode|BankTransactionNo|
+    			 ErrorCode|ErrorMessage|ErrorDescription|ResponseDateTime|CheckSum
+    			 
+    			 F|UATSCBSG0000000207|PB_PG_2020_07_22_000183_35|SecuChhawani|Wallet|
+    			 pay_FHWjr1cdBNUt7y|400|PAYMENT_DECLINED_A|Payment failed|2020-07-22 17:06:06.366|1326393779
+    			 */
+    			statusResponse.setSurePayMerchantId(splitArray[++index]);
+    			statusResponse.setOrderId(splitArray[++index]);
+    			statusResponse.setServiceId(splitArray[++index]);
+    			statusResponse.setPaymentMode(splitArray[++index]);
+    			statusResponse.setBankTransactionNo(splitArray[++index]);
+    			statusResponse.setErrorCode(splitArray[++index]);
+    			statusResponse.setErrorMessage(splitArray[++index]);
+    			statusResponse.setErrorDescription(splitArray[++index]);
+    			statusResponse.setResponseDateTime(splitArray[++index]);
+    			statusResponse.setCheckSum(splitArray[++index]);
+    			//Build tx Response object
+    			txStatus = Transaction.builder().txnId(currentStatus.getTxnId())
+                        .txnStatus(Transaction.TxnStatusEnum.FAILURE).gatewayTxnId(statusResponse.getSurePayTxnId())
+                        .gatewayPaymentMode(statusResponse.getPaymentMode())
+                        .gatewayStatusCode(statusResponse.getTxFlag()).gatewayStatusMsg(statusResponse.getErrorMessage())
+                        .responseJson(resp).build();
+    			
     		case "D":
     			index =0;
     			/*For Failure : 
@@ -406,24 +430,24 @@ public class NICGateway implements Gateway {
     			 
     			 D|UATCBLSG0000000205|PB_PG_2020_07_22_000167_61|
     			 LuckChhawani||PAYMENT_DECLINED_M|2020-07-22 09:55:56.236|1250432021
+    			 
     			 */
     			statusResponse.setSurePayMerchantId(splitArray[++index]);
     			statusResponse.setOrderId(splitArray[++index]);
     			statusResponse.setServiceId(splitArray[++index]);
     			statusResponse.setPaymentMode(splitArray[++index]);
-    			//txResp.setBankTransactionNo(splitArray[++index]);
-    			//txResp.setErrorCode(splitArray[++index]);
-    			//txResp.setErrorMessage(splitArray[++index]);
-    			statusResponse.setErrorDescription(splitArray[++index]);
+    			//statusResponse.setBankTransactionNo(splitArray[++index]);
+    			//statusResponse.setErrorCode(splitArray[++index]);
+    			statusResponse.setErrorMessage(splitArray[++index]);
+    			//statusResponse.setErrorDescription(splitArray[++index]);
     			statusResponse.setResponseDateTime(splitArray[++index]);
     			statusResponse.setCheckSum(splitArray[++index]);
     			//Build tx Response object
     			txStatus = Transaction.builder().txnId(currentStatus.getTxnId())
                         .txnStatus(Transaction.TxnStatusEnum.FAILURE).gatewayTxnId(statusResponse.getSurePayTxnId())
                         .gatewayPaymentMode(statusResponse.getPaymentMode())
-                        .gatewayStatusCode(statusResponse.getTxFlag()).gatewayStatusMsg(statusResponse.getErrorDescription())
+                        .gatewayStatusCode(statusResponse.getTxFlag()).gatewayStatusMsg(statusResponse.getErrorMessage())
                         .responseJson(resp).build();
-    			
     			break;
     		case "I":
     			/* For Initiated : 
