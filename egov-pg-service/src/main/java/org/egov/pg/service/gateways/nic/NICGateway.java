@@ -9,6 +9,7 @@ import java.security.KeyStore;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -26,8 +27,11 @@ import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.ssl.SSLContexts;
+import org.egov.common.contract.request.RequestInfo;
+import org.egov.common.contract.request.User;
 import org.egov.pg.models.PgDetail;
 import org.egov.pg.models.Transaction;
+import org.egov.pg.repository.PgDetailRepository;
 import org.egov.pg.service.Gateway;
 import org.egov.pg.utils.Utils;
 import org.egov.tracer.model.CustomException;
@@ -103,8 +107,8 @@ public class NICGateway implements Gateway {
     private String TX_DATE_FORMAT;
     @Autowired
     private RestTemplateBuilder restTemplateBuilder;
-    
-    
+    private  final RequestInfo requestInfo;
+    private PgDetailRepository pgDetailRepository;
     
     /**
      * Initialize by populating all required config parameters
@@ -113,7 +117,7 @@ public class NICGateway implements Gateway {
      * @param environment containing all required config parameters
      */
     @Autowired
-    public NICGateway(RestTemplate restTemplate, Environment environment, ObjectMapper objectMapper) {
+    public NICGateway(RestTemplate restTemplate, Environment environment, ObjectMapper objectMapper,PgDetailRepository pgDetailRepository) {
         this.restTemplate = restTemplate;
         ACTIVE = Boolean.valueOf(environment.getRequiredProperty("nic.active"));
         MESSAGE_TYPE = environment.getRequiredProperty("nic.messagetype");
@@ -125,6 +129,13 @@ public class NICGateway implements Gateway {
         CITIZEN_URL = environment.getRequiredProperty("egov.default.citizen.url");
         GATEWAY_URL = environment.getRequiredProperty("nic.gateway.url");
         TX_DATE_FORMAT =environment.getRequiredProperty("nic.dateformat");
+        User userInfo = User.builder()
+                .uuid("PG_DETAIL_GET")
+                .type("SYSTEM")
+                .roles(Collections.emptyList()).id(0L).build();
+
+        requestInfo = new RequestInfo("", "", 0L, "", "", "", "", "", "", userInfo);
+        this.pgDetailRepository=pgDetailRepository;
     }
 
     @Override
@@ -134,6 +145,15 @@ public class NICGateway implements Gateway {
     
     @Override
     public String generateRedirectURI(Transaction transaction, PgDetail pgDetail) {
+    	
+    	try {
+    		
+    		PgDetail pg = pgDetailRepository.getPgDetailByTenantId(requestInfo, transaction.getTenantId());
+        	log.info("PG Detail fetch without interaction from outer world "+pg);
+    		
+    	}catch (Exception e) {
+			log.error("Error in fetching detail ", e);
+		}
     	
     	/*
 		 * 
