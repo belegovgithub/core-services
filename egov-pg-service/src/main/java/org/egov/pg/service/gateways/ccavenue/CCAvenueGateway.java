@@ -200,7 +200,7 @@ public class CCAvenueGateway implements Gateway {
     }
 
     @Override
-	public String generateRedirectURI(Transaction transaction, PgDetail pgDetail) {
+	public String generateRedirectFormData(Transaction transaction) {
 		// TODO Auto-generated method stub
 		return null;
 	}

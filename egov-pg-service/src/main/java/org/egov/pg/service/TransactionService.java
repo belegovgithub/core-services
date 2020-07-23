@@ -2,18 +2,15 @@ package org.egov.pg.service;
 
 import java.net.URI;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.egov.common.contract.request.RequestInfo;
 import org.egov.pg.config.AppProperties;
-import org.egov.pg.models.PgDetail;
 import org.egov.pg.models.Transaction;
 import org.egov.pg.models.TransactionDump;
 import org.egov.pg.models.TransactionDumpRequest;
 import org.egov.pg.producer.Producer;
-import org.egov.pg.repository.PgDetailRepository;
 import org.egov.pg.repository.TransactionRepository;
 import org.egov.pg.validator.TransactionValidator;
 import org.egov.pg.web.models.TransactionCriteria;
@@ -39,14 +36,15 @@ public class TransactionService {
     private AppProperties appProperties;
     private TransactionRepository transactionRepository;
     private PaymentsService paymentsService;
-    private PgDetailRepository pgDetailRepository;
+
+
 
     @Autowired
     TransactionService(TransactionValidator validator, GatewayService gatewayService, Producer producer,
                        TransactionRepository
                                transactionRepository, PaymentsService paymentsService,
                        EnrichmentService enrichmentService,
-                       AppProperties appProperties,PgDetailRepository pgDetailRepository) {
+                       AppProperties appProperties) {
         this.validator = validator;
         this.gatewayService = gatewayService;
         this.producer = producer;
@@ -54,7 +52,6 @@ public class TransactionService {
         this.paymentsService = paymentsService;
         this.enrichmentService = enrichmentService;
         this.appProperties = appProperties;
-        this.pgDetailRepository=pgDetailRepository;
     }
 
     /**
@@ -69,9 +66,9 @@ public class TransactionService {
      * @param transactionRequest Valid transaction request for which transaction needs to be initiated
      * @return Redirect URI to the gateway for the particular transaction
      */
-    public Transaction initiateTransaction(TransactionRequest transactionRequest) { 
+    public Transaction initiateTransaction(TransactionRequest transactionRequest) {
         validator.validateCreateTxn(transactionRequest);
-        
+
         // Enrich transaction by generating txnid, audit details, default status
         enrichmentService.enrichCreateTransaction(transactionRequest);
 
@@ -88,18 +85,9 @@ public class TransactionService {
             paymentsService.registerPayment(transactionRequest);
         }
         else{
-            URI uri = gatewayService.initiateTxn(transaction);
-            String data =null;
-            if(uri!=null) {
-            	data=uri.toString();
-            }else {
-            	PgDetail pgDetail = pgDetailRepository.getPgDetailByTenantId(transactionRequest.getRequestInfo(), transaction.getTenantId());
-            	data = gatewayService.initiateTxn(transaction,pgDetail);
-            }
-            transaction.setRedirectUrl(data);
-        	dump.setTxnRequest(data);
-            
-            
+            String uri = gatewayService.initiateTxn(transaction);
+            transaction.setRedirectUrl(uri);
+            dump.setTxnRequest(uri);
         }
 
         // Persist transaction and transaction dump objects
@@ -147,8 +135,8 @@ public class TransactionService {
 
         Transaction currentTxnStatus = validator.validateUpdateTxn(requestParams);
 
-        log.debug("Current Tx Status "+currentTxnStatus.toString());
-        log.debug("Request param "+ requestParams.toString());
+        log.info("Current Tx Status "+currentTxnStatus.toString());
+        log.info("Request param "+ requestParams.toString());
 
         Transaction newTxn = null;
 
@@ -156,21 +144,7 @@ public class TransactionService {
             newTxn = currentTxnStatus;
 
         } else{
-        	PgDetail pgDetail = pgDetailRepository.getPgDetailByTenantId(requestInfo, currentTxnStatus.getTenantId());
-        	if(pgDetail!=null) {
-        		
-        		Map<String, String> requestParamsWithGateway = new HashMap<String, String>(); 
-        		requestParamsWithGateway.put("merchantUserName", pgDetail.getMerchantUserName());
-        		requestParamsWithGateway.put("merchantPassword", pgDetail.getMerchantPassword());
-        		requestParamsWithGateway.put("merchantId", pgDetail.getMerchantId());
-        		requestParamsWithGateway.put("merchantSecretKey", pgDetail.getMerchantSecretKey());
-        		requestParamsWithGateway.putAll(requestParams);
-        		log.info("Updated Request Param "+requestParamsWithGateway);
-        		newTxn = gatewayService.getLiveStatus(currentTxnStatus, requestParamsWithGateway); 
-        	}else {
-        		newTxn = gatewayService.getLiveStatus(currentTxnStatus, requestParams);
-        	}
-            
+            newTxn = gatewayService.getLiveStatus(currentTxnStatus, requestParams);
 
             // Enrich the new transaction status before persisting
             enrichmentService.enrichUpdateTransaction(new TransactionRequest(requestInfo, currentTxnStatus), newTxn);

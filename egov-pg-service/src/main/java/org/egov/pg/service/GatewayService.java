@@ -3,13 +3,10 @@ package org.egov.pg.service;
 import lombok.extern.slf4j.Slf4j;
 import org.egov.pg.constants.PgConstants;
 import org.egov.pg.models.GatewayStatus;
-import org.egov.pg.models.PgDetail;
 import org.egov.pg.models.Transaction;
 import org.egov.tracer.model.CustomException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import com.google.gson.JsonObject;
 
 import java.net.URI;
 import java.util.*;
@@ -68,28 +65,18 @@ public class GatewayService {
      * @param transaction Txn for which payment should be initiated
      * @return Redirect URI to the gateway
      */
-    URI initiateTxn(Transaction transaction) {
+    String initiateTxn(Transaction transaction) {
         if (!isGatewayActive(transaction.getGateway()))
             throw new CustomException("INVALID_PAYMENT_GATEWAY", "Invalid or inactive payment gateway provided");
-
+        
         Gateway gateway = getGateway(transaction.getGateway());
-        return gateway.generateRedirectURI(transaction);
+        URI uri= gateway.generateRedirectURI(transaction);
+        if(uri==null) {
+        	return gateway.generateRedirectFormData(transaction);
+        }
+        return uri.toString();
     }
-    /**
-     * Returns the redirectURI with parameter from the requested gateway if exists
-     * else throws CustomException
-     *
-     * @param transaction Txn for which payment should be initiated
-     * @param pgDetail payment gateway detail
-     * @return Redirect URL with parameter as json string to the gateway
-     */
-    String initiateTxn(Transaction transaction, PgDetail pgDetail) {
-        if (!isGatewayActive(transaction.getGateway()))
-            throw new CustomException("INVALID_PAYMENT_GATEWAY", "Invalid or inactive payment gateway provided");
-
-        Gateway gateway = getGateway(transaction.getGateway());
-        return gateway.generateRedirectURI(transaction, pgDetail);
-    }
+    
 
     /**
      * Fetch the live transaction status from the gateway

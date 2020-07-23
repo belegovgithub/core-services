@@ -3,8 +3,6 @@ package org.egov.pg.service.gateways.phonepe;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-
-import org.egov.pg.models.PgDetail;
 import org.egov.pg.models.Transaction;
 import org.egov.pg.service.Gateway;
 import org.egov.pg.utils.Utils;
@@ -23,7 +21,6 @@ import java.net.URISyntaxException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -191,7 +188,7 @@ public class PhonepeGateway implements Gateway {
 
 
     @Override
-	public String generateRedirectURI(Transaction transaction, PgDetail pgDetail) {
+	public String generateRedirectFormData(Transaction transaction) {
 		// TODO Auto-generated method stub
 		return null;
 	}

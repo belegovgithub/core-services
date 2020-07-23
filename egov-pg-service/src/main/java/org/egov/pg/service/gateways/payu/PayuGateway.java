@@ -3,8 +3,6 @@ package org.egov.pg.service.gateways.payu;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-
-import org.egov.pg.models.PgDetail;
 import org.egov.pg.models.Transaction;
 import org.egov.pg.service.Gateway;
 import org.egov.pg.utils.Utils;
@@ -28,7 +26,6 @@ import java.io.IOException;
 import java.net.URI;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
@@ -271,7 +268,7 @@ public class PayuGateway implements Gateway {
     }
 
     @Override
-	public String generateRedirectURI(Transaction transaction, PgDetail pgDetail) {
+	public String generateRedirectFormData(Transaction transaction) {
 		// TODO Auto-generated method stub
 		return null;
 	}

@@ -144,16 +144,8 @@ public class NICGateway implements Gateway {
     }
     
     @Override
-    public String generateRedirectURI(Transaction transaction, PgDetail pgDetail) {
-    	
-    	try {
-    		
-    		PgDetail pg = pgDetailRepository.getPgDetailByTenantId(requestInfo, transaction.getTenantId());
-        	log.info("PG Detail fetch without interaction from outer world "+pg);
-    		
-    	}catch (Exception e) {
-			log.error("Error in fetching detail ", e);
-		}
+    public String generateRedirectFormData(Transaction transaction) {
+    	PgDetail pgDetail = pgDetailRepository.getPgDetailByTenantId(requestInfo, transaction.getTenantId());
     	
     	/*
 		 * 
@@ -211,7 +203,9 @@ public class NICGateway implements Gateway {
      	ObjectMapper mapper = new ObjectMapper();
      	try {
      		urlData= mapper.writeValueAsString(queryMap);
-		} catch (JsonProcessingException e) {
+     		URI url = new URI(urlData);
+     		log.info("URL Daata "+url);
+		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			log.error("NIC URL generation failed", e);
             throw new CustomException("URL_GEN_FAILED",
@@ -271,13 +265,15 @@ public class NICGateway implements Gateway {
 
     @Override
     public Transaction fetchStatus(Transaction currentStatus, Map<String, String> param) {
+    	PgDetail pgDetail = pgDetailRepository.getPgDetailByTenantId(requestInfo, currentStatus.getTenantId());
+    	
     	try {
     		if(GATEWAY_TRANSACTION_STATUS_URL_WITHIP!=null && !GATEWAY_TRANSACTION_STATUS_URL_WITHIP.isEmpty()) {
 	    		log.info("Approach 1 With IP");
 	        	TrustStrategy acceptTrustStrategy = (cert, authType) -> true;
 	        	SSLContext context = SSLContexts.custom().loadTrustMaterial(null, acceptTrustStrategy).build();
 	        	BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-	        	credentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(param.get("merchantUserName"), param.get("merchantPassword")));
+	        	credentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(pgDetail.getMerchantUserName(), pgDetail.getMerchantPassword()));
 	        	 
 	        	CloseableHttpClient httpClient = HttpClientBuilder.create().setSSLContext(context).
 	        			setDefaultCredentialsProvider(credentialsProvider).build();
@@ -285,7 +281,7 @@ public class NICGateway implements Gateway {
 	        	RestTemplate template =restTemplateBuilder.requestFactory(factory).build();
 	        	
 	        	MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-	        	String requestmsg =SEPERATOR+ param.get("merchantId") +SEPERATOR+currentStatus.getTxnId();
+	        	String requestmsg =SEPERATOR+ pgDetail.getMerchantId() +SEPERATOR+currentStatus.getTxnId();
 	            params.add("requestMsg", requestmsg);
 	        	
 	            HttpHeaders headers = new HttpHeaders();
@@ -293,7 +289,7 @@ public class NICGateway implements Gateway {
 	        	HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(params, headers);
 	        	log.info("Approach 1 URL "+GATEWAY_TRANSACTION_STATUS_URL_WITHIP);
 	        	ResponseEntity<String> response = template.postForEntity(GATEWAY_TRANSACTION_STATUS_URL_WITHIP,entity, String.class);
-	        	Transaction resp =transformRawResponse(response.getBody(), currentStatus, param.get("merchantSecretKey"));
+	        	Transaction resp =transformRawResponse(response.getBody(), currentStatus, pgDetail.getMerchantSecretKey());
 	            log.info("Response "+(resp!=null ? resp.toString():""));
     		}
         } catch (RestClientException e) {
@@ -307,7 +303,7 @@ public class NICGateway implements Gateway {
         	TrustStrategy acceptTrustStrategy = (cert, authType) -> true;
         	SSLContext context = SSLContexts.custom().loadTrustMaterial(null, acceptTrustStrategy).build();
         	BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-        	credentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(param.get("merchantUserName"), param.get("merchantPassword")));
+        	credentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(pgDetail.getMerchantUserName(), pgDetail.getMerchantPassword()));
         	 
         	CloseableHttpClient httpClient = HttpClientBuilder.create().setSSLContext(context).
         			setDefaultCredentialsProvider(credentialsProvider).build();
@@ -315,7 +311,7 @@ public class NICGateway implements Gateway {
         	RestTemplate template =restTemplateBuilder.requestFactory(factory).build();
         	
         	MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-        	String requestmsg =SEPERATOR+ param.get("merchantId") +SEPERATOR+currentStatus.getTxnId();
+        	String requestmsg =SEPERATOR+ pgDetail.getMerchantId() +SEPERATOR+currentStatus.getTxnId();
             params.add("requestMsg", requestmsg);
         	
             HttpHeaders headers = new HttpHeaders();
@@ -324,7 +320,7 @@ public class NICGateway implements Gateway {
  
         	log.info("Approach URL "+GATEWAY_TRANSACTION_STATUS_URL);
         	ResponseEntity<String> response = template.postForEntity(GATEWAY_TRANSACTION_STATUS_URL,entity, String.class);
-            return transformRawResponse(response.getBody(), currentStatus, param.get("merchantSecretKey"));
+            return transformRawResponse(response.getBody(), currentStatus, pgDetail.getMerchantSecretKey());
         } catch (RestClientException e) {
             log.error("Unable to fetch status from NIC gateway ", e);
             throw new CustomException("UNABLE_TO_FETCH_STATUS", "Unable to fetch status from NIC gateway");
