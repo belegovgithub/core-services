@@ -40,6 +40,16 @@
 
 package org.egov.web.notification.mail.config;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.security.KeyStore;
+import java.util.Properties;
+
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.TrustManagerFactory;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -47,9 +57,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 
 import lombok.Getter;
-
-import java.util.Properties;
-
+import lombok.extern.slf4j.Slf4j;
+@Slf4j
 @Configuration
 public class ApplicationConfiguration {
 
@@ -68,6 +77,28 @@ public class ApplicationConfiguration {
         mailProperties.setProperty("mail.smtps.auth", emailProperties.getMailSmtpsAuth());
         mailProperties.setProperty("mail.smtps.starttls.enable", emailProperties.getMailStartTlsEnabled());
         mailProperties.setProperty("mail.smtps.debug", emailProperties.getMailSmtpsDebug());
+        log.info("mail.smtps.starttls.enable : "+emailProperties.getMailStartTlsEnabled());
+        try {
+	        KeyStore trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
+			File file = new File(System.getenv("JAVA_HOME")+"/lib/security/cacerts");
+	        InputStream is = new FileInputStream(file);
+			trustStore.load(is, "changeit".toCharArray());
+			TrustManagerFactory trustFactory = TrustManagerFactory
+					.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+			trustFactory.init(trustStore);
+			
+			TrustManager[] trustManagers = trustFactory.getTrustManagers();
+			SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
+			
+			sslContext.init(null, trustManagers, null);
+			SSLContext.setDefault(sslContext);
+			mailProperties.put("mail.smtp.ssl.socketFactory", sslContext.getSocketFactory());
+			log.info("SSL Check done");
+        }
+        catch(Exception e) {
+        	log.error("SSL Failed", e);
+			throw new RuntimeException(e);
+        }
         mailSender.setJavaMailProperties(mailProperties);
         return mailSender;
     }
