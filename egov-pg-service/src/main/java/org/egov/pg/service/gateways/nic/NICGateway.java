@@ -203,9 +203,7 @@ public class NICGateway implements Gateway {
      	ObjectMapper mapper = new ObjectMapper();
      	try {
      		urlData= mapper.writeValueAsString(queryMap);
-     		URI url = new URI(urlData);
-     		log.info("URL Daata "+url);
-		} catch (Exception e) {
+     	} catch (Exception e) {
 			// TODO Auto-generated catch block
 			log.error("NIC URL generation failed", e);
             throw new CustomException("URL_GEN_FAILED",
