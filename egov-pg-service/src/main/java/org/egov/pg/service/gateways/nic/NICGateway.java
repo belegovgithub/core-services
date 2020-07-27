@@ -265,7 +265,8 @@ public class NICGateway implements Gateway {
     @Override
     public Transaction fetchStatus(Transaction currentStatus, Map<String, String> param) {
     	PgDetail pgDetail = pgDetailRepository.getPgDetailByTenantId(requestInfo, currentStatus.getTenantId());
-    	
+    	log.info("PG detail ",pgDetail);
+    	log.info("tx input ", currentStatus);
     	try {
     		if(GATEWAY_TRANSACTION_STATUS_URL_WITHIP!=null && !GATEWAY_TRANSACTION_STATUS_URL_WITHIP.isEmpty()) {
 	    		log.info("Approach 1 With IP");
