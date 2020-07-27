@@ -29,6 +29,7 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.ssl.SSLContexts;
 import org.egov.common.contract.request.RequestInfo;
 import org.egov.common.contract.request.User;
+import org.egov.pg.constants.PgConstants;
 import org.egov.pg.models.PgDetail;
 import org.egov.pg.models.Transaction;
 import org.egov.pg.repository.PgDetailRepository;
@@ -405,9 +406,11 @@ public class NICGateway implements Gateway {
     			//Build tx Response object
     			txStatus = Transaction.builder().txnId(currentStatus.getTxnId())
                         .txnAmount(Utils.formatAmtAsRupee(statusResponse.getTransactionAmount()))
-                        .txnStatus(Transaction.TxnStatusEnum.SUCCESS).gatewayTxnId(statusResponse.getSurePayTxnId())
+                        .txnStatus(Transaction.TxnStatusEnum.SUCCESS)
+                        .txnStatusMsg(PgConstants.TXN_SUCCESS)
+                        .gatewayTxnId(statusResponse.getSurePayTxnId())
                         .gatewayPaymentMode(statusResponse.getPaymentMode())
-                        .gatewayStatusCode(statusResponse.getTxFlag()).gatewayStatusMsg(statusResponse.getTransactionStatus())
+                        .gatewayStatusCode(statusResponse.getTransactionStatus()).gatewayStatusMsg(statusResponse.getTransactionStatus())
                         .responseJson(resp).build();
     			
     			break;
@@ -431,9 +434,11 @@ public class NICGateway implements Gateway {
     			statusResponse.setCheckSum(splitArray[++index]);
     			//Build tx Response object
     			txStatus = Transaction.builder().txnId(currentStatus.getTxnId())
-                        .txnStatus(Transaction.TxnStatusEnum.FAILURE).gatewayTxnId(statusResponse.getSurePayTxnId())
+                        .txnStatus(Transaction.TxnStatusEnum.FAILURE)
+                        .txnStatusMsg(PgConstants.TXN_FAILURE_GATEWAY)
+                        .gatewayTxnId(statusResponse.getSurePayTxnId())
                         .gatewayPaymentMode(statusResponse.getPaymentMode())
-                        .gatewayStatusCode(statusResponse.getTxFlag()).gatewayStatusMsg(statusResponse.getErrorMessage())
+                        .gatewayStatusCode(statusResponse.getErrorCode()).gatewayStatusMsg(statusResponse.getErrorMessage())
                         .responseJson(resp).build();
     			
     		case "D":
@@ -458,7 +463,9 @@ public class NICGateway implements Gateway {
     			statusResponse.setCheckSum(splitArray[++index]);
     			//Build tx Response object
     			txStatus = Transaction.builder().txnId(currentStatus.getTxnId())
-                        .txnStatus(Transaction.TxnStatusEnum.FAILURE).gatewayTxnId(statusResponse.getSurePayTxnId())
+                        .txnStatus(Transaction.TxnStatusEnum.FAILURE)
+                        .txnStatusMsg(PgConstants.TXN_FAILURE_GATEWAY)
+                        .gatewayTxnId(statusResponse.getSurePayTxnId())
                         .gatewayPaymentMode(statusResponse.getPaymentMode())
                         .gatewayStatusCode(statusResponse.getTxFlag()).gatewayStatusMsg(statusResponse.getErrorMessage())
                         .responseJson(resp).build();
