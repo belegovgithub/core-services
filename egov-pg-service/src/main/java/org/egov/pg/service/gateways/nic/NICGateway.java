@@ -329,10 +329,16 @@ public class NICGateway implements Gateway {
     		log.info("Eror getResponseHeaders code "+ex.getResponseHeaders());
     		log.info("Eror getResponseBodyAsString code "+ex.getResponseBodyAsString());
     		try {
-				NICStatusResponse statusResponse = new ObjectMapper().readValue(ex.getResponseBodyAsString(),NICStatusResponse.class);
-				log.info(" error resp "+statusResponse);
+				NICStatusResponse errorResponse = new ObjectMapper().readValue(ex.getResponseBodyAsString(),NICStatusResponse.class);
+				if(errorResponse.getErrorCode().equals("404")||errorResponse.getErrorCode().equals("408")) {
+					Transaction txStatus = Transaction.builder().txnId(currentStatus.getTxnId())
+	                        .txnStatus(Transaction.TxnStatusEnum.FAILURE)
+	                        .txnStatusMsg(PgConstants.TXN_FAILURE_GATEWAY)
+	                        .gatewayStatusCode(errorResponse.getErrorCode()).gatewayStatusMsg(errorResponse.getErrorMessage())
+	                        .responseJson(ex.getResponseBodyAsString()).build();
+					return txStatus;
+				}
 			} catch (Exception e) {
-				// TODO Auto-generated catch block
 				log.error("Error in response transform",e);
 			}
 
