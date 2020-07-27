@@ -47,6 +47,7 @@ import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponents;
@@ -323,7 +324,14 @@ public class NICGateway implements Gateway {
         	log.info("Response "+response);
         	log.info("hader code "+response.getStatusCode());
         	return transformRawResponse(response.getBody(), currentStatus, pgDetail.getMerchantSecretKey());
-        } catch (RestClientException e) {
+    	} catch (HttpStatusCodeException ex) {
+    		log.info("Eror code "+ex.getStatusCode());
+    		log.info("Eror getResponseHeaders code "+ex.getResponseHeaders());
+    		log.info("Eror getResponseBodyAsString code "+ex.getResponseBodyAsString());
+    		log.error("Unable to fetch status from NIC gateway ", ex);
+            throw new CustomException("UNABLE_TO_FETCH_STATUS", "Unable to fetch status from NIC gateway");
+        
+    	} catch (RestClientException e) {
             log.error("Unable to fetch status from NIC gateway ", e);
             throw new CustomException("UNABLE_TO_FETCH_STATUS", "Unable to fetch status from NIC gateway");
         } catch (Exception e) {

@@ -141,7 +141,7 @@ public class TransactionsApiController {
     	 RequestInfo requestInfo = new RequestInfo("", "", 0L, "", "", "", "", "", "", userInfo);
 
 		 log.info("Attempting to reconcile {} pending transactions", pendingTxns.size());
-		
+		 int count =0;
 		 for (Transaction txn : pendingTxns) {
 		 	try {
 		 		log.info(transactionService.updateTransaction(requestInfo, Collections.singletonMap(PgConstants.PG_TXN_IN_LABEL, txn
@@ -149,7 +149,11 @@ public class TransactionsApiController {
 		                 ())).toString());	
 		 	}catch (Exception e) {
 					log.error("Error in daily reconcile job",e);
+					count ++;
 				}
+		 	if(count >5) {
+		 		break;
+		 	}
 		     
 		 }
     	
