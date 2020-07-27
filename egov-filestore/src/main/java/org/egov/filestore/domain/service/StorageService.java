@@ -55,7 +55,7 @@ public class StorageService {
 	private CloudFilesManager cloudFilesManager;
 
 	private static final String UPLOAD_MESSAGE = "Received upload request for "
-			+ "jurisdiction: %s, module: %s, tag: %s with file count: %s";
+			+ "  module:{}, tag: {} with file count: {}";
 
 	private ArtifactRepository artifactRepository;
 	private IdGeneratorService idGeneratorService;

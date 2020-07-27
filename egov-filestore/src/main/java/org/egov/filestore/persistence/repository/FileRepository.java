@@ -65,7 +65,7 @@ public class FileRepository {
 			String originalPath = path.toFile().toString();
 			int lastIndex = originalPath.length();
 			String replaceString = originalPath.substring(originalPath.lastIndexOf('.'), lastIndex);
-			String extension = originalPath.substring(lastIndex-3,lastIndex);
+			String extension = originalPath.substring(originalPath.lastIndexOf('.')+1,lastIndex);
 			String mediumPath = path.toFile().toString().replace(replaceString, "_medium"+replaceString);
 			String smallPath = path.toFile().toString().replace(replaceString, "_small"+replaceString);
 
