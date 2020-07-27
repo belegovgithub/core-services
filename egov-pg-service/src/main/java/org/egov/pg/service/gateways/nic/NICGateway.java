@@ -266,42 +266,9 @@ public class NICGateway implements Gateway {
     @Override
     public Transaction fetchStatus(Transaction currentStatus, Map<String, String> param) {
     	PgDetail pgDetail = pgDetailRepository.getPgDetailByTenantId(requestInfo, currentStatus.getTenantId());
-    	log.info("PG detail ",pgDetail);
     	log.info("tx input ", currentStatus);
     	try {
-    		if(GATEWAY_TRANSACTION_STATUS_URL_WITHIP!=null && !GATEWAY_TRANSACTION_STATUS_URL_WITHIP.isEmpty()) {
-	    		log.info("Approach 1 With IP");
-	        	TrustStrategy acceptTrustStrategy = (cert, authType) -> true;
-	        	SSLContext context = SSLContexts.custom().loadTrustMaterial(null, acceptTrustStrategy).build();
-	        	BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-	        	credentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(pgDetail.getMerchantUserName(), pgDetail.getMerchantPassword()));
-	        	 
-	        	CloseableHttpClient httpClient = HttpClientBuilder.create().setSSLContext(context).
-	        			setDefaultCredentialsProvider(credentialsProvider).build();
-	        	HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(httpClient);
-	        	RestTemplate template =restTemplateBuilder.requestFactory(factory).build();
-	        	
-	        	MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-	        	String requestmsg =SEPERATOR+ pgDetail.getMerchantId() +SEPERATOR+currentStatus.getTxnId();
-	            params.add("requestMsg", requestmsg);
-	        	
-	            HttpHeaders headers = new HttpHeaders();
-	            headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-	        	HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(params, headers);
-	        	log.info("Approach 1 URL "+GATEWAY_TRANSACTION_STATUS_URL_WITHIP);
-	        	ResponseEntity<String> response = template.postForEntity(GATEWAY_TRANSACTION_STATUS_URL_WITHIP,entity, String.class);
-	        	Transaction resp =transformRawResponse(response.getBody(), currentStatus, pgDetail.getMerchantSecretKey());
-	            log.info("Response "+(resp!=null ? resp.toString():""));
-    		}
-        } catch (RestClientException e) {
-            log.error("Unable to fetch status from NIC gateway ", e);
-        } catch (Exception e) {
-            log.error("NIC Checksum validation failed ", e);
-        }
-    	
-    	try {
-    		log.info("Approach 2");
-        	TrustStrategy acceptTrustStrategy = (cert, authType) -> true;
+    		TrustStrategy acceptTrustStrategy = (cert, authType) -> true;
         	SSLContext context = SSLContexts.custom().loadTrustMaterial(null, acceptTrustStrategy).build();
         	BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
         	credentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(pgDetail.getMerchantUserName(), pgDetail.getMerchantPassword()));
@@ -319,17 +286,14 @@ public class NICGateway implements Gateway {
             headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
         	HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(params, headers);
  
-        	log.info("Approach URL "+GATEWAY_TRANSACTION_STATUS_URL);
         	ResponseEntity<String> response = template.postForEntity(GATEWAY_TRANSACTION_STATUS_URL,entity, String.class);
-        	log.info("Response "+response);
-        	log.info("hader code "+response.getStatusCode());
         	return transformRawResponse(response.getBody(), currentStatus, pgDetail.getMerchantSecretKey());
     	} catch (HttpStatusCodeException ex) {
     		log.info("Eror code "+ex.getStatusCode());
-    		log.info("Eror getResponseHeaders code "+ex.getResponseHeaders());
     		log.info("Eror getResponseBodyAsString code "+ex.getResponseBodyAsString());
     		try {
 				NICStatusResponse errorResponse = new ObjectMapper().readValue(ex.getResponseBodyAsString(),NICStatusResponse.class);
+				//Error 404 --> No Data Found for given Request and 408 --> Session Time Out Error if not transaction has been initiated for 15 min 
 				if(errorResponse.getErrorCode().equals("404")||errorResponse.getErrorCode().equals("408")) {
 					Transaction txStatus = Transaction.builder().txnId(currentStatus.getTxnId())
 	                        .txnStatus(Transaction.TxnStatusEnum.FAILURE)
@@ -344,8 +308,7 @@ public class NICGateway implements Gateway {
 
     		log.error("Unable to fetch status from NIC gateway ", ex);
             throw new CustomException("UNABLE_TO_FETCH_STATUS", "Unable to fetch status from NIC gateway");
-        
-    	} catch (RestClientException e) {
+        } catch (RestClientException e) {
             log.error("Unable to fetch status from NIC gateway ", e);
             throw new CustomException("UNABLE_TO_FETCH_STATUS", "Unable to fetch status from NIC gateway");
         } catch (Exception e) {
@@ -457,10 +420,19 @@ public class NICGateway implements Gateway {
     			statusResponse.setErrorDescription(splitArray[++index]);
     			statusResponse.setResponseDateTime(splitArray[++index]);
     			statusResponse.setCheckSum(splitArray[++index]);
+    			String txStatusMsg =PgConstants.TXN_FAILURE_GATEWAY;
+    			if(statusResponse.getErrorMessage().equalsIgnoreCase("PAYMENT_DECLINED_A")) {
+    				txStatusMsg="Transaction Failed At Aggregator";
+    			}else if(statusResponse.getErrorMessage().equalsIgnoreCase("PAYMENT_DECLINED_M")) {
+    				txStatusMsg="Transaction Failed At Merchant ";
+    			}else if(statusResponse.getErrorMessage().equalsIgnoreCase("PAYMENT_DECLINED_S")) {
+    				txStatusMsg="Transaction Failed At Surepay";
+    			}
+    			
     			//Build tx Response object
     			txStatus = Transaction.builder().txnId(currentStatus.getTxnId())
                         .txnStatus(Transaction.TxnStatusEnum.FAILURE)
-                        .txnStatusMsg(PgConstants.TXN_FAILURE_GATEWAY)
+                        .txnStatusMsg(txStatusMsg)
                         .gatewayTxnId(statusResponse.getSurePayTxnId())
                         .gatewayPaymentMode(statusResponse.getPaymentMode())
                         .gatewayStatusCode(statusResponse.getErrorCode()).gatewayStatusMsg(statusResponse.getErrorMessage())
@@ -487,9 +459,17 @@ public class NICGateway implements Gateway {
     			statusResponse.setResponseDateTime(splitArray[++index]);
     			statusResponse.setCheckSum(splitArray[++index]);
     			//Build tx Response object
+    			String txStatusMsgDecline =PgConstants.TXN_FAILURE_GATEWAY;
+    			if(statusResponse.getErrorMessage().equalsIgnoreCase("PAYMENT_DECLINED_A")) {
+    				txStatusMsgDecline="Transaction Failed At Aggregator";
+    			}else if(statusResponse.getErrorMessage().equalsIgnoreCase("PAYMENT_DECLINED_M")) {
+    				txStatusMsgDecline="Transaction Failed At Merchant ";
+    			}else if(statusResponse.getErrorMessage().equalsIgnoreCase("PAYMENT_DECLINED_S")) {
+    				txStatusMsgDecline="Transaction Failed At Surepay";
+    			}
     			txStatus = Transaction.builder().txnId(currentStatus.getTxnId())
                         .txnStatus(Transaction.TxnStatusEnum.FAILURE)
-                        .txnStatusMsg(PgConstants.TXN_FAILURE_GATEWAY)
+                        .txnStatusMsg(txStatusMsgDecline)
                         .gatewayTxnId(statusResponse.getSurePayTxnId())
                         .gatewayPaymentMode(statusResponse.getPaymentMode())
                         .gatewayStatusCode(statusResponse.getTxFlag()).gatewayStatusMsg(statusResponse.getErrorMessage())
