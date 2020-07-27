@@ -2,7 +2,13 @@ package org.egov.pg.web.controllers;
 
 
 import lombok.extern.slf4j.Slf4j;
+
+import org.egov.common.contract.request.RequestInfo;
+import org.egov.common.contract.request.User;
+import org.egov.pg.config.AppProperties;
+import org.egov.pg.constants.PgConstants;
 import org.egov.pg.models.Transaction;
+import org.egov.pg.repository.TransactionRepository;
 import org.egov.pg.service.GatewayService;
 import org.egov.pg.service.TransactionService;
 import org.egov.pg.utils.ResponseInfoFactory;
@@ -14,9 +20,13 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Endpoints to deal with all payment related operations
@@ -107,6 +117,43 @@ public class TransactionsApiController {
     public ResponseEntity<Set<String>> transactionsV1AvailableGatewaysPost() {
 
         Set<String> gateways = gatewayService.getActiveGateways();
+        log.debug("Available gateways : " + gateways);
+        return new ResponseEntity<>(gateways, HttpStatus.OK);
+    }
+    @Autowired
+    private TransactionRepository transactionRepository;
+    @Autowired
+    private AppProperties appProperties;
+    
+    @RequestMapping(value = "/gateway/v1/_schedular", method = RequestMethod.POST)
+    public ResponseEntity<Set<String>> transactionsV1Gateway() {
+
+    	 List<Transaction> pendingTxns = transactionRepository.fetchTransactionsByTimeRange(TransactionCriteria.builder()
+                 .txnStatus(Transaction.TxnStatusEnum.PENDING).build(), 0L,
+         System.currentTimeMillis() - TimeUnit.MINUTES.toMillis(appProperties.getEarlyReconcileJobRunInterval
+                 () * 2));
+    	 
+    	 User userInfo = User.builder()
+                 .uuid("DAILY_RECONC_JOB")
+                 .type("SYSTEM")
+                 .roles(Collections.emptyList()).id(0L).build();
+
+    	 RequestInfo requestInfo = new RequestInfo("", "", 0L, "", "", "", "", "", "", userInfo);
+
+		 log.info("Attempting to reconcile {} pending transactions", pendingTxns.size());
+		
+		 for (Transaction txn : pendingTxns) {
+		 	try {
+		 		log.info(transactionService.updateTransaction(requestInfo, Collections.singletonMap(PgConstants.PG_TXN_IN_LABEL, txn
+		                 .getTxnId
+		                 ())).toString());	
+		 	}catch (Exception e) {
+					log.error("Error in daily reconcile job",e);
+				}
+		     
+		 }
+    	
+        Set<String> gateways =new HashSet<String>();
         log.debug("Available gateways : " + gateways);
         return new ResponseEntity<>(gateways, HttpStatus.OK);
     }

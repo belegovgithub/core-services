@@ -319,7 +319,8 @@ public class NICGateway implements Gateway {
  
         	log.info("Approach URL "+GATEWAY_TRANSACTION_STATUS_URL);
         	ResponseEntity<String> response = template.postForEntity(GATEWAY_TRANSACTION_STATUS_URL,entity, String.class);
-            log.info("hader code "+response.getStatusCode());
+        	log.info("Response "+response);
+        	log.info("hader code "+response.getStatusCode());
         	return transformRawResponse(response.getBody(), currentStatus, pgDetail.getMerchantSecretKey());
         } catch (RestClientException e) {
             log.error("Unable to fetch status from NIC gateway ", e);
