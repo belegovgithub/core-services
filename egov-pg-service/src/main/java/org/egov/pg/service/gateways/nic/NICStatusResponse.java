@@ -1,5 +1,7 @@
 package org.egov.pg.service.gateways.nic;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -39,10 +41,10 @@ public class NICStatusResponse {
 	private String orderId;
 	private String customerId;
 	private String transactionAmount;
-	
 	private String currencyCode;
 	private String paymentMode;
-	private String responseDateTime;
+	@JsonProperty("timeStamp")
+    private String responseDateTime;
 	private String surePayTxnId;
 	private String bankTransactionNo;
 	private String transactionStatus;
@@ -53,7 +55,8 @@ public class NICStatusResponse {
 	private String additionalInfo5;
 	private String errorCode;
 	private String errorMessage;
-	private String errorDescription;
+	@JsonProperty("errorDetails")
+    private String errorDescription;
 	private String checkSum;
 	
  

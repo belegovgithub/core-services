@@ -328,6 +328,14 @@ public class NICGateway implements Gateway {
     		log.info("Eror code "+ex.getStatusCode());
     		log.info("Eror getResponseHeaders code "+ex.getResponseHeaders());
     		log.info("Eror getResponseBodyAsString code "+ex.getResponseBodyAsString());
+    		try {
+				NICStatusResponse statusResponse = new ObjectMapper().readValue(ex.getResponseBodyAsString(),NICStatusResponse.class);
+				log.info(" error resp "+statusResponse);
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				log.error("Error in response transform",e);
+			}
+
     		log.error("Unable to fetch status from NIC gateway ", ex);
             throw new CustomException("UNABLE_TO_FETCH_STATUS", "Unable to fetch status from NIC gateway");
         
