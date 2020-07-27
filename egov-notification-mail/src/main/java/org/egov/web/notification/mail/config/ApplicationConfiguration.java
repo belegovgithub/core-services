@@ -78,28 +78,6 @@ public class ApplicationConfiguration {
         mailProperties.setProperty("mail.smtps.starttls.enable", emailProperties.getMailStartTlsEnabled());
         mailProperties.setProperty("mail.smtps.debug", emailProperties.getMailSmtpsDebug());
         log.info("mail.smtps.starttls.enable : "+emailProperties.getMailStartTlsEnabled());
-        /*try {
-	        KeyStore trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
-			File file = new File(System.getenv("JAVA_HOME")+"/lib/security/cacerts");
-	        InputStream is = new FileInputStream(file);
-			trustStore.load(is, "changeit".toCharArray());
-			TrustManagerFactory trustFactory = TrustManagerFactory
-					.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-			trustFactory.init(trustStore);
-			
-			TrustManager[] trustManagers = trustFactory.getTrustManagers();
-			SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
-			
-			sslContext.init(null, trustManagers, null);
-			SSLContext.setDefault(sslContext);
-			mailProperties.put("mail.smtp.ssl.socketFactory", sslContext.getSocketFactory());
-			log.info("SSL Check done");
-        }
-        catch(Exception e) {
-        	log.error("SSL Failed", e);
-			throw new RuntimeException(e);
-        }*/
-        mailProperties.setProperty("mail.smtp.ssl.enable", "true");
         mailSender.setJavaMailProperties(mailProperties);
         return mailSender;
     }
