@@ -1,0 +1,1 @@
+ALTER TABLE eg_pg_transactions ADD COLUMN "bankTransactionNo" CHARACTER VARYING(250) NULL;

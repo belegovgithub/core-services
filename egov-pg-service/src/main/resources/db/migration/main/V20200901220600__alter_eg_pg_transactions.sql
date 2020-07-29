@@ -1,1 +1,0 @@
-ALTER TABLE eg_pg_transactions ADD COLUMN  IF NOT EXISTS "bank_transaction_no" CHARACTER VARYING(250) NULL;
