@@ -10,7 +10,7 @@ class TransactionQueryBuilder {
             "pg.gateway, pg.module, pg.consumer_code, pg.bill_id, pg.product_info, pg.user_uuid, pg.user_name, pg" +
             ".mobile_number, pg.email_id, pg.name, pg.user_tenant_id, pg.tenant_id, pg.gateway_txn_id, pg.gateway_payment_mode, " +
             "pg.gateway_status_code, pg.gateway_status_msg, pg.receipt, pg.additional_details,  pg.created_by, pg" +
-            ".created_time, pg.last_modified_by, pg.last_modified_time " +
+            ".created_time, pg.last_modified_by, pg.last_modified_time,pg.bankTransactionNo " +
             "FROM eg_pg_transactions pg ";
 
     private TransactionQueryBuilder() {
@@ -79,7 +79,9 @@ class TransactionQueryBuilder {
             queryParams.put("pg.receipt", transactionCriteria.getReceipt());
         }
 
-
+        if (!Objects.isNull(transactionCriteria.getBankTransactionNo())) {
+            queryParams.put("pg.bankTransactionNo", transactionCriteria.getBankTransactionNo());
+        }
 
         if (!queryParams.isEmpty()) {
 

@@ -397,6 +397,7 @@ public class NICGateway implements Gateway {
                         .txnStatus(Transaction.TxnStatusEnum.SUCCESS)
                         .txnStatusMsg(PgConstants.TXN_SUCCESS)
                         .gatewayTxnId(statusResponse.getSurePayTxnId())
+                        .bankTransactionNo(statusResponse.getBankTransactionNo())
                         .gatewayPaymentMode(statusResponse.getPaymentMode())
                         .gatewayStatusCode(statusResponse.getTransactionStatus()).gatewayStatusMsg(statusResponse.getTransactionStatus())
                         .responseJson(resp).build();
@@ -435,6 +436,7 @@ public class NICGateway implements Gateway {
                         .txnStatusMsg(txStatusMsg)
                         .gatewayTxnId(statusResponse.getSurePayTxnId())
                         .gatewayPaymentMode(statusResponse.getPaymentMode())
+                        .bankTransactionNo(statusResponse.getBankTransactionNo())
                         .gatewayStatusCode(statusResponse.getErrorCode()).gatewayStatusMsg(statusResponse.getErrorMessage())
                         .responseJson(resp).build();
     			
@@ -472,6 +474,7 @@ public class NICGateway implements Gateway {
                         .txnStatusMsg(txStatusMsgDecline)
                         .gatewayTxnId(statusResponse.getSurePayTxnId())
                         .gatewayPaymentMode(statusResponse.getPaymentMode())
+                        .bankTransactionNo(statusResponse.getBankTransactionNo())
                         .gatewayStatusCode(statusResponse.getTxFlag()).gatewayStatusMsg(statusResponse.getErrorMessage())
                         .responseJson(resp).build();
     			break;

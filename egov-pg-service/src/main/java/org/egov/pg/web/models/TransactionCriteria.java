@@ -23,6 +23,8 @@ public class TransactionCriteria {
     private String receipt;
 
     private String consumerCode;
+    
+    private String bankTransactionNo;
 
     @JsonIgnore
     private Long createdTime;

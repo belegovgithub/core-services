@@ -163,6 +163,8 @@ public class Transaction {
     @JsonProperty("additionalDetails")
     private Object additionalDetails;
 
+    @JsonProperty("bankTransactionNo")
+    private String bankTransactionNo;
     /**
      * Entire RAW payment gateway response
      */
