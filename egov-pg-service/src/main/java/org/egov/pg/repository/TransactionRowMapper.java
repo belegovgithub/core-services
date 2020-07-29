@@ -75,7 +75,7 @@ public class TransactionRowMapper implements RowMapper<Transaction> {
                 .gatewayStatusMsg(resultSet.getString("gateway_status_msg"))
                 .receipt(resultSet.getString("receipt"))
                 .consumerCode(resultSet.getString("consumer_code"))
-                .bankTransactionNo(resultSet.getString("bank_ransaction_no"))
+                .bankTransactionNo(resultSet.getString("bank_transaction_no"))
                 .additionalDetails(additionalDetails)
                 .taxAndPayments(taxAndPayments)
                 .auditDetails(auditDetails)
