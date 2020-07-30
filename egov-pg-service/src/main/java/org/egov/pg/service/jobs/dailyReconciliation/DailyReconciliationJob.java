@@ -29,7 +29,7 @@ public class DailyReconciliationJob implements Job {
 
     static {
         User userInfo = User.builder()
-                .uuid("DAILY_RECONC_JOB")
+                .userName("DAILY_RECONC_JOB")
                 .type("SYSTEM")
                 .roles(Collections.emptyList()).id(0L).build();
 
