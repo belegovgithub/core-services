@@ -23,7 +23,7 @@ public class CoreIndexMessageListener implements MessageListener<String, String>
 	 * index 5. Core indexing
 	 */
 	public void onMessage(ConsumerRecord<String, String> data) {
-		log.info("Topic: " + data.topic() + "value: "+data.value());
+		log.info("Topic: " + data.topic());
 		try {
 			indexerService.esIndexer(data.topic(), data.value());
 		} catch (Exception e) {
