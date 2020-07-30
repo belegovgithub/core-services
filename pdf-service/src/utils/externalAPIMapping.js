@@ -163,9 +163,11 @@ export const externalAPIMapping = async function(
         { RequestInfo: requestInfo },
         headers
       );
-      if(key == "tradelicense-appl-receipt" || key == "tradelicense-receipt" || key == "consolidatedreceipt")
+      if(key == "tradelicense-appl-receipt" || key == "tradelicense-receipt" || key == "consolidatedreceipt" || key == "tlcertificate")
       {
-       // console.warn("calling in---"+JSON.stringify(res));
+        //console.warn("calling in---"+JSON.stringify(res));
+        if(null!=res.MdmsRes)
+        {
         if(null!=res.MdmsRes.tenant.tenants)
         {
           if(res.MdmsRes.tenant.tenants.length>0)
@@ -177,6 +179,7 @@ export const externalAPIMapping = async function(
           }
         }
       }
+    }
     } else {
       var apires = await axios.get(
         externalAPIArray[i].uri + "?" + externalAPIArray[i].queryParams,
@@ -254,8 +257,9 @@ export const externalAPIMapping = async function(
       let { format = {}, value = [], variable } = externalAPIArray[i].jPath[j];
       let { scema = [] } = format;
       let val= getValue(jp.query(res, value ), "NA", value);
-
-
+      console.warn("value--->"+value+"data is--"+JSON.stringify(val)+ "length-->"+val.length+ "type--"+typeof(val));
+        if(typeof val !== "string") // if the var is not present and the value is NA
+        {
       //taking values about owner from request body
       for (let l = 0; l < val.length; l++) {
         // var x = 1;
@@ -291,6 +295,14 @@ export const externalAPIMapping = async function(
                 loc.delimiter
               );
             }
+            else
+            if(fieldValue === "NA" &&
+            scema[k].localisation &&
+            scema[k].localisation.required &&
+            !(scema[k].localisation.isCategoryRequired))
+            {
+              fieldValue="";
+            }
             ownerObject[scema[k].variable] = fieldValue;
             
           }
@@ -300,7 +312,12 @@ export const externalAPIMapping = async function(
         arrayOfOwnerObject.push(ownerObject);
         
       }
-  
+    }
+     else{
+      console.log("setting empty")
+      arrayOfOwnerObject = " ";
+     }
+     //console.log("arrayOfOwnerObject--"+JSON.stringify(arrayOfOwnerObject));
       variableTovalueMap[variable] = arrayOfOwnerObject;
       //console.log("\nvariableTovalueMap[externalAPIArray[i].jPath.variable]--->\n"+JSON.stringify(variableTovalueMap[externalAPIArray[i].jPath.variable]));
 
