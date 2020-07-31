@@ -30,7 +30,7 @@ public class EarlyReconciliationJob implements Job {
 
     static {
         User userInfo = User.builder()
-                .uuid("EARLY_RECONC_JOB")
+                .uuid("27259e6b-c648-4f79-8fa1-4e8e34643f57")
                 .type("SYSTEM")
                 .roles(Collections.emptyList()).id(0L).build();
 
