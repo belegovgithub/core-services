@@ -51,13 +51,16 @@ public class NICSMSServiceImpl implements SMSService {
         	final_data+="&pin="+ smsProperties.getPassword();
         	
         	String message=sms.getMessage();
-        	if(textHasHindi(message) && !textIsInEnglish(message))
+        	if(textHasHindi(message) && !textIsInEnglish(message)) 
         		message = Hex.encodeHexString(message.getBytes("UTF-16")).toUpperCase();
         	
         	final_data+="&message="+ message;
         	final_data+="&mnumber=91"+ sms.getMobileNumber();
         	final_data+="&signature="+ smsProperties.getSenderid();
-        	
+        	if(!message.equalsIgnoreCase(sms.getMessage())) {
+        		final_data+="&msgType=UC";
+        		System.out.println("Non-English");
+        	}
         	KeyStore trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
     		File file = new File(System.getenv("JAVA_HOME")+"/lib/security/cacerts");
             InputStream is = new FileInputStream(file);
