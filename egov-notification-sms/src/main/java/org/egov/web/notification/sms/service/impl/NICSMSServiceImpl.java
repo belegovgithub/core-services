@@ -76,7 +76,7 @@ public class NICSMSServiceImpl implements SMSService {
 			conn.setSSLSocketFactory(sslContext.getSocketFactory());
 			conn.setDoOutput(true);
 			conn.setRequestMethod("POST");
-			conn.setRequestProperty("Content-Length", Integer.toString(final_data.length()));
+			//conn.setRequestProperty("Content-Length", Integer.toString(final_data.length()));
 			//conn.getOutputStream().write(final_data.getBytes("UTF-8"));
 			final BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
 			final StringBuffer stringBuffer = new StringBuffer();
