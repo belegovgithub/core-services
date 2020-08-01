@@ -60,13 +60,31 @@ export const directMapping = async (
         variableTovalueMap[directArr[i].jPath] = "Citizen Copy";
       }
     }
+    
     if (directArr[i].type == "selectFromRequestInfo") {
-      directArr[i].val = getValue(
-        jp.query(requestInfo, directArr[i].valJsonPath),
-        "NA",
-        directArr[i].valJsonPath
-      );
-      variableTovalueMap[directArr[i].jPath] = directArr[i].val;
+    //  console.warn("requestInfo--"+JSON.stringify(requestInfo)+"--->valJsonpath--"+directArr[i].valJsonPath);
+      const roleQuery = "$.userInfo.roles[0]";
+      let obj =  getValue(jp.query(requestInfo,roleQuery), "NA",
+      directArr[i].valJsonPath
+        );
+      //console.log("obj--->"+JSON.stringify(obj));
+      //console.log("obj--->"+JSON.stringify(directArr[i].jPath));
+      if(obj != "NA")
+      {
+        if(obj[0].code ==="CITIZEN")
+        {
+          variableTovalueMap[directArr[i].jPath] = "SYSTEM";
+        }
+        else
+        {
+          directArr[i].val = getValue(
+            jp.query(requestInfo, directArr[i].valJsonPath),
+            "NA",
+            directArr[i].valJsonPath
+          );
+          variableTovalueMap[directArr[i].jPath] = directArr[i].val;
+        }
+      }
     } else if (directArr[i].type == "function") {
       var fun = Function("type", directArr[i].format);
       variableTovalueMap[directArr[i].jPath] = fun(directArr[i].val[0]);
