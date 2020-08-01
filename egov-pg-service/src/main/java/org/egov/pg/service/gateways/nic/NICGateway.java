@@ -4,9 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
 import java.net.URI;
-import java.net.URL;
 import java.security.KeyStore;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -168,7 +166,7 @@ public class NICGateway implements Gateway {
          queryMap.put(CURRENCY_CODE_KEY,CURRENCY_CODE);
          SimpleDateFormat format = new SimpleDateFormat(TX_DATE_FORMAT);
      	 queryMap.put(REQUEST_DATE_TIME_KEY, format.format(new Date()));
-     	 String returnUrl = transaction.getCallbackUrl();//.replace(CITIZEN_URL, "");
+     	 String returnUrl = transaction.getCallbackUrl().replace(CITIZEN_URL, "");
      	 
      	 
      	 
@@ -219,14 +217,6 @@ public class NICGateway implements Gateway {
      
 
     private String getReturnUrl(String callbackUrl, String baseurl) {
-    	try {
-			URL url = new URL(callbackUrl);
-			log.info("Call back url based "+callbackUrl.substring(callbackUrl.indexOf(url.getPath())));
-			callbackUrl=callbackUrl.substring(callbackUrl.indexOf(url.getPath()));
-		} catch (MalformedURLException e) {
-			// TODO Auto-generated catch block
-			log.error("Error in creating callback url",e);
-		}
         return UriComponentsBuilder.fromHttpUrl(baseurl).queryParam(ORIGINAL_RETURN_URL_KEY, callbackUrl).build()
                 .encode().toUriString();
     }
