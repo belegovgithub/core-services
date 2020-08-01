@@ -8,6 +8,7 @@ import org.egov.pg.constants.PgConstants;
 import org.egov.pg.models.Transaction;
 import org.egov.pg.repository.TransactionRepository;
 import org.egov.pg.service.TransactionService;
+import org.egov.pg.service.UserService;
 import org.egov.pg.web.models.TransactionCriteria;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
@@ -28,12 +29,7 @@ public class DailyReconciliationJob implements Job {
     private static final RequestInfo requestInfo;
 
     static {
-        User userInfo = User.builder()
-                .uuid("2b5c1e3b-0e35-44ca-895b-3e02152419f9")
-                .type("SYSTEM")
-                .roles(Collections.emptyList()).id(0L).build();
-
-        requestInfo = new RequestInfo("", "", 0L, "", "", "", "", "", "", userInfo);
+        requestInfo = new RequestInfo("", "", 0L, "", "", "", "", "", "", null);
     }
 
     @Autowired
@@ -42,7 +38,8 @@ public class DailyReconciliationJob implements Job {
     private TransactionService transactionService;
     @Autowired
     private TransactionRepository transactionRepository;
-
+    @Autowired
+    private UserService userService;
     /**
      * Fetch live status for all pending transactions
      * except for ones which were created < 30 minutes ago, configurable value
@@ -51,6 +48,9 @@ public class DailyReconciliationJob implements Job {
      */
     @Override
     public void execute(JobExecutionContext jobExecutionContext) {
+    	if(requestInfo.getUserInfo()==null) {
+    		requestInfo.setUserInfo(userService.searchSystemUser(requestInfo, appProperties.getEarlyReconcileUserName() ));
+    	}
         List<Transaction> pendingTxns = transactionRepository.fetchTransactionsByTimeRange(TransactionCriteria.builder()
                         .txnStatus(Transaction.TxnStatusEnum.PENDING).build(), 0L,
                 System.currentTimeMillis() - TimeUnit.MINUTES.toMillis(appProperties.getEarlyReconcileJobRunInterval

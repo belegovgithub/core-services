@@ -8,6 +8,7 @@ import org.egov.pg.constants.PgConstants;
 import org.egov.pg.models.Transaction;
 import org.egov.pg.repository.TransactionRepository;
 import org.egov.pg.service.TransactionService;
+import org.egov.pg.service.UserService;
 import org.egov.pg.web.models.TransactionCriteria;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
@@ -29,12 +30,8 @@ public class EarlyReconciliationJob implements Job {
     private static final RequestInfo requestInfo;
 
     static {
-        User userInfo = User.builder()
-                .uuid("27259e6b-c648-4f79-8fa1-4e8e34643f57")
-                .type("SYSTEM")
-                .roles(Collections.emptyList()).id(0L).build();
 
-        requestInfo = new RequestInfo("", "", 0L, "", "", "", "", "", "", userInfo);
+        requestInfo = new RequestInfo("", "", 0L, "", "", "", "", "", "", null);
     }
 
     @Autowired
@@ -44,6 +41,8 @@ public class EarlyReconciliationJob implements Job {
     @Autowired
     private TransactionRepository transactionRepository;
 
+    @Autowired
+    private UserService userService;
     /**
      * Fetch live status for pending transactions
      * that were created for ex, between 15-30 minutes, configurable value
@@ -53,6 +52,10 @@ public class EarlyReconciliationJob implements Job {
      */
     @Override
     public void execute(JobExecutionContext jobExecutionContext) {
+    	if(requestInfo.getUserInfo()==null) {
+    		requestInfo.setUserInfo(userService.searchSystemUser(requestInfo, appProperties.getEarlyReconcileUserName() ));
+    	}
+    	 
         Integer startTime, endTime;
 
         startTime = appProperties.getEarlyReconcileJobRunInterval() * 2;

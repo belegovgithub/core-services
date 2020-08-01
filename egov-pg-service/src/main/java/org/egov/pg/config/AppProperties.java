@@ -48,6 +48,16 @@ public class AppProperties {
     private final String pgDetailHost;
 
 	private final String pgDetailPath;
+	
+    private String userHost;
+
+    private String userSearchEndpoint;
+    
+    private String tenantId;
+
+	private String dailyReconcileUserName;
+
+	private String earlyReconcileUserName;
     
     @Autowired
     public AppProperties(Environment environment){
@@ -69,6 +79,11 @@ public class AppProperties {
         this.paymentValidatePath = environment.getRequiredProperty("egov.collectionservice.payment.validate.path");
         this.pgDetailHost = environment.getRequiredProperty("egov.pgdetail.host");
         this.pgDetailPath = environment.getRequiredProperty("egov.pgdetail.path");
+        this.userHost = environment.getRequiredProperty("egov.user.host");
+        this.userSearchEndpoint = environment.getRequiredProperty("egov.user.search.endpoint");
+        this.tenantId=environment.getRequiredProperty("egov.tenantid");
+        this.dailyReconcileUserName =environment.getRequiredProperty("pg.dailyreconcileusername");
+        this.earlyReconcileUserName =environment.getRequiredProperty("pg.earlyreconcileusername");
     }
 
 }
