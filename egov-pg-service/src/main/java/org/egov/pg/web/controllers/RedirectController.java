@@ -1,4 +1,8 @@
 package org.egov.pg.web.controllers;
+ 
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
+import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
@@ -24,16 +28,20 @@ public class RedirectController {
 
     @Value("${nic.original.return.url.key:originalreturnurl}")
     private String returnUrlKey;
+    
 
     @RequestMapping(value = "/transaction/v1/_redirect", method = RequestMethod.POST, consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
-    public ResponseEntity<Object> method(@RequestBody MultiValueMap<String, String> formData) {
-    	log.error("RedirectController.method()" + formData);
-    	    	
-        HttpHeaders httpHeaders = new HttpHeaders();
-        String redirectUrl =defaultURL + formData.get(returnUrlKey).get(0);
+    public ResponseEntity<Object> method(@RequestBody MultiValueMap<String, String> formData ,HttpServletRequest request  ) throws URISyntaxException, MalformedURLException {
+    	StringBuffer callerUrl = request.getRequestURL();
+    	String baseUrl =callerUrl.substring(0 ,callerUrl.indexOf(request.getContextPath()));
+    	log.info("base url "+baseUrl);
+    	HttpHeaders httpHeaders = new HttpHeaders();
+        String redirectUrl =baseUrl + formData.get(returnUrlKey).get(0);
         httpHeaders.setLocation(UriComponentsBuilder.fromHttpUrl(redirectUrl)
-                .queryParams(formData).build().encode().toUri());
+                .build().encode().toUri());
         log.error(httpHeaders!=null ? httpHeaders.toString(): "http header is null ");
+        log.info("http location "+ httpHeaders.getLocation());
+        
         return new ResponseEntity<>(httpHeaders, HttpStatus.FOUND);
     }
 
