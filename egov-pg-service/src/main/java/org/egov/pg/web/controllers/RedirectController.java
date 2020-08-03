@@ -32,7 +32,8 @@ public class RedirectController {
         HttpHeaders httpHeaders = new HttpHeaders();
         String redirectUrl =defaultURL + formData.get(returnUrlKey).get(0);
         httpHeaders.setLocation(UriComponentsBuilder.fromHttpUrl(redirectUrl)
-                .queryParams(formData).build().encode().toUri());
+				/* .queryParams(formData) */
+                .build().encode().toUri());
         log.error(httpHeaders!=null ? httpHeaders.toString(): "http header is null ");
         return new ResponseEntity<>(httpHeaders, HttpStatus.FOUND);
     }
