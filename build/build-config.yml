@@ -230,4 +230,12 @@ config:
     build:
       - work-dir: "mailbot"
         image-name: "mailbot"
-        dockerfile: "build/maven/Dockerfile"        
+        dockerfile: "build/maven/Dockerfile" 
+
+  - name: "builds/core-services/pg-detail"
+    build:
+      - work-dir: "pg-detail"
+        image-name: "pg-detail"
+        dockerfile: "build/maven/Dockerfile"
+      - work-dir: "pg-detail/src/main/resources/db"
+        image-name: "pg-detail-db"       
