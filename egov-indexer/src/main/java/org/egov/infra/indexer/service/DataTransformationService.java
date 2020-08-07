@@ -252,10 +252,9 @@ public class DataTransformationService {
                         uri = uri + mdmsHost + mdmsEndpoint;
 
                     String filter = indexerUtils.buildFilter(uriMapping, kafkaJson);
-                    log.info(uri+" "+uriMapping.getTenantId()+" "+uriMapping.getModuleName()+" "+uriMapping.getMasterName()+" "+filter);
                     response = indexerUtils.fetchMdmsData(uri, uriMapping.getTenantId(), uriMapping.getModuleName(),
                             uriMapping.getMasterName(), filter);
-                    log.info("Response is: "+response);
+
                     if (null == response)
                         continue;
                 } catch (Exception e) {
