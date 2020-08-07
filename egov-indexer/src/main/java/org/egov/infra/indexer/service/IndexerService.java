@@ -89,6 +89,7 @@ public class IndexerService {
 	public void indexProccessor(Index index, Mapping.ConfigKeyEnum configkey, String kafkaJson, boolean isBulk) throws Exception {
 		Long startTime = null;
 		log.debug("index: " + index.getCustomJsonMapping());
+		log.info("index: " + index.getCustomJsonMapping());
 		StringBuilder url = new StringBuilder();
 		url.append(esHostUrl).append(index.getName()).append("/").append(index.getType()).append("/").append("_bulk");
 		startTime = new Date().getTime();
@@ -101,7 +102,9 @@ public class IndexerService {
 
 		if(index.getName().contains("collection") || index.getName().contains("payment") || configkey.equals(Mapping.ConfigKeyEnum.LEGACYINDEX)) {
 			// this is already sent
+			log.info("Already sent");
 		} else {
+			log.info("Validating and indexing");
 			validateAndIndex(jsonToBeIndexed, url.toString(), index);
 		}
 
@@ -119,9 +122,15 @@ public class IndexerService {
 	public void validateAndIndex(String finalJson, String url, Index index) throws Exception {
 		if (!StringUtils.isEmpty(finalJson)) {
 			if (finalJson.startsWith("{ \"index\""))
+			{
+				log.info("Check 1: "+url.toString() + "-" + finalJson + "-"+ index);
 				bulkIndexer.indexJsonOntoES(url.toString(), finalJson, index);
+			}
 			else
+			{
+				log.info("Check 2: "+url.toString() + "-" + finalJson + "-"+ index);
 				indexWithESId(index, finalJson);
+			}
 		} else {
 			log.error("Indexing will not be done, please modify the data and retry.");
 			log.error("Object: " + finalJson);
