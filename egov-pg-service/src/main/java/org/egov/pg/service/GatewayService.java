@@ -87,7 +87,8 @@ public class GatewayService {
      */
     Transaction getLiveStatus(Transaction currentStatus, Map<String, String> params) {
         Gateway gateway = getGateway(currentStatus.getGateway());
-        return gateway.fetchStatus(currentStatus, params);
+        Transaction transaction = gateway.fetchStatus(currentStatus, params);
+        return transaction;
     }
 
 

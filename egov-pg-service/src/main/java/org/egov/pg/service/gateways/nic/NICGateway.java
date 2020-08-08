@@ -289,8 +289,8 @@ public class NICGateway implements Gateway {
         	ResponseEntity<String> response = template.postForEntity(GATEWAY_TRANSACTION_STATUS_URL,entity, String.class);
         	return transformRawResponse(response.getBody(), currentStatus, pgDetail.getMerchantSecretKey());
     	} catch (HttpStatusCodeException ex) {
-    		log.info("Eror code "+ex.getStatusCode());
-    		log.info("Eror getResponseBodyAsString code "+ex.getResponseBodyAsString());
+    		log.info("Error code "+ex.getStatusCode());
+    		log.info("Error getResponseBodyAsString code "+ex.getResponseBodyAsString());
     		try {
 				NICStatusResponse errorResponse = new ObjectMapper().readValue(ex.getResponseBodyAsString(),NICStatusResponse.class);
 				//Error 404 --> No Data Found for given Request and 408 --> Session Time Out Error if not transaction has been initiated for 15 min 
@@ -439,6 +439,7 @@ public class NICGateway implements Gateway {
                         .bankTransactionNo(statusResponse.getBankTransactionNo())
                         .gatewayStatusCode(statusResponse.getErrorCode()).gatewayStatusMsg(statusResponse.getErrorMessage())
                         .responseJson(resp).build();
+    			break;
     			
     		case "D":
     			index =0;
@@ -505,8 +506,8 @@ public class NICGateway implements Gateway {
     			  throw new CustomException("UNABLE_TO_FETCH_STATUS", "Unable to fetch Status of transaction");
     		}
         	log.info("Encoded value "+resp);
-        	log.info("txResp --> "+statusResponse);
-        	log.info("txResp --> "+txStatus);
+        	log.info("NICStatusResponse --> "+statusResponse);
+        	log.info("Transaction --> "+txStatus);
         	return txStatus;
         } else {
             log.error("Received error response from status call : " + resp);
