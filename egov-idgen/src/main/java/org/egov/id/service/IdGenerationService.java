@@ -205,6 +205,7 @@ public class IdGenerationService {
      */
 
     private List getFormattedId(IdRequest idRequest, RequestInfo requestInfo, boolean autoCreateNewSeqFlag) throws Exception {
+    	log.info("ID request "+idRequest);
         List<String> idFormatList = new LinkedList();
         String idFormat = idRequest.getFormat();
 
@@ -251,10 +252,11 @@ public class IdGenerationService {
                 } else if (attributeName.substring(0, 2).equalsIgnoreCase("cy")) {
                     idFormat = idFormat.replace("[" + attributeName + "]",
                             generateCurrentYearDateFormat(attributeName, requestInfo));
-                } else if (attributeName.substring(0, 6).equalsIgnoreCase("cbname")) {
-                	String[] splitData =idRequest.getTenantId().split("\\.");
-                	int index = splitData.length>1 ? 1 : 0 ;
-                	idFormat = idFormat.replace("[" + attributeName + "]", splitData[index].toUpperCase());
+                } else if (attributeName.substring(0, 2).equalsIgnoreCase("cb")) {
+                	if(!StringUtils.isEmpty(idRequest.getTenantId())) {
+                		String splitTenant = idRequest.getTenantId().contains(".") ? idRequest.getTenantId().split("\\.")[1] : idRequest.getTenantId();
+                		idFormat = idFormat.replace("[" + attributeName + "]", splitTenant.toUpperCase());	
+                	}
                 } else if (attributeName.substring(0, 4).equalsIgnoreCase("city")) {
                     if (cityName == null) {
                         cityName = mdmsService.getCity(requestInfo, idRequest);
