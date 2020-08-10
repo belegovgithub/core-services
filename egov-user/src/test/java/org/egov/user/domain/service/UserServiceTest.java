@@ -3,6 +3,7 @@ package org.egov.user.domain.service;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.egov.common.contract.request.RequestInfo;
+import org.egov.tracer.model.CustomException;
 import org.egov.user.domain.exception.*;
 import org.egov.user.domain.model.*;
 import org.egov.user.domain.model.enums.Gender;
@@ -11,6 +12,7 @@ import org.egov.user.domain.service.utils.EncryptionDecryptionUtil;
 import org.egov.user.persistence.repository.FileStoreRepository;
 import org.egov.user.persistence.repository.OtpRepository;
 import org.egov.user.persistence.repository.UserRepository;
+import org.egov.user.security.oauth2.custom.authproviders.CustomPreAuthenticatedProvider;
 import org.egov.user.web.contract.Otp;
 import org.egov.user.web.contract.OtpValidateRequest;
 import org.junit.Before;
@@ -391,7 +393,7 @@ public class UserServiceTest {
 		userService.updatePasswordForLoggedInUser(updatePasswordRequest);
 	}
 
-	@Test(expected = PasswordMismatchException.class)
+	@Test(expected = CustomException.class)
 	public void test_should_throw_exception_when_existing_password_does_not_match_on_attempting_to_update_user() {
         final LoggedInUserUpdatePasswordRequest updatePasswordRequest = LoggedInUserUpdatePasswordRequest.builder()
                 .userName("xyz")
