@@ -105,18 +105,18 @@ public class IndexerService {
 			log.info("Already sent");
 		} 
 		else
-		//Added by Srikanth as a temporary fix.
-		if(index.getName().equals("paymentsindex-v1"))
-		{
-			log.info("Validating and indexing");
-			validateAndIndex(jsonToBeIndexed, url.toString(), index);
-		}
-		else
 		{
 			log.info("Validating and indexing");
 			validateAndIndex(jsonToBeIndexed, url.toString(), index);
 		}
 
+		//Added by Srikanth as a temporary fix.
+		if(index.getName().equals("paymentsindex-v1"))
+		{
+			log.info("Validating and indexing for paymentsindex-v1");
+			validateAndIndex(jsonToBeIndexed, url.toString(), index);
+		}
+		
 		log.info("Total time taken: " + ((new Date().getTime()) - startTime) + "ms");
 	}
 
