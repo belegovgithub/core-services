@@ -106,7 +106,7 @@ public class IndexerService {
 		} 
 		else
 		//Added by Srikanth as a temporary fix.
-		if(index.getName().equals("paymentsindex_v1"))
+		if(index.getName().equals("paymentsindex-v1"))
 		{
 			log.info("Validating and indexing");
 			validateAndIndex(jsonToBeIndexed, url.toString(), index);
