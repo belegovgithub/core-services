@@ -89,7 +89,7 @@ public class IndexerService {
 	public void indexProccessor(Index index, Mapping.ConfigKeyEnum configkey, String kafkaJson, boolean isBulk) throws Exception {
 		Long startTime = null;
 		log.debug("index: " + index.getCustomJsonMapping());
-		log.info("index: " + index.getCustomJsonMapping());
+		//log.info("index: " + index.getCustomJsonMapping());
 		StringBuilder url = new StringBuilder();
 		url.append(esHostUrl).append(index.getName()).append("/").append(index.getType()).append("/").append("_bulk");
 		startTime = new Date().getTime();
@@ -103,7 +103,16 @@ public class IndexerService {
 		if(index.getName().contains("collection") || index.getName().contains("payment") || configkey.equals(Mapping.ConfigKeyEnum.LEGACYINDEX)) {
 			// this is already sent
 			log.info("Already sent");
-		} else {
+		} 
+		else
+		//Added by Srikanth as a temporary fix.
+		if(index.getName().equals("paymentsindex_v1"))
+		{
+			log.info("Validating and indexing");
+			validateAndIndex(jsonToBeIndexed, url.toString(), index);
+		}
+		else
+		{
 			log.info("Validating and indexing");
 			validateAndIndex(jsonToBeIndexed, url.toString(), index);
 		}

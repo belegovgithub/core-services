@@ -10,7 +10,6 @@ import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.aspectj.weaver.patterns.IScope;
 import org.egov.infra.indexer.util.IndexerConstants;
 import org.egov.infra.indexer.util.IndexerUtils;
 import org.egov.infra.indexer.web.contract.CustomJsonMapping;
@@ -82,7 +81,6 @@ public class DataTransformationService {
      * @return
      */
     public String buildJsonForIndex(Index index, String kafkaJson, boolean isBulk, boolean isCustom) {
-    	log.info("Check is custom " + isCustom );
         StringBuilder jsonTobeIndexed = new StringBuilder();
         String result = null;
         JSONArray kafkaJsonArray = null;
@@ -252,9 +250,10 @@ public class DataTransformationService {
                         uri = uri + mdmsHost + mdmsEndpoint;
 
                     String filter = indexerUtils.buildFilter(uriMapping, kafkaJson);
+                    log.info(uri+" "+uriMapping.getTenantId()+" "+uriMapping.getModuleName()+" "+uriMapping.getMasterName()+" "+filter);
                     response = indexerUtils.fetchMdmsData(uri, uriMapping.getTenantId(), uriMapping.getModuleName(),
                             uriMapping.getMasterName(), filter);
-
+                    log.info("Response is: "+response);
                     if (null == response)
                         continue;
                 } catch (Exception e) {
