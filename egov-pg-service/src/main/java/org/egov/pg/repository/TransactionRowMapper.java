@@ -77,6 +77,7 @@ public class TransactionRowMapper implements RowMapper<Transaction> {
                 .consumerCode(resultSet.getString("consumer_code"))
                 .additionalDetails(additionalDetails)
                 .taxAndPayments(taxAndPayments)
+                .bankTransactionNo(resultSet.getString("bank_transaction_no"))
                 .auditDetails(auditDetails)
                 .build();
     }

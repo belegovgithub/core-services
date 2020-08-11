@@ -85,8 +85,9 @@ public class TransactionService {
             paymentsService.registerPayment(transactionRequest);
         }
         else{
-            URI uri = gatewayService.initiateTxn(transaction);
-            transaction.setRedirectUrl(uri.toString());
+        	String uri = gatewayService.initiateTxn(transaction);
+            transaction.setRedirectUrl(uri);
+            dump.setTxnRequest(uri);
 
             dump.setTxnRequest(uri.toString());
         }
@@ -136,8 +137,8 @@ public class TransactionService {
 
         Transaction currentTxnStatus = validator.validateUpdateTxn(requestParams);
 
-        log.debug(currentTxnStatus.toString());
-        log.debug(requestParams.toString());
+        log.debug("Current Tx Status "+currentTxnStatus.toString());
+        log.debug("Request param "+requestParams.toString());
 
         Transaction newTxn = null;
 

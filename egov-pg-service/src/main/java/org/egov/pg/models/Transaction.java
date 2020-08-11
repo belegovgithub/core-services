@@ -172,7 +172,9 @@ public class Transaction {
     @JsonIgnore
     private Map<TransactionAdditionalFields, Object> additionalFields;
 
-
+    @JsonProperty("bankTransactionNo")
+    private String bankTransactionNo;
+    
     /**
      * Current status of the transaction
      */

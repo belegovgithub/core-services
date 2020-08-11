@@ -8,6 +8,7 @@ import org.egov.pg.constants.PgConstants;
 import org.egov.pg.models.Transaction;
 import org.egov.pg.repository.TransactionRepository;
 import org.egov.pg.service.TransactionService;
+import org.egov.pg.service.UserService;
 import org.egov.pg.web.models.TransactionCriteria;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
@@ -29,12 +30,7 @@ public class EarlyReconciliationJob implements Job {
     private static final RequestInfo requestInfo;
 
     static {
-        User userInfo = User.builder()
-                .uuid("EARLY_RECONC_JOB")
-                .type("SYSTEM")
-                .roles(Collections.emptyList()).id(0L).build();
-
-        requestInfo = new RequestInfo("", "", 0L, "", "", "", "", "", "", userInfo);
+    	requestInfo = new RequestInfo("", "", 0L, "", "", "", "", "", "", null);
     }
 
     @Autowired
@@ -43,6 +39,8 @@ public class EarlyReconciliationJob implements Job {
     private TransactionService transactionService;
     @Autowired
     private TransactionRepository transactionRepository;
+    @Autowired
+    private UserService userService;
 
     /**
      * Fetch live status for pending transactions
@@ -53,6 +51,9 @@ public class EarlyReconciliationJob implements Job {
      */
     @Override
     public void execute(JobExecutionContext jobExecutionContext) {
+    	if(requestInfo.getUserInfo()==null) {
+    		requestInfo.setUserInfo(userService.searchSystemUser(requestInfo, appProperties.getEarlyReconcileUserName() ));
+    	}
         Integer startTime, endTime;
 
         startTime = appProperties.getEarlyReconcileJobRunInterval() * 2;
@@ -66,9 +67,14 @@ public class EarlyReconciliationJob implements Job {
         log.info("Attempting to reconcile {} pending transactions", pendingTxns.size());
 
         for (Transaction txn : pendingTxns) {
+        	try {
             log.info(transactionService.updateTransaction(requestInfo, Collections.singletonMap(PgConstants.PG_TXN_IN_LABEL, txn
                     .getTxnId
                     ())).toString());
+        	}catch (Exception e) {
+				log.error("Error in early reconcile job ",e);
+			}
+        	
         }
 
     }

@@ -99,7 +99,7 @@ public class TransactionServiceTest {
 
         Mockito.doNothing().when(validator).validateCreateTxn(any(TransactionRequest.class));
         when(validator.skipGateway(txn)).thenReturn(false);
-        when(gatewayService.initiateTxn(any(Transaction.class))).thenReturn(new URI(redirectUrl));
+        when(gatewayService.initiateTxn(any(Transaction.class))).thenReturn(redirectUrl);
 
         Transaction resp = transactionService.initiateTransaction(transactionRequest);
 

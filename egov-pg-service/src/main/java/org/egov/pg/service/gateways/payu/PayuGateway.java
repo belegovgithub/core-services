@@ -266,5 +266,11 @@ public class PayuGateway implements Gateway {
 
         return hexString.toString();
     }
+    
+	@Override
+	public String generateRedirectFormData(Transaction transaction) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
 }

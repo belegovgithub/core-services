@@ -55,4 +55,11 @@ public interface Gateway {
      * @return Transaction ID
      */
     String transactionIdKeyInResponse();
+    
+    /**
+     * Generate a redirect form data json String for the gateway using the transaction object
+     * @param transaction
+	 * @return
+	 */
+	String generateRedirectFormData(Transaction transaction );
 }

@@ -314,4 +314,9 @@ public class AxisGateway implements Gateway {
 
     }
 
+	@Override
+	public String generateRedirectFormData(Transaction transaction) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

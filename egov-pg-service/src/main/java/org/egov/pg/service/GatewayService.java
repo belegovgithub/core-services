@@ -65,12 +65,16 @@ public class GatewayService {
      * @param transaction Txn for which payment should be initiated
      * @return Redirect URI to the gateway
      */
-    URI initiateTxn(Transaction transaction) {
+    String initiateTxn(Transaction transaction) {
         if (!isGatewayActive(transaction.getGateway()))
             throw new CustomException("INVALID_PAYMENT_GATEWAY", "Invalid or inactive payment gateway provided");
 
         Gateway gateway = getGateway(transaction.getGateway());
-        return gateway.generateRedirectURI(transaction);
+        URI uri= gateway.generateRedirectURI(transaction);
+        if(uri==null) {
+        	return gateway.generateRedirectFormData(transaction);
+        }
+        return uri.toString();
     }
 
     /**

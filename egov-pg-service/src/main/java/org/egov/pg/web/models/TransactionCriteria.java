@@ -24,6 +24,8 @@ public class TransactionCriteria {
 
     private String consumerCode;
 
+    private String bankTransactionNo;
+    
     @JsonIgnore
     private Long createdTime;
 
