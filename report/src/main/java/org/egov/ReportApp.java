@@ -65,6 +65,13 @@ public class ReportApp implements EnvironmentAware {
     public void setLocationspath(String locationspath) {
         ReportApp.locationspath = locationspath;
     }
+	
+	private static String yamlspath;
+
+    @Value("${report.yaml.path}")
+    public void setYamlspath(String yamlspath) {
+        ReportApp.yamlspath = yamlspath;
+    }
 
     @Bean("reportDefinitions")
     @Value("common")
@@ -138,6 +145,16 @@ public class ReportApp implements EnvironmentAware {
                         }
                         localrd.addAll(rd.getReportDefinitions());
 
+                    } else {
+                    	String filePath = yamlspath + moduleYaml[1];
+                    	Resource yamlResource = resourceLoader.getResource(filePath.toString());
+                        File yamlFile = yamlResource.getFile();
+                        try {
+                            rd = mapper.readValue(yamlFile, ReportDefinitions.class);
+                        } catch (Exception e) {                            
+                            e.printStackTrace();
+                        }
+                        localrd.addAll(rd.getReportDefinitions());
                     }
 
                 } else {
