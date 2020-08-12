@@ -395,7 +395,7 @@ public class UserServiceTest {
         userService.updatePasswordForLoggedInUser(updatePasswordRequest);
     }
 
-    @Test(expected = PasswordMismatchException.class)
+    @Test(expected = CustomException.class)
     public void test_should_throw_exception_when_existing_password_does_not_match_on_attempting_to_update_user() {
         final LoggedInUserUpdatePasswordRequest updatePasswordRequest = LoggedInUserUpdatePasswordRequest.builder()
                 .userName("xyz")

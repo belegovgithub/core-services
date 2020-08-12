@@ -543,7 +543,9 @@ public class UserService {
      */
     private void validateExistingPassword(User user, String existingRawPassword) {
         if (!passwordEncoder.matches(existingRawPassword, user.getPassword())) {
-            throw new PasswordMismatchException();
+            Map<String, String> map = new HashMap<>();
+            map.put("PasswordMismatchException","Incorrect Current Password");
+            throw new CustomException(map);
         }
     }
 
