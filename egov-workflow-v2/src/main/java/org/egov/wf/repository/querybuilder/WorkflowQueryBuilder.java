@@ -71,18 +71,9 @@ public class WorkflowQueryBuilder {
 
         StringBuilder builder = new StringBuilder(QUERY);
         List<String> businessIds =  criteria.getBusinessIds();
-        if(!criteria.getHistory()) {
+        if(!criteria.getHistory()) 
         	builder.append(LATEST_RECORD);
-//        	if(!CollectionUtils.isEmpty(businessIds)) {
-//        		StringBuilder contentToReplace =  new StringBuilder();
-//        		contentToReplace.append(" eg_wf_processinstance_v2 where businessId IN (").append(createQuery(businessIds)).append(") ");
-//                builder.append(LATEST_RECORD_2.replace("eg_wf_processinstance_v2", contentToReplace));
-//                addToPreparedStatement(preparedStmtList,businessIds);
-//            }else {
-//            	builder.append(LATEST_RECORD);	
-//            }
-            
-        }
+        
 
         if(criteria.getHistory())
             builder.append(" pi.tenantid=? ");
