@@ -1,5 +1,8 @@
 package org.egov.domain.service;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.egov.domain.exception.UserAlreadyExistInSystemException;
 import org.egov.domain.exception.UserMobileNumberNotFoundException;
 import org.egov.domain.exception.UserNotExistingInSystemException;
@@ -10,6 +13,7 @@ import org.egov.persistence.repository.OtpEmailRepository;
 import org.egov.persistence.repository.OtpRepository;
 import org.egov.persistence.repository.OtpSMSRepository;
 import org.egov.persistence.repository.UserRepository;
+import org.egov.tracer.model.CustomException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -56,7 +60,11 @@ public class OtpService {
 		final User matchingUser = userRepository.fetchUser(otpRequest.getMobileNumber(), otpRequest.getTenantId(),
 				otpRequest.getUserType());
 		if (null == matchingUser) {
-			throw new UserNotFoundException();
+			//throw new UserNotFoundException();
+        	Map<String, String> map = new HashMap<>();
+        	map.put("PasswordMismatchException","Incorrect Current Password");
+            throw new CustomException(map);
+			
 		}
 		if (null == matchingUser.getMobileNumber() || matchingUser.getMobileNumber().isEmpty())
 			throw new UserMobileNumberNotFoundException();
