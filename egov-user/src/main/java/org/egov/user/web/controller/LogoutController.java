@@ -40,7 +40,7 @@ public class LogoutController {
 		System.out.println("token is"+request.getRequestInfo().getAuthToken());
 		OAuth2AccessToken redisToken = tokenStore.readAccessToken(request.getRequestInfo().getAuthToken());
 		tokenStore.removeAccessToken(redisToken);
-		System.out.println();
+		System.out.println("deleted token successfully");
 		return new ResponseInfo("", "", new Date().toString(), "", "", "Logout successfully");
 	}
 
