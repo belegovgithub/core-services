@@ -4,6 +4,7 @@ import org.egov.common.contract.response.Error;
 import org.egov.common.contract.response.ErrorResponse;
 import org.egov.common.contract.response.ResponseInfo;
 import org.egov.user.web.contract.CreateUserRequest;
+import org.json.JSONObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
@@ -34,10 +35,11 @@ public class LogoutController {
 	 */
 	@PostMapping("/_logout")
 	public ResponseInfo deleteToken(@RequestBody String request) throws Exception {
-		System.out.println("token "+request);
-		/*OAuth2AccessToken redisToken = tokenStore.readAccessToken(request.getRequestInfo().getAuthToken());
+		JSONObject obj = new JSONObject(request);
+		System.out.println("auth token"+obj.getJSONObject("RequestInfo").getString("authToken"));
+		OAuth2AccessToken redisToken = tokenStore.readAccessToken(obj.getJSONObject("RequestInfo").getString("authToken"));
 		tokenStore.removeAccessToken(redisToken);
-		System.out.println("deleted token successfully");*/
+		System.out.println("deleted token successfully");
 		return new ResponseInfo("", "", new Date().toString(), "", "", "Logout successfully");
 	}
 
