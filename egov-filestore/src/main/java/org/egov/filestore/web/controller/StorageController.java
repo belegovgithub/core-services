@@ -98,10 +98,12 @@ public class StorageController {
 	@PostMapping(produces = APPLICATION_JSON_UTF8_VALUE)
 	@ResponseStatus(HttpStatus.CREATED)
 	@ResponseBody
-	public StorageResponse storeFiles(@RequestParam("file") List<MultipartFile> files,
-			@RequestParam(value = "tenantId") String tenantId,
-			@RequestParam(value = "module", required = true) String module,
+	public StorageResponse storeFiles(@RequestParam(value = "file", required = false) List<MultipartFile> files,
+			@RequestParam(value = "tenantId" , required = false) String tenantId,
+			@RequestParam(value = "module", required = false) String module,
 			@RequestParam(value = "tag", required = false) String tag) {
+		if(files == null || tenantId==null )
+			throw new CustomException("EG_FILESTORE_INVALID_INPUT","Invalid input provided");	
 		
 		Map<String, List<String>> allowedFormatsMap = fileStoreConfig.getAllowedFormatsMap();
 		Set<String> keySet = fileStoreConfig.getAllowedKeySet();
