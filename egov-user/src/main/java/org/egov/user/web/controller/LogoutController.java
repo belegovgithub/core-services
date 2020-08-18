@@ -3,16 +3,12 @@ package org.egov.user.web.controller;
 import org.egov.common.contract.response.Error;
 import org.egov.common.contract.response.ErrorResponse;
 import org.egov.common.contract.response.ResponseInfo;
-import org.egov.user.web.contract.CreateUserRequest;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -30,17 +26,14 @@ public class LogoutController {
 	/**
 	 * End-point to logout the session.
 	 * 
-	 * @param CreateUserRequest
+	 * @param accessToken
 	 * @return
 	 * @throws Exception
 	 */
-
 	@PostMapping("/_logout")
-	public ResponseInfo deleteToken(@RequestBody CreateUserRequest request) throws Exception {
-		System.out.println("token is"+request.getRequestInfo().getAuthToken());
-		OAuth2AccessToken redisToken = tokenStore.readAccessToken(request.getRequestInfo().getAuthToken());
+	public ResponseInfo deleteToken(@RequestParam("access_token") String accessToken) throws Exception {
+		OAuth2AccessToken redisToken = tokenStore.readAccessToken(accessToken);
 		tokenStore.removeAccessToken(redisToken);
-		System.out.println();
 		return new ResponseInfo("", "", new Date().toString(), "", "", "Logout successfully");
 	}
 
