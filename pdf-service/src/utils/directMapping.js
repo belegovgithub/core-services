@@ -85,7 +85,8 @@ export const directMapping = async (
           variableTovalueMap[directArr[i].jPath] = directArr[i].val;
         }
       }
-    } else if (directArr[i].type == "function") {
+    }
+     else if (directArr[i].type == "function") {
       var fun = Function("type", directArr[i].format);
       variableTovalueMap[directArr[i].jPath] = fun(directArr[i].val[0]);
     } else if (directArr[i].type == "image") {
@@ -259,7 +260,14 @@ export const directMapping = async (
         let replaceValue = getDateInRequiredFormat(directArr[i].val[0]);
         variableTovalueMap[directArr[i].jPath] = replaceValue;
       }
-    } else {
+    } 
+    else if (directArr[i].type == "setEmpty") 
+    {
+      if(directArr[i].val == "NA")
+      directArr[i].val = "";
+      variableTovalueMap[directArr[i].jPath] = directArr[i].val;
+    }
+    else {
 
       directArr[i].val = getValue(
         directArr[i].val,
