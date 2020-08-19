@@ -281,12 +281,13 @@ public class NICGateway implements Gateway {
         	MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         	String requestmsg =SEPERATOR+ pgDetail.getMerchantId() +SEPERATOR+currentStatus.getTxnId();
             params.add("requestMsg", requestmsg);
-        	
+        	log.info("tx request Msg "+requestmsg);
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
         	HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(params, headers);
- 
+        	log.info("GATEWAY_TRANSACTION_STATUS_URL "+GATEWAY_TRANSACTION_STATUS_URL);
         	ResponseEntity<String> response = template.postForEntity(GATEWAY_TRANSACTION_STATUS_URL,entity, String.class);
+        	
         	return transformRawResponse(response.getBody(), currentStatus, pgDetail.getMerchantSecretKey());
     	} catch (HttpStatusCodeException ex) {
     		log.info("Error code "+ex.getStatusCode());
