@@ -247,6 +247,12 @@ export const directMapping = async (
         let replaceValue = getDateInRequiredFormat(directArr[i].val[0],directArr[i].format);
         variableTovalueMap[directArr[i].jPath] = replaceValue;
       }
+    }
+    else if (directArr[i].type == "setEmpty") 
+    {
+      if(directArr[i].val == "NA")
+      directArr[i].val = "";
+      variableTovalueMap[directArr[i].jPath] = directArr[i].val;
     } else {
 
       directArr[i].val = getValue(
