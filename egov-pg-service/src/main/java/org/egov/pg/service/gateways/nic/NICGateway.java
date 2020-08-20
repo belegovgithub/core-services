@@ -50,6 +50,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
@@ -276,44 +277,44 @@ public class NICGateway implements Gateway {
     public Transaction fetchStatus(Transaction currentStatus, Map<String, String> param) {
     	PgDetail pgDetail = pgDetailRepository.getPgDetailByTenantId(requestInfo, currentStatus.getTenantId());
     	log.info("tx input ", currentStatus);
-    	try {
-            URL apiUrl = new URL(GATEWAY_TRANSACTION_STATUS_URL);
-            HttpURLConnection apiConnection = (HttpURLConnection) apiUrl.openConnection();
-            apiConnection.setRequestMethod("POST");
-                  String userCredentials = pgDetail.getMerchantUserName()+":"+pgDetail.getMerchantPassword();
-                  String basicAuthParameters = "Basic " + Base64.getEncoder().encodeToString(userCredentials.getBytes());
-                  apiConnection.setRequestProperty("Authorization", basicAuthParameters);
-                  apiConnection.setDoOutput(true);
-                  DataOutputStream wr = new DataOutputStream(apiConnection.getOutputStream());
-                  String requestmsg =SEPERATOR+ pgDetail.getMerchantId() +SEPERATOR+currentStatus.getTxnId();
-                  wr.writeBytes("requestMsg="+requestmsg);
-                  wr.flush();
-                  wr.close();
-                  // int responseCode = apiConnection.getResponseCode();
-                  
-                          BufferedReader in = new BufferedReader(
-                                          new InputStreamReader(apiConnection.getInputStream()));
-                                          String inputLine;
-                                          StringBuffer response = new StringBuffer();
-                                          while ((inputLine = in.readLine()) != null) {
-                                           response.append(inputLine);
-                                          }
-                                          in.close();
-                                       String surepayResponse=response.toString();
-                                       log.info("Surepay response "+ surepayResponse);
-     } catch (MalformedURLException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-            log.error("Error in respon se "+e.getMessage());
-     } catch (ProtocolException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-            log.error("Error in respon se "+e.getMessage());
-     } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-            log.error("Error in respon se "+e.getMessage());
-     }  
+//    	try {
+//            URL apiUrl = new URL(GATEWAY_TRANSACTION_STATUS_URL);
+//            HttpURLConnection apiConnection = (HttpURLConnection) apiUrl.openConnection();
+//            apiConnection.setRequestMethod("POST");
+//                  String userCredentials = pgDetail.getMerchantUserName()+":"+pgDetail.getMerchantPassword();
+//                  String basicAuthParameters = "Basic " + Base64.getEncoder().encodeToString(userCredentials.getBytes());
+//                  apiConnection.setRequestProperty("Authorization", basicAuthParameters);
+//                  apiConnection.setDoOutput(true);
+//                  DataOutputStream wr = new DataOutputStream(apiConnection.getOutputStream());
+//                  String requestmsg =SEPERATOR+ pgDetail.getMerchantId() +SEPERATOR+currentStatus.getTxnId();
+//                  wr.writeBytes("requestMsg="+requestmsg);
+//                  wr.flush();
+//                  wr.close();
+//                  // int responseCode = apiConnection.getResponseCode();
+//                  
+//                          BufferedReader in = new BufferedReader(
+//                                          new InputStreamReader(apiConnection.getInputStream()));
+//                                          String inputLine;
+//                                          StringBuffer response = new StringBuffer();
+//                                          while ((inputLine = in.readLine()) != null) {
+//                                           response.append(inputLine);
+//                                          }
+//                                          in.close();
+//                                       String surepayResponse=response.toString();
+//                                       log.info("Surepay response "+ surepayResponse);
+//     } catch (MalformedURLException e) {
+//            // TODO Auto-generated catch block
+//            e.printStackTrace();
+//            log.error("Error in respon se "+e.getMessage());
+//     } catch (ProtocolException e) {
+//            // TODO Auto-generated catch block
+//            e.printStackTrace();
+//            log.error("Error in respon se "+e.getMessage());
+//     } catch (IOException e) {
+//            // TODO Auto-generated catch block
+//            e.printStackTrace();
+//            log.error("Error in respon se "+e.getMessage());
+//     }  
     	
     	try {
     		log.info("IMPL 2");
@@ -333,7 +334,22 @@ public class NICGateway implements Gateway {
 
     	    // make a request
     	    ResponseEntity<String> response = new RestTemplate().exchange(GATEWAY_TRANSACTION_STATUS_URL, HttpMethod.POST, entity, String.class);
-    		
+    	    HttpStatus statusCode = response.getStatusCode();
+    	    if(statusCode.equals(HttpStatus.OK)) {
+    	    	Transaction resp = transformRawResponse(response.getBody(), currentStatus, pgDetail.getMerchantSecretKey());
+    	    	log.info("RESPONSE ON SUCCESS "+resp);
+    	    }else if(statusCode.equals(HttpStatus.NOT_FOUND)|| statusCode.equals(HttpStatus.REQUEST_TIMEOUT)) {
+    	    	NICStatusResponse errorResponse = new ObjectMapper().readValue(response.getBody(),NICStatusResponse.class);
+				//Error 404 --> No Data Found for given Request and 408 --> Session Time Out Error if not transaction has been initiated for 15 min 
+				if(errorResponse.getErrorCode().equals("404")||errorResponse.getErrorCode().equals("408")) {
+					Transaction txStatus = Transaction.builder().txnId(currentStatus.getTxnId())
+	                        .txnStatus(Transaction.TxnStatusEnum.FAILURE)
+	                        .txnStatusMsg(PgConstants.TXN_FAILURE_GATEWAY)
+	                        .gatewayStatusCode(errorResponse.getErrorCode()).gatewayStatusMsg(errorResponse.getErrorMessage())
+	                        .responseJson(response.getBody()).build();
+					
+				}
+    	    }
     	    log.info("RESPONSE 2"+response);
     	}catch (Exception e) {
 			log.error("ERROR in doign process "+e.getMessage());
