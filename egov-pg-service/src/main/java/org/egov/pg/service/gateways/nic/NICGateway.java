@@ -277,47 +277,46 @@ public class NICGateway implements Gateway {
     public Transaction fetchStatus(Transaction currentStatus, Map<String, String> param) {
     	PgDetail pgDetail = pgDetailRepository.getPgDetailByTenantId(requestInfo, currentStatus.getTenantId());
     	log.info("tx input ", currentStatus);
-//    	try {
-//            URL apiUrl = new URL(GATEWAY_TRANSACTION_STATUS_URL);
-//            HttpURLConnection apiConnection = (HttpURLConnection) apiUrl.openConnection();
-//            apiConnection.setRequestMethod("POST");
-//                  String userCredentials = pgDetail.getMerchantUserName()+":"+pgDetail.getMerchantPassword();
-//                  String basicAuthParameters = "Basic " + Base64.getEncoder().encodeToString(userCredentials.getBytes());
-//                  apiConnection.setRequestProperty("Authorization", basicAuthParameters);
-//                  apiConnection.setDoOutput(true);
-//                  DataOutputStream wr = new DataOutputStream(apiConnection.getOutputStream());
-//                  String requestmsg =SEPERATOR+ pgDetail.getMerchantId() +SEPERATOR+currentStatus.getTxnId();
-//                  wr.writeBytes("requestMsg="+requestmsg);
-//                  wr.flush();
-//                  wr.close();
-//                  // int responseCode = apiConnection.getResponseCode();
-//                  
-//                          BufferedReader in = new BufferedReader(
-//                                          new InputStreamReader(apiConnection.getInputStream()));
-//                                          String inputLine;
-//                                          StringBuffer response = new StringBuffer();
-//                                          while ((inputLine = in.readLine()) != null) {
-//                                           response.append(inputLine);
-//                                          }
-//                                          in.close();
-//                                       String surepayResponse=response.toString();
-//                                       log.info("Surepay response "+ surepayResponse);
-//     } catch (MalformedURLException e) {
-//            // TODO Auto-generated catch block
-//            e.printStackTrace();
-//            log.error("Error in respon se "+e.getMessage());
-//     } catch (ProtocolException e) {
-//            // TODO Auto-generated catch block
-//            e.printStackTrace();
-//            log.error("Error in respon se "+e.getMessage());
-//     } catch (IOException e) {
-//            // TODO Auto-generated catch block
-//            e.printStackTrace();
-//            log.error("Error in respon se "+e.getMessage());
-//     }  
+    	try {
+            URL apiUrl = new URL(GATEWAY_TRANSACTION_STATUS_URL);
+            HttpURLConnection apiConnection = (HttpURLConnection) apiUrl.openConnection();
+            apiConnection.setRequestMethod("POST");
+                  String userCredentials = pgDetail.getMerchantUserName()+":"+pgDetail.getMerchantPassword();
+                  String basicAuthParameters = "Basic " + Base64.getEncoder().encodeToString(userCredentials.getBytes());
+                  apiConnection.setRequestProperty("Authorization", basicAuthParameters);
+                  apiConnection.setDoOutput(true);
+                  DataOutputStream wr = new DataOutputStream(apiConnection.getOutputStream());
+                  String requestmsg =SEPERATOR+ pgDetail.getMerchantId() +SEPERATOR+currentStatus.getTxnId();
+                  wr.writeBytes("requestMsg="+requestmsg);
+                  wr.flush();
+                  wr.close();
+                  // int responseCode = apiConnection.getResponseCode();
+                  
+                          BufferedReader in = new BufferedReader(
+                                          new InputStreamReader(apiConnection.getInputStream()));
+                                          String inputLine;
+                                          StringBuffer response = new StringBuffer();
+                                          while ((inputLine = in.readLine()) != null) {
+                                           response.append(inputLine);
+                                          }
+                                          in.close();
+                                       String surepayResponse=response.toString();
+                                       log.info("Surepay response "+ surepayResponse);
+     } catch (MalformedURLException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            log.error("Error in respon se "+e.getMessage());
+     } catch (ProtocolException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            log.error("Error in respon se "+e.getMessage());
+     } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            log.error("Error in respon se "+e.getMessage());
+     }  
     	
     	try {
-    		log.info("IMPL 2");
     		// create auth credentials
     	    String authStr = pgDetail.getMerchantUserName()+":"+pgDetail.getMerchantPassword();
     	    String base64Creds = Base64.getEncoder().encodeToString(authStr.getBytes());
@@ -338,47 +337,12 @@ public class NICGateway implements Gateway {
     	    if(statusCode.equals(HttpStatus.OK)) {
     	    	Transaction resp = transformRawResponse(response.getBody(), currentStatus, pgDetail.getMerchantSecretKey());
     	    	log.info("RESPONSE ON SUCCESS "+resp);
-    	    }else if(statusCode.equals(HttpStatus.NOT_FOUND)|| statusCode.equals(HttpStatus.REQUEST_TIMEOUT)) {
-    	    	NICStatusResponse errorResponse = new ObjectMapper().readValue(response.getBody(),NICStatusResponse.class);
-				//Error 404 --> No Data Found for given Request and 408 --> Session Time Out Error if not transaction has been initiated for 15 min 
-				if(errorResponse.getErrorCode().equals("404")||errorResponse.getErrorCode().equals("408")) {
-					Transaction txStatus = Transaction.builder().txnId(currentStatus.getTxnId())
-	                        .txnStatus(Transaction.TxnStatusEnum.FAILURE)
-	                        .txnStatusMsg(PgConstants.TXN_FAILURE_GATEWAY)
-	                        .gatewayStatusCode(errorResponse.getErrorCode()).gatewayStatusMsg(errorResponse.getErrorMessage())
-	                        .responseJson(response.getBody()).build();
-					
-				}
+    	    	return resp;
+    	    }else {
+    	    	log.info("RESPONSE ON OTHER STATUS "+response);
     	    }
     	    log.info("RESPONSE 2"+response);
-    	}catch (Exception e) {
-			log.error("ERROR in doign process "+e.getMessage());
-			e.printStackTrace();
-		}
-    	
-    	
-    	try {
-    		//TrustStrategy acceptTrustStrategy = (cert, authType) -> true;
-        	//SSLContext context = SSLContexts.custom().loadTrustMaterial(null, acceptTrustStrategy).build();
-        	BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-        	credentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(pgDetail.getMerchantUserName(), pgDetail.getMerchantPassword()));
-        	 
-        	CloseableHttpClient httpClient = HttpClientBuilder.create().setDefaultCredentialsProvider(credentialsProvider).build();
-        	HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(httpClient);
-        	RestTemplate template = new RestTemplate(factory);//.requestFactory(factory).build();
-        	
-        	MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-        	String requestmsg =SEPERATOR+ pgDetail.getMerchantId() +SEPERATOR+currentStatus.getTxnId();
-            params.add("requestMsg", requestmsg);
-        	log.info("tx request Msg "+requestmsg);
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-        	HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(params, headers);
-        	log.info("GATEWAY_TRANSACTION_STATUS_URL "+GATEWAY_TRANSACTION_STATUS_URL);
-        	ResponseEntity<String> response = template.postForEntity(GATEWAY_TRANSACTION_STATUS_URL,entity, String.class);
-        	
-        	return transformRawResponse(response.getBody(), currentStatus, pgDetail.getMerchantSecretKey());
-    	} catch (HttpStatusCodeException ex) {
+    	}catch (HttpStatusCodeException ex) {
     		log.info("Error code "+ex.getStatusCode());
     		log.info("Error getResponseBodyAsString code "+ex.getResponseBodyAsString());
     		try {
@@ -405,6 +369,10 @@ public class NICGateway implements Gateway {
             log.error("NIC Checksum validation failed ", e);
             throw new CustomException("CHECKSUM_GEN_FAILED","Checksum generation failed, gateway redirect URI cannot be generated");
         }
+    	
+    	log.error("Unable to fetch status from NIC gateway " );
+        throw new CustomException("UNABLE_TO_FETCH_STATUS", "Unable to fetch status from NIC gateway");
+    	 
     	
     	
     }
