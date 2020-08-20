@@ -278,45 +278,6 @@ public class NICGateway implements Gateway {
     	PgDetail pgDetail = pgDetailRepository.getPgDetailByTenantId(requestInfo, currentStatus.getTenantId());
     	log.info("tx input ", currentStatus);
     	try {
-            URL apiUrl = new URL(GATEWAY_TRANSACTION_STATUS_URL);
-            HttpURLConnection apiConnection = (HttpURLConnection) apiUrl.openConnection();
-            apiConnection.setRequestMethod("POST");
-                  String userCredentials = pgDetail.getMerchantUserName()+":"+pgDetail.getMerchantPassword();
-                  String basicAuthParameters = "Basic " + Base64.getEncoder().encodeToString(userCredentials.getBytes());
-                  apiConnection.setRequestProperty("Authorization", basicAuthParameters);
-                  apiConnection.setDoOutput(true);
-                  DataOutputStream wr = new DataOutputStream(apiConnection.getOutputStream());
-                  String requestmsg =SEPERATOR+ pgDetail.getMerchantId() +SEPERATOR+currentStatus.getTxnId();
-                  wr.writeBytes("requestMsg="+requestmsg);
-                  wr.flush();
-                  wr.close();
-                  // int responseCode = apiConnection.getResponseCode();
-                  
-                          BufferedReader in = new BufferedReader(
-                                          new InputStreamReader(apiConnection.getInputStream()));
-                                          String inputLine;
-                                          StringBuffer response = new StringBuffer();
-                                          while ((inputLine = in.readLine()) != null) {
-                                           response.append(inputLine);
-                                          }
-                                          in.close();
-                                       String surepayResponse=response.toString();
-                                       log.info("Surepay response "+ surepayResponse);
-     } catch (MalformedURLException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-            log.error("Error in respon se "+e.getMessage());
-     } catch (ProtocolException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-            log.error("Error in respon se "+e.getMessage());
-     } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-            log.error("Error in respon se "+e.getMessage());
-     }  
-    	
-    	try {
     		// create auth credentials
     	    String authStr = pgDetail.getMerchantUserName()+":"+pgDetail.getMerchantPassword();
     	    String base64Creds = Base64.getEncoder().encodeToString(authStr.getBytes());
@@ -339,9 +300,9 @@ public class NICGateway implements Gateway {
     	    	log.info("RESPONSE ON SUCCESS "+resp);
     	    	return resp;
     	    }else {
-    	    	log.info("RESPONSE ON OTHER STATUS "+response);
+    	    	log.info("NOT A SUCCESSFUL TX "+response);
+    	    	throw new CustomException("UNABLE_TO_FETCH_STATUS", "Unable to fetch status from NIC gateway");
     	    }
-    	    log.info("RESPONSE 2"+response);
     	}catch (HttpStatusCodeException ex) {
     		log.info("Error code "+ex.getStatusCode());
     		log.info("Error getResponseBodyAsString code "+ex.getResponseBodyAsString());
@@ -369,12 +330,6 @@ public class NICGateway implements Gateway {
             log.error("NIC Checksum validation failed ", e);
             throw new CustomException("CHECKSUM_GEN_FAILED","Checksum generation failed, gateway redirect URI cannot be generated");
         }
-    	
-    	log.error("Unable to fetch status from NIC gateway " );
-        throw new CustomException("UNABLE_TO_FETCH_STATUS", "Unable to fetch status from NIC gateway");
-    	 
-    	
-    	
     }
 
     @Override
