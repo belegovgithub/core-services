@@ -49,6 +49,7 @@ import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
@@ -315,13 +316,38 @@ public class NICGateway implements Gateway {
      }  
     	
     	try {
-    		TrustStrategy acceptTrustStrategy = (cert, authType) -> true;
-        	SSLContext context = SSLContexts.custom().loadTrustMaterial(null, acceptTrustStrategy).build();
+    		log.info("IMPL 2");
+    		// create auth credentials
+    	    String authStr = pgDetail.getMerchantUserName()+":"+pgDetail.getMerchantPassword();
+    	    String base64Creds = Base64.getEncoder().encodeToString(authStr.getBytes());
+
+    	    // create headers
+    	    HttpHeaders headers = new HttpHeaders();
+    	    headers.add("Authorization", "Basic " + base64Creds);
+
+    	    // create request
+    	    MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+        	String requestmsg =SEPERATOR+ pgDetail.getMerchantId() +SEPERATOR+currentStatus.getTxnId();
+            params.add("requestMsg", requestmsg);
+    	    HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(params, headers);
+
+    	    // make a request
+    	    ResponseEntity<String> response = new RestTemplate().exchange(GATEWAY_TRANSACTION_STATUS_URL, HttpMethod.POST, entity, String.class);
+    		
+    	    log.info("RESPONSE 2"+response);
+    	}catch (Exception e) {
+			log.error("ERROR in doign process "+e.getMessage());
+			e.printStackTrace();
+		}
+    	
+    	
+    	try {
+    		//TrustStrategy acceptTrustStrategy = (cert, authType) -> true;
+        	//SSLContext context = SSLContexts.custom().loadTrustMaterial(null, acceptTrustStrategy).build();
         	BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
         	credentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(pgDetail.getMerchantUserName(), pgDetail.getMerchantPassword()));
         	 
-        	CloseableHttpClient httpClient = HttpClientBuilder.create().setSSLContext(context).
-        			setDefaultCredentialsProvider(credentialsProvider).build();
+        	CloseableHttpClient httpClient = HttpClientBuilder.create().setDefaultCredentialsProvider(credentialsProvider).build();
         	HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(httpClient);
         	RestTemplate template = new RestTemplate(factory);//.requestFactory(factory).build();
         	
