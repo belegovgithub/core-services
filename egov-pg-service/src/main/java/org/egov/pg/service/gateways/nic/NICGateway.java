@@ -1,14 +1,22 @@
 package org.egov.pg.service.gateways.nic;
 
+import java.io.BufferedReader;
+import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.ProtocolException;
 import java.net.URI;
+import java.net.URL;
 import java.security.KeyStore;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -267,6 +275,45 @@ public class NICGateway implements Gateway {
     public Transaction fetchStatus(Transaction currentStatus, Map<String, String> param) {
     	PgDetail pgDetail = pgDetailRepository.getPgDetailByTenantId(requestInfo, currentStatus.getTenantId());
     	log.info("tx input ", currentStatus);
+    	try {
+            URL apiUrl = new URL(GATEWAY_TRANSACTION_STATUS_URL);
+            HttpURLConnection apiConnection = (HttpURLConnection) apiUrl.openConnection();
+            apiConnection.setRequestMethod("POST");
+                  String userCredentials = pgDetail.getMerchantUserName()+":"+pgDetail.getMerchantPassword();
+                  String basicAuthParameters = "Basic " + Base64.getEncoder().encodeToString(userCredentials.getBytes());
+                  apiConnection.setRequestProperty("Authorization", basicAuthParameters);
+                  apiConnection.setDoOutput(true);
+                  DataOutputStream wr = new DataOutputStream(apiConnection.getOutputStream());
+                  String requestmsg =SEPERATOR+ pgDetail.getMerchantId() +SEPERATOR+currentStatus.getTxnId();
+                  wr.writeBytes("requestMsg="+requestmsg);
+                  wr.flush();
+                  wr.close();
+                  // int responseCode = apiConnection.getResponseCode();
+                  
+                          BufferedReader in = new BufferedReader(
+                                          new InputStreamReader(apiConnection.getInputStream()));
+                                          String inputLine;
+                                          StringBuffer response = new StringBuffer();
+                                          while ((inputLine = in.readLine()) != null) {
+                                           response.append(inputLine);
+                                          }
+                                          in.close();
+                                       String surepayResponse=response.toString();
+                                       log.info("Surepay response "+ surepayResponse);
+     } catch (MalformedURLException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            log.error("Error in respon se "+e.getMessage());
+     } catch (ProtocolException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            log.error("Error in respon se "+e.getMessage());
+     } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            log.error("Error in respon se "+e.getMessage());
+     }  
+    	
     	try {
     		TrustStrategy acceptTrustStrategy = (cert, authType) -> true;
         	SSLContext context = SSLContexts.custom().loadTrustMaterial(null, acceptTrustStrategy).build();
