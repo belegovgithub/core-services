@@ -9,6 +9,7 @@ import java.security.KeyStore;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -41,6 +42,8 @@ import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
@@ -262,33 +265,37 @@ public class NICGateway implements Gateway {
 		
     	
     }
-
     @Override
     public Transaction fetchStatus(Transaction currentStatus, Map<String, String> param) {
     	PgDetail pgDetail = pgDetailRepository.getPgDetailByTenantId(requestInfo, currentStatus.getTenantId());
     	log.info("tx input ", currentStatus);
     	try {
-    		TrustStrategy acceptTrustStrategy = (cert, authType) -> true;
-        	SSLContext context = SSLContexts.custom().loadTrustMaterial(null, acceptTrustStrategy).build();
-        	BasicCredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-        	credentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(pgDetail.getMerchantUserName(), pgDetail.getMerchantPassword()));
-        	 
-        	CloseableHttpClient httpClient = HttpClientBuilder.create().setSSLContext(context).
-        			setDefaultCredentialsProvider(credentialsProvider).build();
-        	HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(httpClient);
-        	RestTemplate template =restTemplateBuilder.requestFactory(factory).build();
-        	
-        	MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+    		// create auth credentials
+    	    String authStr = pgDetail.getMerchantUserName()+":"+pgDetail.getMerchantPassword();
+    	    String base64Creds = Base64.getEncoder().encodeToString(authStr.getBytes());
+
+    	    // create headers
+    	    HttpHeaders headers = new HttpHeaders();
+    	    headers.add("Authorization", "Basic " + base64Creds);
+
+    	    // create request
+    	    MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         	String requestmsg =SEPERATOR+ pgDetail.getMerchantId() +SEPERATOR+currentStatus.getTxnId();
             params.add("requestMsg", requestmsg);
-        	
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-        	HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(params, headers);
- 
-        	ResponseEntity<String> response = template.postForEntity(GATEWAY_TRANSACTION_STATUS_URL,entity, String.class);
-        	return transformRawResponse(response.getBody(), currentStatus, pgDetail.getMerchantSecretKey());
-    	} catch (HttpStatusCodeException ex) {
+    	    HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(params, headers);
+
+    	    // make a request
+    	    ResponseEntity<String> response = new RestTemplate().exchange(GATEWAY_TRANSACTION_STATUS_URL, HttpMethod.POST, entity, String.class);
+    	    HttpStatus statusCode = response.getStatusCode();
+    	    if(statusCode.equals(HttpStatus.OK)) {
+    	    	Transaction resp = transformRawResponse(response.getBody(), currentStatus, pgDetail.getMerchantSecretKey());
+    	    	log.info("RESPONSE ON SUCCESS "+resp);
+    	    	return resp;
+    	    }else {
+    	    	log.info("NOT A SUCCESSFUL TX "+response);
+    	    	throw new CustomException("UNABLE_TO_FETCH_STATUS", "Unable to fetch status from NIC gateway");
+    	    }
+    	}catch (HttpStatusCodeException ex) {
     		log.info("Error code "+ex.getStatusCode());
     		log.info("Error getResponseBodyAsString code "+ex.getResponseBodyAsString());
     		try {
@@ -315,9 +322,8 @@ public class NICGateway implements Gateway {
             log.error("NIC Checksum validation failed ", e);
             throw new CustomException("CHECKSUM_GEN_FAILED","Checksum generation failed, gateway redirect URI cannot be generated");
         }
-    	
-    	
     }
+ 
 
     @Override
     public boolean isActive() {
