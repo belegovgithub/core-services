@@ -1,10 +1,14 @@
 package org.egov.persistence.repository;
 
 import org.egov.domain.exception.OtpNumberNotPresentException;
+import org.egov.domain.exception.TokenGenerationAttemptsOverException;
 import org.egov.domain.model.OtpRequest;
 import org.egov.persistence.contract.OtpResponse;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 
 @Service
@@ -21,16 +25,27 @@ public class OtpRepository {
     }
 
     public String fetchOtp(OtpRequest otpRequest) {
-        final org.egov.persistence.contract.OtpRequest request =
-                new org.egov.persistence.contract.OtpRequest(otpRequest);
-        final OtpResponse otpResponse =
-                restTemplate.postForObject(otpCreateUrl, request, OtpResponse.class);
+    	try {
+    		final org.egov.persistence.contract.OtpRequest request =
+                    new org.egov.persistence.contract.OtpRequest(otpRequest);
+            final OtpResponse otpResponse =
+                    restTemplate.postForObject(otpCreateUrl, request, OtpResponse.class);
 
-        if(isOtpNumberAbsent(otpResponse)) {
+            if(isOtpNumberAbsent(otpResponse)) {
+                throw new OtpNumberNotPresentException();
+            }
+            return otpResponse.getOtpNumber();
+    	}
+    	
+    	catch (HttpClientErrorException e) {    		   		
+    		if(HttpStatus.CONFLICT.equals(e.getStatusCode()))
+    		   throw new TokenGenerationAttemptsOverException();
+    		else
+    			 throw new OtpNumberNotPresentException();
+		}
+    	 catch (Exception e) {
             throw new OtpNumberNotPresentException();
         }
-
-        return otpResponse.getOtpNumber();
     }
 
     private boolean isOtpNumberAbsent(OtpResponse otpResponse) {
