@@ -13,6 +13,7 @@ import java.util.Set;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.poi.util.StringUtil;
 import org.apache.tika.Tika;
 import org.egov.filestore.config.FileStoreConfig;
 import org.egov.filestore.domain.model.FileInfo;
@@ -29,6 +30,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -104,7 +106,6 @@ public class StorageController {
 			@RequestParam(value = "tag", required = false) String tag) {
 		if(files == null || tenantId==null )
 			throw new CustomException("EG_FILESTORE_INVALID_INPUT","Invalid input provided");	
-		
 		Map<String, List<String>> allowedFormatsMap = fileStoreConfig.getAllowedFormatsMap();
 		Set<String> keySet = fileStoreConfig.getAllowedKeySet();
 		String inputStreamAsString = null;
@@ -168,6 +169,21 @@ public class StorageController {
 		responseMap.put("fileStoreIds", responses);
 		
 		return new ResponseEntity<>(responseMap, HttpStatus.OK);
+	}
+	
+	@PostMapping("/inactive")
+	@ResponseBody
+	public ResponseEntity<Map<String, Object>> setInActive(@RequestParam(value = "tenantId") String tenantId,
+			@RequestParam("fileStoreIds") List<String> fileStoreIds) {
+		if ( StringUtils.isEmpty(tenantId) || StringUtils.isEmpty(fileStoreIds))
+			return new ResponseEntity<>(new HashMap<>(), HttpStatus.OK);
+			Boolean flag= true;
+			flag =storageService.updateActiveStatus(tenantId, fileStoreIds);
+			if(flag)
+				return new ResponseEntity<>(new HashMap<>(), HttpStatus.OK);
+			else
+				return new ResponseEntity<>(new HashMap<>(), HttpStatus.INTERNAL_SERVER_ERROR);
+		 
 	}
 	
 }
