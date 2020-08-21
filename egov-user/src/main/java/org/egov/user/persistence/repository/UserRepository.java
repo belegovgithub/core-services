@@ -89,7 +89,7 @@ public class UserRepository {
         log.debug(queryStr);
 
         users = jdbcTemplate.query(queryStr, preparedStatementValues.toArray(), userResultSetExtractor);
-        enrichRoles(users);
+        enrichRoles(users,userSearch);
 
         return users;
     }
@@ -407,7 +407,7 @@ public class UserRepository {
         }
     }
 
-    private void enrichRoles(List<User> users) {
+    private void enrichRoles(List<User> users,UserSearchCriteria userSearch) {
 
         if (users.isEmpty())
             return;
@@ -421,6 +421,9 @@ public class UserRepository {
                         role.setDescription(roleCodeMap.get(role.getCode()).getDescription());
                         role.setName(roleCodeMap.get(role.getCode()).getName());
                     }
+                    if(!userSearch.isSuperUser() && role.getCode().equalsIgnoreCase("SUPERUSER")) {
+						throw new CustomException("Invalid","Not authorised to search!!");
+					}
                 }
             }
         }
