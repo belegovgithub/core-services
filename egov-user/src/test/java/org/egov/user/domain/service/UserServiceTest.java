@@ -342,15 +342,6 @@ public class UserServiceTest {
         User user = User.builder().username("xyz").tenantId("default").type(UserType.CITIZEN).build();
 		when(userRepository.findAll(any(UserSearchCriteria.class))).thenReturn(Collections.singletonList(user));
 		when(passwordEncoder.matches(anyString(), anyString())).thenReturn(true);
-		
-		String encodedString = Base64.getEncoder().encodeToString(updatePasswordRequest.getExistingPassword().getBytes());
-		encodedString = Base64.getEncoder().encodeToString(encodedString.getBytes());
-		updatePasswordRequest.setExistingPassword(encodedString);
-		
-		encodedString = Base64.getEncoder().encodeToString(updatePasswordRequest.getNewPassword().getBytes());
-		encodedString = Base64.getEncoder().encodeToString(encodedString.getBytes());
-		updatePasswordRequest.setNewPassword(encodedString);
-
 		userService.updatePasswordForLoggedInUser(updatePasswordRequest);
 
 		verify(updatePasswordRequest).validate();
@@ -430,6 +421,15 @@ public class UserServiceTest {
 		when(passwordEncoder.matches("existingPassword", "existingPasswordEncoded")).thenReturn(true);
 		when(userRepository.findAll(any(UserSearchCriteria.class))).thenReturn(Collections.singletonList(domainUser));
 
+		
+		String encodedString = Base64.getEncoder().encodeToString(updatePasswordRequest.getExistingPassword().getBytes());
+		encodedString = Base64.getEncoder().encodeToString(encodedString.getBytes());
+		updatePasswordRequest.setExistingPassword(encodedString);
+		
+		encodedString = Base64.getEncoder().encodeToString(updatePasswordRequest.getNewPassword().getBytes());
+		encodedString = Base64.getEncoder().encodeToString(encodedString.getBytes());
+		updatePasswordRequest.setNewPassword(encodedString);
+		
 		userService.updatePasswordForLoggedInUser(updatePasswordRequest);
 		
 
