@@ -1,14 +1,12 @@
 package org.egov.web.controller;
 
 import org.egov.domain.exception.InvalidOtpRequestException;
-import org.egov.domain.exception.TokenGenerationAttemptsOverException;
 import org.egov.domain.exception.UserAlreadyExistInSystemException;
 import org.egov.domain.exception.UserMobileNumberNotFoundException;
 import org.egov.domain.exception.UserNotExistingInSystemException;
 import org.egov.domain.exception.UserNotFoundException;
 import org.egov.web.contract.ErrorResponse;
 import org.egov.web.error.OtpRequestErrorAdapter;
-import org.egov.web.error.TokenGenerationAttemptsOverErrorAdapter;
 import org.egov.web.error.UserAlreadyExistErrorAdapter;
 import org.egov.web.error.UserMobileNumberNotFoundErrorAdapter;
 import org.egov.web.error.UserNotExistErrorAdapter;
@@ -63,12 +61,5 @@ public class CustomControllerAdvice {
         logger.error(ex.getMessage(), ex);
         return ex.getMessage();
     }
-    
-    @ResponseStatus(HttpStatus.CONFLICT)
-    @ExceptionHandler(TokenGenerationAttemptsOverException.class)
-    public ErrorResponse handleTokenGenerationAttemptsOverException() {
-    	return new TokenGenerationAttemptsOverErrorAdapter().adapt(null);
-    }
-
 
 }

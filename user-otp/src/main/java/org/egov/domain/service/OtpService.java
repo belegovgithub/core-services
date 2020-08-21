@@ -41,14 +41,14 @@ public class OtpService {
         }
     }
 
-	private void sendOtpForUserRegistration(OtpRequest otpRequest) {
-		final User matchingUser = userRepository.fetchUser(otpRequest.getMobileNumber(), otpRequest.getTenantId(),
-				otpRequest.getUserType());
+    private void sendOtpForUserRegistration(OtpRequest otpRequest) {
+        final User matchingUser = userRepository.fetchUser(otpRequest.getMobileNumber(), otpRequest.getTenantId(),
+                otpRequest.getUserType());
 
-		if (otpRequest.isRegistrationRequestType() && null != matchingUser)
-			throw new UserAlreadyExistInSystemException();
-		else if (otpRequest.isLoginRequestType() && null == matchingUser)
-			throw new UserNotExistingInSystemException();
+        if (otpRequest.isRegistrationRequestType() && null != matchingUser)
+            throw new UserAlreadyExistInSystemException();
+        else if (otpRequest.isLoginRequestType() && null == matchingUser)
+            throw new UserNotExistingInSystemException();
 
         final String otpNumber = otpRepository.fetchOtp(otpRequest);
         otpSMSSender.send(otpRequest, otpNumber);
