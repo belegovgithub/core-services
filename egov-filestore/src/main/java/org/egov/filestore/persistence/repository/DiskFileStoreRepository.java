@@ -101,7 +101,7 @@ public class DiskFileStoreRepository  implements CloudFilesManager {
 		return Artifact.builder().fileStoreId(fileLocation.getFileStoreId()).fileName(fileLocation.getFileName())
 				.contentType(artifact.getMultipartFile().getContentType()).module(fileLocation.getModule())
 				.tag(fileLocation.getTag()).tenantId(fileLocation.getTenantId())
-				.fileSource(fileLocation.getFileSource()).isActive(fileLocation.getIsActive()).build();
+				.fileSource(fileLocation.getFileSource()).build();
 	}
 
 }

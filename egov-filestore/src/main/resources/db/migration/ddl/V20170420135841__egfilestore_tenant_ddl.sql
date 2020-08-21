@@ -7,7 +7,6 @@ CREATE TABLE eg_filestoremap (
     module character varying(256),
     tag character varying(256),
     tenantid character varying(256) not null,
-    isActive boolean,
     version bigint
 );
 CREATE SEQUENCE seq_eg_filestoremap

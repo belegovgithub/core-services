@@ -88,7 +88,7 @@ public class StorageService {
 			String fileName = folderName + System.currentTimeMillis() + file.getOriginalFilename();
 			//String fileName = file.getOriginalFilename();
 			String id = this.idGeneratorService.getId();
-			FileLocation fileLocation = new FileLocation(id, module, tag, tenantId, fileName, null,true);
+			FileLocation fileLocation = new FileLocation(id, module, tag, tenantId, fileName, null);
 			return new Artifact(inputStreamAsString, file, fileLocation);
 		}).collect(Collectors.toList());
 	}
@@ -96,7 +96,7 @@ public class StorageService {
 	private String getFolderName(String module, String tenantId) {
 
 		Calendar calendar = Calendar.getInstance();
-		return "\\";//getBucketName(tenantId, calendar) + "/" + getFolderName(module, tenantId, calendar);
+		return getBucketName(tenantId, calendar) + "/" + getFolderName(module, tenantId, calendar);
 	}
 
 	public Resource retrieve(String fileStoreId, String tenantId) throws IOException {
@@ -110,19 +110,12 @@ public class StorageService {
 	public Map<String, String> getUrls(String tenantId, List<String> fileStoreIds) {
 
 		Map<String, String> urlMap = getUrlMap(
-				artifactRepository.getByTenantIdAndFileStoreIdList(tenantId, fileStoreIds, true));
+				artifactRepository.getByTenantIdAndFileStoreIdList(tenantId, fileStoreIds));
 		if (isNfsStorageEnabled) {
 			for (String s : urlMap.keySet())
 				urlMap.put(s, urlMap.get(s).concat("&tenantId=").concat(tenantId));
 		}
 		return urlMap;
-	}
-	
-	
-	public Boolean updateActiveStatus(String tenantId, List<String> fileStoreIds) {
-		  return artifactRepository.updateActiveStatus(tenantId, fileStoreIds, false);
-		//System.out.println("status-->>"+status);
-		//return true;
 	}
 
 	private Map<String, String> getUrlMap(List<org.egov.filestore.persistence.entity.Artifact> artifactList) {
