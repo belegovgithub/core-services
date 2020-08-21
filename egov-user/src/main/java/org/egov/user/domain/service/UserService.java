@@ -373,14 +373,17 @@ public class UserService {
         user= encryptionDecryptionUtil.encryptObject(user,"User",User.class);
 
         final User existingUser = getUserByUuid(user.getUuid());
+        final String photo =existingUser.getPhoto();
+        
         validateProfileUpdateIsDoneByTheSameLoggedInUser(user);
         user.nullifySensitiveFields();
         userRepository.update(user, existingUser);
         User updatedUser = getUserByUuid(user.getUuid());
         /* decrypt here */
-
+        if(!org.springframework.util.StringUtils.isEmpty(photo)) {
+        	fileRepository.setInactiveFileStoreId(user.getTenantId(), Collections.singletonList(photo));
+        }
         updatedUser= encryptionDecryptionUtil.decryptObject(updatedUser,"User",User.class,requestInfo);
-
         setFileStoreUrlsByFileStoreIds(Collections.singletonList(updatedUser));
         return updatedUser;
     }

@@ -21,6 +21,9 @@ public class FileStoreRepository {
 
 	@Value("${egov.filestore.path}")
 	private String fileStorePath;
+	
+	@Value("${egov.filestore.setinactivepath}")
+	private String fileStoreInactivePath;
 
 	@Autowired
 	private RestTemplate restTemplate;
@@ -49,6 +52,17 @@ public class FileStoreRepository {
 		if (null != fileStoreUrls && !fileStoreUrls.isEmpty())
 			return fileStoreUrls;
 		return null;
+	}
+	
+	public void setInactiveFileStoreId(String tenantId, List<String> fileStoreIds)  {
+		String idLIst = fileStoreIds.toString().substring(1, fileStoreIds.toString().length() - 1).replace(", ", ",");
+		String Url = fileStoreHost + fileStoreInactivePath + "?tenantId=" + tenantId + "&fileStoreIds=" + idLIst;
+		try {
+			  restTemplate.postForObject(Url, null, String.class) ;
+		} catch (Exception e) {
+			log.error("Error in calling fileStore "+e.getMessage());
+		}
+		 
 	}
 
 }
