@@ -342,7 +342,6 @@ public class UserServiceTest {
         User user = User.builder().username("xyz").tenantId("default").type(UserType.CITIZEN).build();
 		when(userRepository.findAll(any(UserSearchCriteria.class))).thenReturn(Collections.singletonList(user));
 		when(passwordEncoder.matches(anyString(), anyString())).thenReturn(true);
-
 		userService.updatePasswordForLoggedInUser(updatePasswordRequest);
 
 		verify(updatePasswordRequest).validate();
@@ -363,6 +362,14 @@ public class UserServiceTest {
                 .existingPassword("existingPassword")
                 .build();
 
+		String encodedString = Base64.getEncoder().encodeToString(updatePasswordRequest.getExistingPassword().getBytes());
+		encodedString = Base64.getEncoder().encodeToString(encodedString.getBytes());
+		updatePasswordRequest.setExistingPassword(encodedString);
+		
+		encodedString = Base64.getEncoder().encodeToString(updatePasswordRequest.getNewPassword().getBytes());
+		encodedString = Base64.getEncoder().encodeToString(encodedString.getBytes());
+		updatePasswordRequest.setNewPassword(encodedString);
+        
 		userService.updatePasswordForLoggedInUser(updatePasswordRequest);
 	}
 	
@@ -380,6 +387,15 @@ public class UserServiceTest {
                 .newPassword("newPassword")
                 .existingPassword("existingPassword")
                 .build();
+        
+		String encodedString = Base64.getEncoder().encodeToString(updatePasswordRequest.getExistingPassword().getBytes());
+		encodedString = Base64.getEncoder().encodeToString(encodedString.getBytes());
+		updatePasswordRequest.setExistingPassword(encodedString);
+		
+		encodedString = Base64.getEncoder().encodeToString(updatePasswordRequest.getNewPassword().getBytes());
+		encodedString = Base64.getEncoder().encodeToString(encodedString.getBytes());
+		updatePasswordRequest.setNewPassword(encodedString);
+		
 		userService.updatePasswordForLoggedInUser(updatePasswordRequest);
 	}
 
@@ -390,6 +406,7 @@ public class UserServiceTest {
 		when(updatePasswordRequest.getTenantId()).thenReturn("tenantId");
 		when(userRepository.findAll(any(UserSearchCriteria.class))).thenReturn(Collections.emptyList());
 
+		
 		userService.updatePasswordForLoggedInUser(updatePasswordRequest);
 	}
 
@@ -406,6 +423,15 @@ public class UserServiceTest {
 		when(passwordEncoder.matches("wrongPassword", "existingPasswordEncoded")).thenReturn(false);
 		when(userRepository.findAll(any(UserSearchCriteria.class))).thenReturn(Collections.singletonList(user));
 
+		
+		String encodedString = Base64.getEncoder().encodeToString(updatePasswordRequest.getExistingPassword().getBytes());
+		encodedString = Base64.getEncoder().encodeToString(encodedString.getBytes());
+		updatePasswordRequest.setExistingPassword(encodedString);
+		
+		encodedString = Base64.getEncoder().encodeToString(updatePasswordRequest.getNewPassword().getBytes());
+		encodedString = Base64.getEncoder().encodeToString(encodedString.getBytes());
+		updatePasswordRequest.setNewPassword(encodedString);
+		
 		userService.updatePasswordForLoggedInUser(updatePasswordRequest);
 	}
 
@@ -422,7 +448,17 @@ public class UserServiceTest {
 		when(passwordEncoder.matches("existingPassword", "existingPasswordEncoded")).thenReturn(true);
 		when(userRepository.findAll(any(UserSearchCriteria.class))).thenReturn(Collections.singletonList(domainUser));
 
+		
+		String encodedString = Base64.getEncoder().encodeToString(updatePasswordRequest.getExistingPassword().getBytes());
+		encodedString = Base64.getEncoder().encodeToString(encodedString.getBytes());
+		updatePasswordRequest.setExistingPassword(encodedString);
+		
+		encodedString = Base64.getEncoder().encodeToString(updatePasswordRequest.getNewPassword().getBytes());
+		encodedString = Base64.getEncoder().encodeToString(encodedString.getBytes());
+		updatePasswordRequest.setNewPassword(encodedString);
+		
 		userService.updatePasswordForLoggedInUser(updatePasswordRequest);
+		
 
 //		verify(domainUser).updatePassword(updatePasswordRequest.getNewPassword());
 		verify(userRepository).update(domainUser, domainUser);
