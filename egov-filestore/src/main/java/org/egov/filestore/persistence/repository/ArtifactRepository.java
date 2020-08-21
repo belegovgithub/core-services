@@ -5,6 +5,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.transaction.Transactional;
+
 import org.egov.filestore.domain.exception.ArtifactNotFoundException;
 import org.egov.filestore.domain.model.FileInfo;
 import org.egov.filestore.domain.model.FileLocation;
@@ -39,6 +43,10 @@ public class ArtifactRepository {
 
 	@Value("${source.disk}")
 	private String diskFileStorage;
+	
+	@PersistenceContext
+    private EntityManager entityManager;
+
 
 	public ArtifactRepository(FileStoreJpaRepository fileStoreJpaRepository) {
 
@@ -67,7 +75,7 @@ public class ArtifactRepository {
 		Artifact entityArtifact = Artifact.builder().fileStoreId(fileLocation.getFileStoreId())
 				.fileName(fileLocation.getFileName()).contentType(artifact.getMultipartFile().getContentType())
 				.module(fileLocation.getModule()).tag(fileLocation.getTag()).tenantId(fileLocation.getTenantId())
-				.fileSource(fileLocation.getFileSource()).build();
+				.fileSource(fileLocation.getFileSource()).isActive(fileLocation.getIsActive()).build();
 		if (isAzureStorageEnabled)
 			entityArtifact.setFileSource(azureBlobSource);
 		if (isS3Enabled)
@@ -132,12 +140,22 @@ public class ArtifactRepository {
 
 	private FileInfo mapArtifactToFileInfo(Artifact artifact) {
 		FileLocation fileLocation = new FileLocation(artifact.getFileStoreId(), artifact.getModule(), artifact.getTag(),
-				artifact.getTenantId(), artifact.getFileName(), artifact.getFileSource());
+				artifact.getTenantId(), artifact.getFileName(), artifact.getFileSource(),artifact.getIsActive());
 
 		return new FileInfo(artifact.getContentType(), fileLocation, artifact.getTenantId());
 	}
 
-	public List<Artifact> getByTenantIdAndFileStoreIdList(String tenantId, List<String> fileStoreIds) {
-		return fileStoreJpaRepository.findByTenantIdAndFileStoreIdList(tenantId, fileStoreIds);
+	public List<Artifact> getByTenantIdAndFileStoreIdList(String tenantId, List<String> fileStoreIds , Boolean isActive) {
+		return fileStoreJpaRepository.findByTenantIdAndFileStoreIdList(tenantId, fileStoreIds , isActive);
+	}
+	
+	@Transactional
+	public Boolean updateActiveStatus(String tenantId, List<String> fileStoreIds , Boolean isActive) {
+		for(Artifact artifact :fileStoreJpaRepository.searchTenantIdAndFileStoreIdList(tenantId, fileStoreIds))
+		{
+			artifact.setIsActive(false);
+		}
+		entityManager.flush();
+		 return true;
 	}
 }
