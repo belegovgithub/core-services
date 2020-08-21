@@ -5,6 +5,7 @@ import static org.apache.commons.lang3.RandomStringUtils.randomNumeric;
 import java.util.UUID;
 
 import org.egov.domain.exception.TokenAlreadyUsedException;
+import org.egov.domain.exception.TokenGenerationAttemptsOverException;
 import org.egov.domain.exception.TokenValidationFailureException;
 import org.egov.domain.model.Token;
 import org.egov.domain.model.TokenRequest;
@@ -35,10 +36,18 @@ public class TokenService {
 
     public Token create(TokenRequest tokenRequest) {
         tokenRequest.validate();
-        Token token = Token.builder().uuid(UUID.randomUUID().toString()).tenantId(tokenRequest.getTenantId())
-                .identity(tokenRequest.getIdentity()).number(randomNumeric(otpLength))
-                .timeToLiveInSeconds(tokenRequest.getTimeToLive()).build();
-        return tokenRepository.save(token);
+        String otpRequestResult = tokenRepository.getTokenCountWithin60Min(tokenRequest.getIdentity());
+        if(otpRequestResult.equals("GenerateOTP")) {
+        	 Token token = Token.builder().uuid(UUID.randomUUID().toString()).tenantId(tokenRequest.getTenantId())
+                     .identity(tokenRequest.getIdentity()).number(randomNumeric(otpLength))
+                     .timeToLiveInSeconds(tokenRequest.getTimeToLive()).build();
+             return tokenRepository.save(token);
+        }
+        else {
+        	throw new  TokenGenerationAttemptsOverException(null);
+        }
+		
+       
     }
 
     public Token validate(ValidateRequest validateRequest) {

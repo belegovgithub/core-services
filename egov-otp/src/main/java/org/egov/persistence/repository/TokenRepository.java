@@ -4,6 +4,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.egov.domain.exception.TokenUpdateException;
 import org.egov.domain.model.Token;
@@ -24,7 +25,7 @@ public class TokenRepository {
     private static final String GETTOKENS_BY_NUMBER_IDENTITY_TENANT = "select * from eg_token where tokennumber=:tokenNumber and tokenidentity=:tokenIdentity and tenantid=:tenantId";
     private static final String UPDATE_TOKEN = "update eg_token set validated = 'Y' where id = :id";
     private static final String GETTOKEN_BYID = "select * from eg_token where id=:id";
-
+   private static final String GETTOKENS_COUNT_60MIN = "SELECT * from eg_token where createddate >= NOW() - INTERVAL '60 minutes'  and tokenidentity=:tokenIdentity ORDER BY createddate DESC limit 3";
     @Autowired
     private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
@@ -107,5 +108,29 @@ public class TokenRepository {
             token = domainTokens.get(0);
         }
         return token;
+    }
+
+ public String getTokenCountWithin60Min(String identity) {
+    	final Map<String, Object> tokenInputs = new HashMap<String, Object>();
+        tokenInputs.put("tokenIdentity", identity);
+        List<Token> tokensGenWithIn60minWithNoValidation = namedParameterJdbcTemplate.query(GETTOKENS_COUNT_60MIN, tokenInputs,new TokenRowMapper());
+        int noOfTokenGen = tokensGenWithIn60minWithNoValidation.size();
+        //Check all 3 attempts are over. If 3 already generated then check validated or not
+        if(noOfTokenGen ==3) {
+        	 Optional<Token> nonValidatedToken = tokensGenWithIn60minWithNoValidation.stream().filter(t -> t.isValidated()==true).findAny();
+             if (nonValidatedToken.isPresent()) {                
+                 return "GenerateOTP";    
+             }
+             else {
+             	return "AttemptsOver";
+             }
+             
+        	
+        }
+        //Not generated 3 OPTs with in 30 mins, so just generate new OTP
+        else {
+        	return "GenerateOTP";
+        }          
+      
     }
 }

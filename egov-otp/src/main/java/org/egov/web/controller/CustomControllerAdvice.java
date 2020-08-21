@@ -48,5 +48,11 @@ public class CustomControllerAdvice {
     public ErrorResponse handleTokenTokenAlreadyUsedException() {
         return new TokenAlreadyUsedFailureAdapter().adapt(null);
     }
+    
+    @ResponseStatus(HttpStatus.CONFLICT)
+    @ExceptionHandler(TokenGenerationAttemptsOverException.class)
+    public ErrorResponse handleTokenGenerationAttemptsOverException(TokenGenerationAttemptsOverException ex) {
+    	return new TokenGenerationAttemptsOverAdapter().adapt(ex.getToken());
+    }
 
 }
