@@ -61,7 +61,7 @@ public class TokenRepositoryTest {
 
         assertNotNull(actualTokens);
         final Token firstToken = actualTokens.getTokens().get(0);
-        assertEquals("id2", firstToken.getUuid());
+        assertEquals("id2", firstToken.getUuid().trim());
         assertEquals("identity2", firstToken.getIdentity());
         assertEquals("tenant2", firstToken.getTenantId());
         assertEquals("token2", firstToken.getNumber());
