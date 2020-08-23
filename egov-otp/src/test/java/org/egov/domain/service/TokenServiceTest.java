@@ -53,6 +53,7 @@ public class TokenServiceTest {
         final Token savedToken = Token.builder().build();
         final TokenRequest tokenRequest = mock(TokenRequest.class);
         when(tokenRepository.save(any(Token.class))).thenReturn(savedToken);
+        when(tokenRepository.getTokenCountWithin60Min(any(String.class))).thenReturn("GenerateOTP");
 
         final Token actualToken = tokenService.create(tokenRequest);
 
@@ -62,7 +63,7 @@ public class TokenServiceTest {
     @Test
     public void test_should_validate_token_request() {
         final TokenRequest tokenRequest = mock(TokenRequest.class);
-
+        when(tokenRepository.getTokenCountWithin60Min(any(String.class))).thenReturn("GenerateOTP");
         tokenService.create(tokenRequest);
 
         verify(tokenRequest).validate();
