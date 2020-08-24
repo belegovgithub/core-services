@@ -111,7 +111,7 @@ public class ArtifactRepository {
  * simple get api too
  */
 	public Resource find(String fileStoreId, String tenantId) throws IOException {
-		Artifact artifact = fileStoreJpaRepository.findByFileStoreIdAndTenantId(fileStoreId, tenantId);
+		Artifact artifact = fileStoreJpaRepository.findByFileStoreIdAndTenantIdAndIsActive(fileStoreId, tenantId, true);
 		if (artifact == null)
 			throw new ArtifactNotFoundException(fileStoreId);
 

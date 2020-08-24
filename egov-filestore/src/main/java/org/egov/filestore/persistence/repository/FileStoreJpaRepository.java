@@ -11,6 +11,8 @@ import java.util.List;
 @Repository
 public interface FileStoreJpaRepository extends JpaRepository<Artifact, Long> {
 	Artifact findByFileStoreIdAndTenantId(String fileStoreId, String tenantId);
+	
+	Artifact findByFileStoreIdAndTenantIdAndIsActive(String fileStoreId, String tenantId, Boolean isActive);
 
 	List<Artifact> findByTagAndTenantId(String tag, String tenantId);
 	
