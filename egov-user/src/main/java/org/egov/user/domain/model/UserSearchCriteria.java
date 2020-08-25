@@ -7,6 +7,7 @@ import org.egov.tracer.model.CustomException;
 import org.egov.user.domain.exception.InvalidUserSearchCriteriaException;
 import org.egov.user.domain.model.enums.UserType;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 import org.egov.common.contract.request.Role;
 
 import java.util.List;
@@ -76,7 +77,7 @@ public class UserSearchCriteria {
     }
     
     public void vaidateSearch(boolean isInterServiceCall, RequestInfo requestInfo) {
-        if(isInterServiceCall && requestInfo.getUserInfo()!=null) {
+    	if(isInterServiceCall && !StringUtils.isEmpty(requestInfo) &&  !StringUtils.isEmpty(requestInfo.getUserInfo())) {
      	   String userType = requestInfo.getUserInfo().getType();
      	   if(userType.equalsIgnoreCase(UserType.CITIZEN.toString()))
      	   {
@@ -97,6 +98,9 @@ public class UserSearchCriteria {
      		   }
      		   
      	   }
+        }
+        if(StringUtils.isEmpty(requestInfo) || StringUtils.isEmpty(requestInfo.getUserInfo())){
+     	   isSuperUser = true;
         }
      }
     
