@@ -421,9 +421,6 @@ public class UserRepository {
                         role.setDescription(roleCodeMap.get(role.getCode()).getDescription());
                         role.setName(roleCodeMap.get(role.getCode()).getName());
                     }
-                    if(!userSearch.isSuperUser() && role.getCode().equalsIgnoreCase("SUPERUSER")) {
-						throw new CustomException("Invalid","Not authorised to search!!");
-					}
                 }
             }
         }
