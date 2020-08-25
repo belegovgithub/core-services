@@ -98,6 +98,9 @@ public class UserSearchCriteria {
     		   
     	   }
        }
+       if(StringUtils.isEmpty(requestInfo) || StringUtils.isEmpty(requestInfo.getUserInfo())){
+    	   isSuperUser = true;
+       }
     }
     
 }
