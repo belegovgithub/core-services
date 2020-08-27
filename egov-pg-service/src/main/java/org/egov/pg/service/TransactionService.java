@@ -10,6 +10,7 @@ import org.egov.pg.config.AppProperties;
 import org.egov.pg.models.Transaction;
 import org.egov.pg.models.TransactionDump;
 import org.egov.pg.models.TransactionDumpRequest;
+import org.egov.pg.models.Transaction.TxnStatusEnum;
 import org.egov.pg.producer.Producer;
 import org.egov.pg.repository.TransactionRepository;
 import org.egov.pg.validator.TransactionValidator;
@@ -137,8 +138,8 @@ public class TransactionService {
 
         Transaction currentTxnStatus = validator.validateUpdateTxn(requestParams);
 
-        log.debug("Current Tx Status "+currentTxnStatus.toString());
-        log.debug("Request param "+requestParams.toString());
+        log.info("Current Tx Status "+currentTxnStatus.toString());
+        log.info("Request param "+requestParams.toString());
 
         Transaction newTxn = null;
 
@@ -147,6 +148,9 @@ public class TransactionService {
 
         } else{
             newTxn = gatewayService.getLiveStatus(currentTxnStatus, requestParams);
+            if(newTxn.getTxnStatus().equals(TxnStatusEnum.PENDING)) {
+            	return Collections.singletonList(newTxn); 
+            }
 
             // Enrich the new transaction status before persisting
             enrichmentService.enrichUpdateTransaction(new TransactionRequest(requestInfo, currentTxnStatus), newTxn);

@@ -291,7 +291,8 @@ public class NICGateway implements Gateway {
         	String requestmsg =SEPERATOR+ pgDetail.getMerchantId() +SEPERATOR+currentStatus.getTxnId();
             params.add("requestMsg", requestmsg);
     	    HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(params, headers);
-
+    	    log.info("Auth Info : "+ authStr);
+    	    log.info("requestmsg : "+ requestmsg);
     	    // make a request
     	    ResponseEntity<String> response = new RestTemplate().exchange(GATEWAY_TRANSACTION_STATUS_URL, HttpMethod.POST, entity, String.class);
     	    HttpStatus statusCode = response.getStatusCode();
