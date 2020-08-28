@@ -180,8 +180,8 @@ public class UserService {
                                                              boolean isInterServiceCall, RequestInfo requestInfo) {
 
         searchCriteria.validate(isInterServiceCall);
-        searchCriteria.vaidateSearch(isInterServiceCall,requestInfo);
         searchCriteria.setTenantId(getStateLevelTenantForCitizen(searchCriteria.getTenantId(), searchCriteria.getType()));
+        searchCriteria.vaidateSearch(isInterServiceCall,requestInfo);
         /* encrypt here / encrypted searchcriteria will be used for search*/
 
 
