@@ -10,7 +10,7 @@ import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Data
-public class User {
+public class User implements java.io.Serializable{
     @JsonProperty("id")
     private Integer id;
     
