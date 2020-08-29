@@ -56,7 +56,7 @@ public class EarlyReconciliationJob implements Job {
     	}
         Integer startTime, endTime;
 
-        startTime = appProperties.getEarlyReconcileJobRunInterval() * 2;
+        startTime = appProperties.getEarlyReconcileJobRunInterval() * 4;
         endTime = startTime - appProperties.getEarlyReconcileJobRunInterval();
 
         List<Transaction> pendingTxns = transactionRepository.fetchTransactionsByTimeRange(TransactionCriteria.builder()
