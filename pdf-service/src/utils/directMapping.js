@@ -96,7 +96,6 @@ export const directMapping = async (
     } else if (directArr[i].type == "array") {
       let arrayOfOwnerObject = [];
       // let ownerObject = JSON.parse(JSON.stringify(get(formatconfig, directArr[i].jPath + "[0]", [])));
-
       let { format = {}, val = [], variable } = directArr[i];
       let { scema = [] } = format;
 
@@ -253,7 +252,35 @@ export const directMapping = async (
       if(directArr[i].val == "NA")
       directArr[i].val = "";
       variableTovalueMap[directArr[i].jPath] = directArr[i].val;
-    } else {
+    } 
+    else if (directArr[i].type == "splitString") 
+    {
+    //  console.log("directArr[i].type--",directArr[i].val[0]);
+      const temp = directArr[i].val[0].split(".")[0];
+    //  console.log("temp",temp);
+      if (
+        directArr[i].localisation &&
+        directArr[i].localisation.required
+      )
+        variableTovalueMap[
+          directArr[i].jPath
+        ] = await findAndUpdateLocalisation(
+          requestInfo,
+          localisationMap,
+          directArr[i].localisation.prefix,
+          temp,
+          directArr[i].localisation.module,
+          localisationModuleList,
+          directArr[i].localisation.isCategoryRequired,
+          directArr[i].localisation.isMainTypeRequired,
+          directArr[i].localisation.isSubTypeRequired,
+          directArr[i].localisation.delimiter
+        );
+    //  if(directArr[i].val == "NA")
+    //  directArr[i].val = "";
+    //  variableTovalueMap[directArr[i].jPath] = directArr[i].val;
+    } 
+    else {
 
       directArr[i].val = getValue(
         directArr[i].val,
