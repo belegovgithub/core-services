@@ -1,7 +1,8 @@
 package org.egov;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Arrays;
+import java.util.HashSet;
+
 import org.egov.Utils.UserUtils;
 import org.egov.filters.pre.AuthFilter;
 import org.egov.filters.pre.AuthPreCheckFilter;
@@ -18,13 +19,12 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.Arrays;
-import java.util.HashSet;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @EnableZuulProxy
 @EnableCaching
 @SpringBootApplication
-@PropertySource("${zuul.routes.filepath}")
+@PropertySource({"${zuul.routes.filepath}","${zuul.limiter.filepath}"})
 public class ZuulGatewayApplication {
     public static void main(String[] args) {
         SpringApplication.run(ZuulGatewayApplication.class, args);
