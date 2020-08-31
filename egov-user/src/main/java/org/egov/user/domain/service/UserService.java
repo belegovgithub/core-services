@@ -188,7 +188,7 @@ public class UserService {
         searchCriteria = encryptionDecryptionUtil.encryptObject(searchCriteria, "UserSearchCriteria", UserSearchCriteria.class);
         List<org.egov.user.domain.model.User> list = userRepository.findAll(searchCriteria);
         //Remove superuser from search result if the invoker is not superuser.
-        if(!searchCriteria.isSuperUser()) {
+        if(searchCriteria!=null && !searchCriteria.isSuperUser()) {
         	list =list.stream().filter( u -> !u.getRoles().stream().anyMatch(r -> r.getCode().equals("SUPERUSER")) ).collect(Collectors.toList());	
         }
        /* decrypt here / final reponse decrypted*/
