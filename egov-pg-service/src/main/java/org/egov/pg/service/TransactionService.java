@@ -148,12 +148,12 @@ public class TransactionService {
 
         } else{
             newTxn = gatewayService.getLiveStatus(currentTxnStatus, requestParams);
-            if(newTxn.getTxnStatus().equals(TxnStatusEnum.PENDING)) {
-            	return Collections.singletonList(newTxn); 
-            }
-
             // Enrich the new transaction status before persisting
             enrichmentService.enrichUpdateTransaction(new TransactionRequest(requestInfo, currentTxnStatus), newTxn);
+        }
+        //Fix for Pending Tx 
+        if(newTxn.getTxnStatus().equals(TxnStatusEnum.PENDING)) {
+        	return Collections.singletonList(newTxn); 
         }
 
         // Check if transaction is successful, amount matches etc
