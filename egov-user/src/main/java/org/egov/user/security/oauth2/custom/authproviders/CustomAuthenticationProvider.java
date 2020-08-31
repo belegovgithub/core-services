@@ -70,8 +70,15 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
 
     @Override
     public Authentication authenticate(Authentication authentication) {
-        String userName = authentication.getName();
-        String password = authentication.getCredentials().toString();
+		String userName = authentication.getName();
+		String password = authentication.getCredentials().toString();
+		
+		//Added Decoding base64 for password
+		byte[] decodedBytes = Base64.getDecoder().decode(password);
+		String decodedString = new String(decodedBytes);
+		
+		byte[] decodedBytes2 = Base64.getDecoder().decode(decodedString);
+		password = new String(decodedBytes2);
 
         final LinkedHashMap<String, String> details = (LinkedHashMap<String, String>) authentication.getDetails();
 
