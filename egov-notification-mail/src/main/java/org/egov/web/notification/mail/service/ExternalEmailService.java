@@ -34,12 +34,18 @@ public class ExternalEmailService implements EmailService {
     }
 
 	private void sendTextEmail(Email email) {
-		final SimpleMailMessage mailMessage = new SimpleMailMessage();
-		mailMessage.setTo(email.getEmailTo().toArray(new String[0]));
-		mailMessage.setSubject(email.getSubject());
-		mailMessage.setText(email.getBody());
-		mailMessage.setFrom(mailSender.getUsername());
-		mailSender.send(mailMessage);
+		try {
+			final SimpleMailMessage mailMessage = new SimpleMailMessage();
+			mailMessage.setTo(email.getEmailTo().toArray(new String[0]));
+			mailMessage.setSubject(email.getSubject());
+			mailMessage.setText(email.getBody());
+			log.info("Text Mail sending to : "+email.getEmailTo().size());
+			mailMessage.setFrom(mailSender.getUsername());
+			mailSender.send(mailMessage);
+		}
+		catch(Exception e) {
+			log.error("Error sending in mail."+e);
+		}
 	}
 
 	private void sendHTMLEmail(Email email) {
