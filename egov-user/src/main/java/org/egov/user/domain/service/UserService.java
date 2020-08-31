@@ -187,16 +187,11 @@ public class UserService {
 
         searchCriteria = encryptionDecryptionUtil.encryptObject(searchCriteria, "UserSearchCriteria", UserSearchCriteria.class);
         List<org.egov.user.domain.model.User> list = userRepository.findAll(searchCriteria);
-        for (User user : list) {
-			if(!isNull(user.getRoles())) {
-				for (Role role : user.getRoles()) {
-					if(!searchCriteria.isSuperUser() && role.getCode().equalsIgnoreCase("SUPERUSER")) {
-						throw new CustomException("Invalid","Not authorised to search!!");
-					}
-				}
-			}
-		}
-        /* decrypt here / final reponse decrypted*/
+        //Remove superuser from search result if the invoker is not superuser.
+        if(!searchCriteria.isSuperUser()) {
+        	list =list.stream().filter( u -> !u.getRoles().stream().anyMatch(r -> r.getCode().equals("SUPERUSER")) ).collect(Collectors.toList());	
+        }
+       /* decrypt here / final reponse decrypted*/
 
         list = encryptionDecryptionUtil.decryptObject(list, "UserList", User.class, requestInfo);
 
