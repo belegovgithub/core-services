@@ -1,9 +1,14 @@
 package org.egov.user.domain.model;
 
 import lombok.*;
+
+import org.egov.common.contract.request.RequestInfo;
+import org.egov.tracer.model.CustomException;
 import org.egov.user.domain.exception.InvalidUserSearchCriteriaException;
 import org.egov.user.domain.model.enums.UserType;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
+import org.egov.common.contract.request.Role;
 
 import java.util.List;
 
@@ -30,6 +35,7 @@ public class UserSearchCriteria {
     private UserType type;
     private String tenantId;
     private List<String> roleCodes;
+    private boolean isSuperUser;
 
     public void validate(boolean isInterServiceCall) {
         if (validateIfEmptySearch(isInterServiceCall) || validateIfTenantIdExists(isInterServiceCall)) {
@@ -69,4 +75,33 @@ public class UserSearchCriteria {
                     && isEmpty(tenantId);
 
     }
+    
+    public void vaidateSearch(boolean isInterServiceCall, RequestInfo requestInfo) {
+    	if(isInterServiceCall && !StringUtils.isEmpty(requestInfo) &&  !StringUtils.isEmpty(requestInfo.getUserInfo())) {
+     	   String userType = requestInfo.getUserInfo().getType();
+     	   if(userType.equalsIgnoreCase(UserType.CITIZEN.toString()))
+     	   {
+     		   if(!isEmpty(tenantId) && !requestInfo.getUserInfo().getTenantId().equalsIgnoreCase(tenantId)) {
+     			   throw new CustomException("Invalid","Not authorised to search!!");
+     		   }
+     	   }
+     	   else if(userType.equalsIgnoreCase(UserType.EMPLOYEE.toString())) {
+     		   if(!isEmpty(tenantId) && tenantId.contains(".") && !requestInfo.getUserInfo().getTenantId().equalsIgnoreCase(tenantId)) {
+     			   throw new CustomException("Invalid","Not authorised to search!!");
+     		   }
+     		   List<Role> roles = requestInfo.getUserInfo().getRoles();
+     		   for (Role role : roles) {
+     			  if( role.getCode().equalsIgnoreCase("SUPERUSER")) {
+     				  isSuperUser = true;
+     				  break;
+     			  }
+     		   }
+     		   
+     	   }
+        }
+        if(StringUtils.isEmpty(requestInfo) || StringUtils.isEmpty(requestInfo.getUserInfo())){
+     	   isSuperUser = true;
+        }
+     }
+    
 }

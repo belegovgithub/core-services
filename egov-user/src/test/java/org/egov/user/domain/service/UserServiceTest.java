@@ -34,6 +34,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.spy;
+import org.egov.tracer.model.CustomException;
 
 @RunWith(MockitoJUnitRunner.class)
 public class UserServiceTest {
@@ -395,7 +396,7 @@ public class UserServiceTest {
         userService.updatePasswordForLoggedInUser(updatePasswordRequest);
     }
 
-    @Test(expected = PasswordMismatchException.class)
+    @Test(expected = CustomException.class)
     public void test_should_throw_exception_when_existing_password_does_not_match_on_attempting_to_update_user() {
         final LoggedInUserUpdatePasswordRequest updatePasswordRequest = LoggedInUserUpdatePasswordRequest.builder()
                 .userName("xyz")

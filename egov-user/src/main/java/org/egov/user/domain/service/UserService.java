@@ -14,6 +14,7 @@ import org.egov.tracer.model.CustomException;
 import org.egov.user.domain.exception.*;
 import org.egov.user.domain.model.LoggedInUserUpdatePasswordRequest;
 import org.egov.user.domain.model.NonLoggedInUserUpdatePasswordRequest;
+import org.egov.user.domain.model.Role;
 import org.egov.user.domain.model.User;
 import org.egov.user.domain.model.UserSearchCriteria;
 import org.egov.user.domain.model.enums.UserType;
@@ -179,14 +180,22 @@ public class UserService {
                                                              boolean isInterServiceCall, RequestInfo requestInfo) {
 
         searchCriteria.validate(isInterServiceCall);
-
         searchCriteria.setTenantId(getStateLevelTenantForCitizen(searchCriteria.getTenantId(), searchCriteria.getType()));
+        searchCriteria.vaidateSearch(isInterServiceCall,requestInfo);
         /* encrypt here / encrypted searchcriteria will be used for search*/
 
 
         searchCriteria = encryptionDecryptionUtil.encryptObject(searchCriteria, "UserSearchCriteria", UserSearchCriteria.class);
         List<org.egov.user.domain.model.User> list = userRepository.findAll(searchCriteria);
-
+        for (User user : list) {
+			if(!isNull(user.getRoles())) {
+				for (Role role : user.getRoles()) {
+					if(!searchCriteria.isSuperUser() && role.getCode().equalsIgnoreCase("SUPERUSER")) {
+						throw new CustomException("Invalid","Not authorised to search!!");
+					}
+				}
+			}
+		}
         /* decrypt here / final reponse decrypted*/
 
         list = encryptionDecryptionUtil.decryptObject(list, "UserList", User.class, requestInfo);
@@ -543,7 +552,9 @@ public class UserService {
      */
     private void validateExistingPassword(User user, String existingRawPassword) {
         if (!passwordEncoder.matches(existingRawPassword, user.getPassword())) {
-            throw new PasswordMismatchException();
+            Map<String, String> map = new HashMap<>();
+            map.put("PasswordMismatchException","Incorrect Current Password");
+            throw new CustomException(map);
         }
     }
 
