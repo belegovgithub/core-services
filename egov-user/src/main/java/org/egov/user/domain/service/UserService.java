@@ -181,16 +181,16 @@ public class UserService {
 
         searchCriteria.validate(isInterServiceCall);
         searchCriteria.setTenantId(getStateLevelTenantForCitizen(searchCriteria.getTenantId(), searchCriteria.getType()));
-        searchCriteria.vaidateSearch(isInterServiceCall,requestInfo);
+        //searchCriteria.vaidateSearch(isInterServiceCall,requestInfo);
         /* encrypt here / encrypted searchcriteria will be used for search*/
 
 
         searchCriteria = encryptionDecryptionUtil.encryptObject(searchCriteria, "UserSearchCriteria", UserSearchCriteria.class);
         List<org.egov.user.domain.model.User> list = userRepository.findAll(searchCriteria);
-        //Remove superuser from search result if the invoker is not superuser.
-        if(searchCriteria!=null && !searchCriteria.isSuperUser()) {
-        	list =list.stream().filter( u -> !u.getRoles().stream().anyMatch(r -> r.getCode().equals("SUPERUSER")) ).collect(Collectors.toList());	
-        }
+//        //Remove superuser from search result if the invoker is not superuser.
+//        if(searchCriteria!=null && !searchCriteria.isSuperUser()) {
+//        	list =list.stream().filter( u -> !u.getRoles().stream().anyMatch(r -> r.getCode().equals("SUPERUSER")) ).collect(Collectors.toList());	
+//        }
        /* decrypt here / final reponse decrypted*/
 
         list = encryptionDecryptionUtil.decryptObject(list, "UserList", User.class, requestInfo);
