@@ -11,7 +11,7 @@ import org.springframework.http.HttpStatus;
 public class UserMobileNumberNotFoundErrorAdapter implements ErrorAdapter<Void> {
 
 	private static final String UNKNOWN_MOBILE_NUMBER_CODE = "OTP.MOBILE_NUMBER";
-	private static final String UNKNOWN_MOBILE_NUMBER_MESSAGE = "MobileNumber Not Found For This User.";
+	private static final String UNKNOWN_MOBILE_NUMBER_MESSAGE = "OTP will be send if user exists.";
 	private static final String UNKNOWN_MOBILE_NUMBER_FIELD = "otp.mobileNumber";
 	private static final String MESSAGE = "OTP request for password reset failed";
 
