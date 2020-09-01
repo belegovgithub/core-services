@@ -7,6 +7,12 @@ import {
   getValue
 } from "./commons";
 import logger from "../config/logger";
+
+import envVariables from "../EnvironmentVariables";
+
+ 
+let egovHostUrl = envVariables.EGOV_HOST_LOGO_URL;
+
 /**
  *
  * @param {*} key -name of the key used to identify module configs. Provided request URL
@@ -158,6 +164,23 @@ export const externalAPIMapping = async function(
         { RequestInfo: requestInfo },
         headers
       );
+      if(key == "tradelicense-appl-receipt" || key == "tradelicense-receipt" || key == "consolidatedreceipt" || key == "tlcertificate")
+      {
+        //console.warn("calling in---"+JSON.stringify(res));
+        if(null!=res.MdmsRes)
+        {
+        if(null!=res.MdmsRes.tenant.tenants)
+        {
+          if(res.MdmsRes.tenant.tenants.length>0)
+          {
+        
+        let tempObj = res.MdmsRes.tenant.tenants[0].logoIdPdf;
+        res.MdmsRes.tenant.tenants[0].logoIdPdf = egovHostUrl.concat(tempObj);
+        //console.warn("respo is tempObj--->>"+res.MdmsRes.tenant.tenants[0].logoIdPdf);
+          }
+        }
+      }
+    }
     } else {
       var apires = await axios.get(
         externalAPIArray[i].uri + "?" + externalAPIArray[i].queryParams,
@@ -166,6 +189,19 @@ export const externalAPIMapping = async function(
         }
       );
       res = apires.data;
+     /* if(null!=res)
+      {
+        if(null!=res.fileStoreIds)
+        {
+          if(res.fileStoreIds.length>0)
+          {
+              let tempUrl = res.fileStoreIds[0].url;
+              console.log("temp url old--"+tempUrl);
+              res.fileStoreIds[0].url = tempUrl.replace(egovHost,egovFileHost);
+              console.log("temp new --"+res.fileStoreIds[0].url);
+          }
+        }
+      }*/
     }
     //putting required data from external API call in format config
 
@@ -220,8 +256,9 @@ export const externalAPIMapping = async function(
       let { format = {}, value = [], variable } = externalAPIArray[i].jPath[j];
       let { scema = [] } = format;
       let val= getValue(jp.query(res, value ), "NA", value);
-
-
+      console.warn("value--->"+value+"data is--"+JSON.stringify(val)+ "length-->"+val.length+ "type--"+typeof(val));
+        if(typeof val !== "string") // if the var is not present and the value is NA
+        {
       //taking values about owner from request body
       for (let l = 0; l < val.length; l++) {
         // var x = 1;
@@ -231,11 +268,11 @@ export const externalAPIMapping = async function(
           if (scema[k].type == "date") {
             let myDate = new Date(fieldValue);
             if (isNaN(myDate) || fieldValue === 0) {
-              ownerObject[scema[k].variable] = "NA";
+              ownerObject[scema[k].key] = "NA";
             } else {
-              let replaceValue = getDateInRequiredFormat(fieldValue,scema[k].format);
+              let replaceValue = getDateInRequiredFormat(fieldValue);
               // set(formatconfig,externalAPIArray[i].jPath[j].variable,replaceValue);
-              ownerObject[scema[k].variable] = replaceValue;
+              ownerObject[scema[k].key] = replaceValue;
             }
           } else {
             if (
@@ -257,6 +294,14 @@ export const externalAPIMapping = async function(
                 loc.delimiter
               );
             }
+            else
+            if(fieldValue === "NA" &&
+            scema[k].localisation &&
+            scema[k].localisation.required &&
+            !(scema[k].localisation.isCategoryRequired))
+            {
+              fieldValue="";
+            }
             ownerObject[scema[k].variable] = fieldValue;
             
           }
@@ -266,11 +311,17 @@ export const externalAPIMapping = async function(
         arrayOfOwnerObject.push(ownerObject);
         
       }
-  
+    }
+     else{
+      console.log("setting empty")
+      arrayOfOwnerObject = " ";
+     }
+     //console.log("arrayOfOwnerObject--"+JSON.stringify(arrayOfOwnerObject));
       variableTovalueMap[variable] = arrayOfOwnerObject;
       //console.log("\nvariableTovalueMap[externalAPIArray[i].jPath.variable]--->\n"+JSON.stringify(variableTovalueMap[externalAPIArray[i].jPath.variable]));
 
       } 
+      
       
       else {
         if (
