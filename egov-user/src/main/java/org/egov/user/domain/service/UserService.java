@@ -425,6 +425,17 @@ public class UserService {
      * @param updatePasswordRequest
      */
     public void updatePasswordForLoggedInUser(LoggedInUserUpdatePasswordRequest updatePasswordRequest) {
+    	
+    	//Added for Decoding the password as per VAPT Obsn
+    	if(updatePasswordRequest.getExistingPassword() != null && updatePasswordRequest.getNewPassword() != null )
+    	{
+	    	if(!decodePassword(updatePasswordRequest.getExistingPassword()).isEmpty()){
+	    		updatePasswordRequest.setExistingPassword(decodePassword(updatePasswordRequest.getExistingPassword()));
+	    	}
+	    	if(!decodePassword(updatePasswordRequest.getNewPassword()).isEmpty()){
+	    		updatePasswordRequest.setNewPassword(decodePassword(updatePasswordRequest.getNewPassword()));
+	    	}
+    	}
         updatePasswordRequest.validate();
         final User user = getUniqueUser(updatePasswordRequest.getUserName(), updatePasswordRequest.getTenantId(),
                 updatePasswordRequest.getType());
@@ -640,6 +651,18 @@ public class UserService {
         if (!CollectionUtils.isEmpty(errorMap.keySet())) {
             throw new CustomException(errorMap);
         }
+    }
+	
+	    private String decodePassword(String password) {
+		//Added Decoding base64 for password
+    	String decodedPassword = "";
+		byte[] decodedBytes = Base64.getDecoder().decode(password);
+		String decodedString = new String(decodedBytes);
+		
+		byte[] decodedBytes2 = Base64.getDecoder().decode(decodedString);
+		decodedPassword = new String(decodedBytes2);
+		return decodedPassword;
+		//////
     }
 
 

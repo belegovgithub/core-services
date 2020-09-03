@@ -4,6 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.Setter;
+
 import org.egov.user.domain.exception.InvalidLoggedInUserUpdatePasswordRequestException;
 import org.egov.user.domain.model.enums.UserType;
 
@@ -13,6 +15,7 @@ import static org.apache.commons.lang3.StringUtils.isEmpty;
 @AllArgsConstructor
 @Builder
 @Getter
+@Setter
 @EqualsAndHashCode
 public class LoggedInUserUpdatePasswordRequest {
     private String userName;
