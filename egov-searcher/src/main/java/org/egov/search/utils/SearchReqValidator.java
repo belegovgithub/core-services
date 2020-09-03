@@ -1,8 +1,12 @@
 package org.egov.search.utils;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.egov.SearchApplicationRunnerImpl;
@@ -13,12 +17,15 @@ import org.egov.search.model.SearchParams;
 import org.egov.search.model.SearchRequest;
 import org.egov.tracer.model.CustomException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.JsonPath;
 
+import lombok.val;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
@@ -33,12 +40,31 @@ public class SearchReqValidator {
 	
 	@Autowired
 	private ObjectMapper mapper;
-	
+	@Value("${citizen.restrict.search.result}")
+	private String citizenRestrictSearchResult;
+	@Value("${citizen.restrict.search.result.keyname}")
+	private String citizenRestrictSearchResultKeyName;
 	
 	public void validate(SearchRequest searchRequest, String moduleName, String searchName) {
 		log.info("Validating search request....");
 		Map<String, SearchDefinition> searchDefinitionMap = runner.getSearchDefinitionMap();
 		Definition searchDefinition = searchUtils.getSearchDefinition(searchDefinitionMap, moduleName, searchName);
+		//Add restriction on mobile number for citizen search. 
+		try {
+		if(!StringUtils.isEmpty(citizenRestrictSearchResult)){
+			if(searchRequest.getRequestInfo()!=null && searchRequest.getRequestInfo().getUserInfo().getType().equals("CITIZEN")) {
+				List<String> restrictedReportUrl = Arrays.asList(citizenRestrictSearchResult.split(","));
+				LinkedHashMap<String,String> obj=(LinkedHashMap<String, String>) searchRequest.getSearchCriteria();
+				if(obj.values().stream().anyMatch(val -> restrictedReportUrl.contains(val))) {
+					obj.put(citizenRestrictSearchResultKeyName, searchRequest.getRequestInfo().getUserInfo().getUserName());
+				}
+			}
+		}
+		}catch (Exception e) {
+			log.error("Error in adding restriction  "+e.getMessage());
+		}
+		
+		
 		validateSearchDefAgainstReq(searchDefinition, searchRequest);
 	}
 	
