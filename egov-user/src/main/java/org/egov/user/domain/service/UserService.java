@@ -377,6 +377,17 @@ public class UserService {
      * @param updatePasswordRequest
      */
     public void updatePasswordForLoggedInUser(LoggedInUserUpdatePasswordRequest updatePasswordRequest) {
+    	
+    	//Added for Decoding the password as per VAPT Obsn
+    	if(updatePasswordRequest.getExistingPassword() != null && updatePasswordRequest.getNewPassword() != null )
+    	{
+	    	if(!decodePassword(updatePasswordRequest.getExistingPassword()).isEmpty()){
+	    		updatePasswordRequest.setExistingPassword(decodePassword(updatePasswordRequest.getExistingPassword()));
+	    	}
+	    	if(!decodePassword(updatePasswordRequest.getNewPassword()).isEmpty()){
+	    		updatePasswordRequest.setNewPassword(decodePassword(updatePasswordRequest.getNewPassword()));
+	    	}
+    	}
         updatePasswordRequest.validate();
         final User user = getUniqueUser(updatePasswordRequest.getUserName(), updatePasswordRequest.getTenantId(),
                 updatePasswordRequest.getType());
