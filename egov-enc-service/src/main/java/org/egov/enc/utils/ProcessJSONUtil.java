@@ -114,11 +114,11 @@ public class ProcessJSONUtil {
 		            } else {
 		                plaintext = asymmetricEncryptionService.decrypt(ciphertext);
 		            }
-		            if(decrpytvalue.length() !=0 )
-		            	decrpytvalue  = String.join(",", plaintext.toString());
-		            else
-		            	decrpytvalue  = plaintext.toString();
+		            finalList.add(plaintext.toString());
+
         		}
+        		
+        		decrpytvalue= String.join(",", finalList);
         		return decrpytvalue;
         		
         	}
