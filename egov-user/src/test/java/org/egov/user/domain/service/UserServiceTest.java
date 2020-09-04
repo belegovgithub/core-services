@@ -381,7 +381,7 @@ public class UserServiceTest {
 	public void test_should_throwexception_incaseofloginotpenabledastrue_foremployee_update_password_request() {
 		userService = new UserService(userRepository, otpRepository,fileRepository, passwordEncoder,
 			encryptionDecryptionUtil,tokenStore,DEFAULT_PASSWORD_EXPIRY_IN_DAYS,
-				false,true);
+				false,true, pwdRegex, pwdMaxLength, pwdMinLength);
         User user = User.builder().username("xyz").tenantId("default").type(UserType.EMPLOYEE).build();
         when(userRepository.findAll(any(UserSearchCriteria.class))).thenReturn(Collections.singletonList(user));
         final LoggedInUserUpdatePasswordRequest updatePasswordRequest = LoggedInUserUpdatePasswordRequest.builder()
