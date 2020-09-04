@@ -102,7 +102,6 @@ public class ProcessJSONUtil {
         	
         	//Added by for Decrypting comma separated value
         	if(value.toString().indexOf(",")> -1) {
-        		System.out.println("Comma Separated");
         		Plaintext plaintext = null;       		
         		List<String> finalList =new ArrayList<String>();       		
         		String[] splittedCipherTextArray = Arrays.stream(value.toString().split(",")).map(String::trim).filter(item ->!item.isEmpty()).toArray(String[]::new);
@@ -115,13 +114,11 @@ public class ProcessJSONUtil {
 		            } else {
 		                plaintext = asymmetricEncryptionService.decrypt(ciphertext);
 		            }
-		            System.out.println("plaintext:"+plaintext.toString());
 		            finalList.add(plaintext.toString());
 
         		}
         		
         		decrpytvalue= String.join(",", finalList);
-        		System.out.println("decrpytvalue:"+decrpytvalue);
         		return decrpytvalue;
         		
         	}
