@@ -99,15 +99,40 @@ public class ProcessJSONUtil {
             return ciphertext.toString();
         }
         else {
-            Plaintext plaintext;
-            Ciphertext ciphertext = new Ciphertext(value.toString());
-            method = keyStore.getTypeOfKey(ciphertext.getKeyId());
-            if(method.equals(MethodEnum.SYM)) {
-                plaintext = symmetricEncryptionService.decrypt(ciphertext);
-            } else {
-                plaintext = asymmetricEncryptionService.decrypt(ciphertext);
-            }
-            return plaintext.toString();
+        	
+        	//Added by for Decrypting comma separated value
+        	if(value.toString().indexOf(",")> -1) {
+        		Plaintext plaintext = null;       		
+        		List<String> finalList =new ArrayList<String>();       		
+        		String[] splittedCipherTextArray = Arrays.stream(value.toString().split(",")).map(String::trim).filter(item ->!item.isEmpty()).toArray(String[]::new);
+        		String decrpytvalue ="";
+        		for (String encryotvalue : splittedCipherTextArray) {
+		            Ciphertext ciphertext = new Ciphertext(encryotvalue);
+		            method = keyStore.getTypeOfKey(ciphertext.getKeyId());
+		            if(method.equals(MethodEnum.SYM)) {
+		                plaintext = symmetricEncryptionService.decrypt(ciphertext);
+		            } else {
+		                plaintext = asymmetricEncryptionService.decrypt(ciphertext);
+		            }
+		            if(decrpytvalue.length() !=0 )
+		            	decrpytvalue  = String.join(",", plaintext.toString());
+		            else
+		            	decrpytvalue  = plaintext.toString();
+        		}
+        		return decrpytvalue;
+        		
+        	}
+        	else {
+	            Plaintext plaintext;
+	            Ciphertext ciphertext = new Ciphertext(value.toString());
+	            method = keyStore.getTypeOfKey(ciphertext.getKeyId());
+	            if(method.equals(MethodEnum.SYM)) {
+	                plaintext = symmetricEncryptionService.decrypt(ciphertext);
+	            } else {
+	                plaintext = asymmetricEncryptionService.decrypt(ciphertext);
+	            }
+	            return plaintext.toString();
+        	}
         }
     }
 
