@@ -9,8 +9,8 @@ import {
 import logger from "../config/logger";
 
 import envVariables from "../EnvironmentVariables";
-
- 
+const egovFileHost = envVariables.EGOV_FILESTORE_SERVICE_HOST;
+const egovHost = envVariables.EGOV_HOST;
 let egovHostUrl = envVariables.EGOV_HOST_LOGO_URL;
 
 /**
@@ -189,7 +189,7 @@ export const externalAPIMapping = async function(
         }
       );
       res = apires.data;
-     /* if(null!=res)
+       if(null!=res)
       {
         if(null!=res.fileStoreIds)
         {
@@ -201,7 +201,7 @@ export const externalAPIMapping = async function(
               console.log("temp new --"+res.fileStoreIds[0].url);
           }
         }
-      }*/
+      } 
     }
     //putting required data from external API call in format config
 
