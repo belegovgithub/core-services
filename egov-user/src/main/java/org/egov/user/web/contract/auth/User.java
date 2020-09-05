@@ -24,5 +24,4 @@ public class User implements Serializable {
     private Set<Role> roles;
     private boolean active;
     private String tenantId;
-    private Long timeinmiili;
 }
