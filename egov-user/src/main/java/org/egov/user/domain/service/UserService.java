@@ -213,7 +213,12 @@ public class UserService {
         user = encryptionDecryptionUtil.encryptObject(user, "User", User.class);
         validateUserUniqueness(user);
         if (isEmpty(user.getPassword())) {
-            user.setPassword(UUID.randomUUID().toString());
+        	//Added Encoding of Password
+        	String encodedString = Base64.getEncoder().encodeToString(UUID.randomUUID().toString().getBytes());
+    		encodedString = Base64.getEncoder().encodeToString(encodedString.getBytes());
+    		user.setPassword(encodedString);
+    		
+            //user.setPassword(UUID.randomUUID().toString());
         } else {
             validatePassword(user.getPassword());
         }
