@@ -290,8 +290,13 @@ public class UserService {
             headers.set("Authorization", "Basic ZWdvdi11c2VyLWNsaWVudDplZ292LXVzZXItc2VjcmV0");
             MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
             map.add("username", user.getUsername());
-            if (!isEmpty(password))
-                map.add("password", password);
+            if (!isEmpty(password)) {
+            	//Added Encoding of Password
+            	String encodedString = Base64.getEncoder().encodeToString(password.getBytes());
+        		encodedString = Base64.getEncoder().encodeToString(encodedString.getBytes());
+        		map.add("password", encodedString);
+            }
+               // map.add("password", password);
             else
                 map.add("password", user.getPassword());
             map.add("grant_type", "password");
