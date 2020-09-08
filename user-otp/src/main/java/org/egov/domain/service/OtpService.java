@@ -62,6 +62,7 @@ public class OtpService {
         }
         if (null == matchingUser.getMobileNumber() || matchingUser.getMobileNumber().isEmpty())
             throw new UserMobileNumberNotFoundException();
+        log.info("MobileNumber : "+matchingUser.getMobileNumber());
         try {
             final String otpNumber = otpRepository.fetchOtp(otpRequest);
             otpRequest.setMobileNumber(matchingUser.getMobileNumber());
