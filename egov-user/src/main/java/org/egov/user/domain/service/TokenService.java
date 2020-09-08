@@ -37,7 +37,7 @@ public class TokenService {
         if (StringUtils.isEmpty(accessToken)) {
             throw new InvalidAccessTokenException();
         }
-
+        log.info("accessToken "+accessToken);
         OAuth2Authentication authentication = tokenStore.readAuthentication(accessToken);
 
         if (authentication == null) {
