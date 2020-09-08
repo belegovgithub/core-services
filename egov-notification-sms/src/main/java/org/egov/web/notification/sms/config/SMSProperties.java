@@ -68,6 +68,9 @@ public class SMSProperties {
 
     @Value("${sms.whitelist.numbers}")
     private List<String> whitelistNumbers;
+    
+    @Value("${sms.verify.certificate:false}")
+    private boolean verifyCertificate;
 
     @Setter(AccessLevel.PROTECTED) private List<Pattern> whitelistPatterns;
     @Setter(AccessLevel.PROTECTED) private List<Pattern> blacklistPatterns;
