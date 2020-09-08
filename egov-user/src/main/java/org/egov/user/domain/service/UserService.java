@@ -213,7 +213,12 @@ public class UserService {
         user = encryptionDecryptionUtil.encryptObject(user, "User", User.class);
         validateUserUniqueness(user);
         if (isEmpty(user.getPassword())) {
-            user.setPassword(UUID.randomUUID().toString());
+        	//Added Encoding of Password
+        	String encodedString = Base64.getEncoder().encodeToString(UUID.randomUUID().toString().getBytes());
+    		encodedString = Base64.getEncoder().encodeToString(encodedString.getBytes());
+    		user.setPassword(encodedString);
+    		
+            //user.setPassword(UUID.randomUUID().toString());
         } else {
             validatePassword(user.getPassword());
         }
@@ -285,8 +290,13 @@ public class UserService {
             headers.set("Authorization", "Basic ZWdvdi11c2VyLWNsaWVudDplZ292LXVzZXItc2VjcmV0");
             MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
             map.add("username", user.getUsername());
-            if (!isEmpty(password))
-                map.add("password", password);
+            if (!isEmpty(password)) {
+            	//Added Encoding of Password
+            	String encodedString = Base64.getEncoder().encodeToString(password.getBytes());
+        		encodedString = Base64.getEncoder().encodeToString(encodedString.getBytes());
+        		map.add("password", encodedString);
+            }
+               // map.add("password", password);
             else
                 map.add("password", user.getPassword());
             map.add("grant_type", "password");
