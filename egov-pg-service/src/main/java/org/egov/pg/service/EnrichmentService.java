@@ -47,7 +47,12 @@ public class EnrichmentService {
         // Generate ID from ID Gen service and assign to txn object
         String txnId = idGenService.generateTxnId(transactionRequest);
         transaction.setTxnId(txnId);
-        transaction.setUser(new User(requestInfo.getUserInfo()));
+        org.egov.common.contract.request.User userInfo =requestInfo.getUserInfo();
+        boolean isCitizen =userInfo.getRoles().stream().anyMatch(role -> role.getCode().equals("CITIZEN"));
+        if(isCitizen) {
+        	transaction.setUser(new User(requestInfo.getUserInfo()));	
+        }
+        
         transaction.setTxnStatus(Transaction.TxnStatusEnum.PENDING);
         transaction.setTxnStatusMsg(PgConstants.TXN_INITIATED);
 
@@ -70,6 +75,7 @@ public class EnrichmentService {
                 .createdTime(System.currentTimeMillis())
                 .build();
         transaction.setAuditDetails(auditDetails);
+        log.info("Tx User "+transaction.getUser());
     }
 
     void enrichUpdateTransaction(TransactionRequest transactionRequest, Transaction newTxn) {
@@ -94,6 +100,7 @@ public class EnrichmentService {
         newTxn.setConsumerCode(currentTxnStatus.getConsumerCode());
         newTxn.setTxnStatusMsg(currentTxnStatus.getTxnStatusMsg());
         newTxn.setReceipt(currentTxnStatus.getReceipt());
+        log.info("Tx User "+newTxn.getUser());
 
     }
 
