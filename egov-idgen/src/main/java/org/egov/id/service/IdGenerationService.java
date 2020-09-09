@@ -254,6 +254,7 @@ public class IdGenerationService {
                 } else if (attributeName.substring(0, 2).equalsIgnoreCase("cb")) {
                 	if(!StringUtils.isEmpty(idRequest.getTenantId())) {
                 		String splitTenant = idRequest.getTenantId().contains(".") ? idRequest.getTenantId().split("\\.")[1] : idRequest.getTenantId();
+                		splitTenant = splitTenant.length()>4 ? splitTenant.substring(0, 4) : splitTenant;
                 		idFormat = idFormat.replace("[" + attributeName + "]", splitTenant.toUpperCase());
                 	}
                 } else if (attributeName.substring(0, 4).equalsIgnoreCase("city")) {
