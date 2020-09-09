@@ -164,7 +164,7 @@ export const externalAPIMapping = async function(
         { RequestInfo: requestInfo },
         headers
       );
-      if(key == "tradelicense-appl-receipt" || key == "tradelicense-receipt" || key == "consolidatedreceipt" || key == "tlcertificate")
+      if(key == "tradelicense-appl-receipt" || key == "tradelicense-receipt" || key == "consolidatedreceipt" || key == "tlcertificate" || key == "tlrenewalcertificate")
       {
         //console.warn("calling in---"+JSON.stringify(res));
         if(null!=res.MdmsRes)
