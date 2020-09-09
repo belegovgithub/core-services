@@ -26,7 +26,7 @@ public class UserNotFoundErrorAdapterTest {
 		assertEquals(1, fields.size());
 		assertEquals("OTP.UNKNOWN_MOBILE_NUMBER", fields.get(0).getCode());
 		assertEquals("otp.mobileNumber", fields.get(0).getField());
-		assertEquals("OTP will be send if user exists.", fields.get(0).getMessage());
+		assertEquals("Mobile number is unknown.", fields.get(0).getMessage());
 	}
 
 }
