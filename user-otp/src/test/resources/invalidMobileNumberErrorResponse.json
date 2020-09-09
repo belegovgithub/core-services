@@ -7,7 +7,7 @@
     "fields": [
       {
         "code": "OTP.MOBILE_NUMBER",
-        "message": "MobileNumber Not Found For This User.",
+        "message": "OTP will be send if user exists.",
         "field": "otp.mobileNumber"
       }
     ]
