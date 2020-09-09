@@ -138,7 +138,7 @@ public class TransactionsApiControllerTest {
 
     @Test
     public void transactionsV1UpdatePostSuccess() throws Exception {
-        when(transactionService.updateTransaction(any(RequestInfo.class), any(Map.class)))
+        when(transactionService.updateTransaction(any(RequestInfo.class), any(Map.class),any(Boolean.class)))
                 .thenReturn
                         (Collections.emptyList());
 

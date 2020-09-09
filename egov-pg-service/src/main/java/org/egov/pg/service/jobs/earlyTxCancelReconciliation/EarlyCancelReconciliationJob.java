@@ -1,4 +1,4 @@
-package org.egov.pg.service.jobs.earlyReconciliation;
+package org.egov.pg.service.jobs.earlyTxCancelReconciliation;
 
 import lombok.extern.slf4j.Slf4j;
 import org.egov.common.contract.request.RequestInfo;
@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -25,7 +26,7 @@ import java.util.concurrent.TimeUnit;
  */
 @Component
 @Slf4j
-public class EarlyReconciliationJob implements Job {
+public class EarlyCancelReconciliationJob implements Job {
 
     private static final RequestInfo requestInfo;
 
@@ -44,7 +45,7 @@ public class EarlyReconciliationJob implements Job {
 
     /**
      * Fetch live status for pending transactions
-     * that were created for ex, between 15-30 minutes, configurable value
+     * that were created for ex, between 40-80 minutes, configurable value
      *
      * @param jobExecutionContext execution context with optional job parameters
      * @throws JobExecutionException
@@ -56,8 +57,9 @@ public class EarlyReconciliationJob implements Job {
     	}
         Integer startTime, endTime;
 
-        startTime = appProperties.getEarlyTxCancelReconcileJobRunInterval();
-        endTime = appProperties.getEarlyReconcileJobRunInterval();	
+        startTime = appProperties.getEarlyTxCancelReconcileJobRunInterval() * 2;
+        endTime = startTime - appProperties.getEarlyTxCancelReconcileJobRunInterval();
+        
         log.info(startTime+" - "+endTime);
 
         List<Transaction> pendingTxns = transactionRepository.fetchTransactionsByTimeRange(TransactionCriteria.builder()
@@ -69,9 +71,10 @@ public class EarlyReconciliationJob implements Job {
 
         for (Transaction txn : pendingTxns) {
         	try {
+        	 
             log.info(transactionService.updateTransaction(requestInfo, Collections.singletonMap(PgConstants.PG_TXN_IN_LABEL, txn
                     .getTxnId
-                    ()),false).toString());
+                    ()),true).toString());
         	}catch (Exception e) {
 				log.error("Error in early reconcile job ",e);
 			}

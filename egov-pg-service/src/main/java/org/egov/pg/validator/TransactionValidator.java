@@ -143,7 +143,7 @@ public class TransactionValidator {
         for (Transaction curr : existingTxnsForBill) {
             if (curr.getTxnStatus().equals(Transaction.TxnStatusEnum.PENDING)) {
                 errorMap.put("TXN_ABRUPTLY_DISCARDED", 
-                		"Earlier transaction for this bill is in pending state,please retry after "+(props.getEarlyReconcileJobRunInterval() * 4)+" mins.");
+                		"Earlier transaction is not yet settled. Please try after "+(props.getEarlyTxCancelReconcileJobRunInterval())+" mins.");
             }
             if(curr.getTxnStatus().equals(Transaction.TxnStatusEnum.SUCCESS)) {
                 errorMap.put("TXN_CREATE_BILL_ALREADY_PAID", "Bill has already been paid or is in pending state");

@@ -90,7 +90,7 @@ public class TransactionsApiController {
                                                                                 requestInfoWrapper, @RequestParam
                                                                                 Map<String,
                                                                                         String> params) {
-        List<Transaction> transactions = transactionService.updateTransaction(requestInfoWrapper.getRequestInfo(), params);
+        List<Transaction> transactions = transactionService.updateTransaction(requestInfoWrapper.getRequestInfo(), params,false);
         ResponseInfo responseInfo = ResponseInfoFactory.createResponseInfoFromRequestInfo(requestInfoWrapper
                 .getRequestInfo(), true);
         TransactionResponse response = new TransactionResponse(responseInfo, transactions);

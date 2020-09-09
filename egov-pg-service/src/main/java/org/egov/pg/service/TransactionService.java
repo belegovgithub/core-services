@@ -132,9 +132,10 @@ public class TransactionService {
      *
      * @param requestInfo
      * @param requestParams Response parameters posted by the gateway
+     * @param isCancellationAllowed to Abort the transaction which are crossing 35 min duration
      * @return Updated transaction
      */
-    public List<Transaction> updateTransaction(RequestInfo requestInfo, Map<String, String> requestParams) {
+    public List<Transaction> updateTransaction(RequestInfo requestInfo, Map<String, String> requestParams,boolean isCancellationAllowed) {
 
         Transaction currentTxnStatus = validator.validateUpdateTxn(requestParams);
 
@@ -150,11 +151,12 @@ public class TransactionService {
             newTxn = gatewayService.getLiveStatus(currentTxnStatus, requestParams);
             // Enrich the new transaction status before persisting
             enrichmentService.enrichUpdateTransaction(new TransactionRequest(requestInfo, currentTxnStatus), newTxn);
+            //Fix for Pending Tx 
+            if(!isCancellationAllowed && newTxn.getTxnStatus().equals(TxnStatusEnum.PENDING)) {
+            	return Collections.singletonList(newTxn); 
+            }
         }
-        //Fix for Pending Tx 
-        if(newTxn.getTxnStatus().equals(TxnStatusEnum.PENDING)) {
-        	return Collections.singletonList(newTxn); 
-        }
+        
 
         // Check if transaction is successful, amount matches etc
         if (validator.shouldGenerateReceipt(currentTxnStatus, newTxn)) {

@@ -62,7 +62,7 @@ public class DailyReconciliationJob implements Job {
         	try {
             log.info(transactionService.updateTransaction(requestInfo, Collections.singletonMap(PgConstants.PG_TXN_IN_LABEL, txn
                     .getTxnId
-                    ())).toString());
+                    ()),false).toString());
         	}catch (Exception e) {
 				log.error("Error in daily reconcile job ",e);
 			}

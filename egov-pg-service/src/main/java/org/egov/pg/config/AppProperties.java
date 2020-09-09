@@ -14,6 +14,8 @@ import org.springframework.core.env.Environment;
 public class AppProperties {
 
     private final Integer earlyReconcileJobRunInterval;
+    
+    private final Integer earlyTxCancelReconcileJobRunInterval;
 
     private final String saveTxnTopic;
 
@@ -62,6 +64,7 @@ public class AppProperties {
     @Autowired
     public AppProperties(Environment environment){
         this.earlyReconcileJobRunInterval = Integer.valueOf(environment.getRequiredProperty("pg.earlyReconcileJobRunInterval.mins"));
+        this.earlyTxCancelReconcileJobRunInterval = Integer.valueOf(environment.getRequiredProperty("pg.txCancelJobRunInterval.mins"));
         this.saveTxnTopic = environment.getRequiredProperty("persister.save.pg.txns");
         this.updateTxnTopic = environment.getRequiredProperty("persister.update.pg.txns");
         this.saveTxnDumpTopic = environment.getRequiredProperty("persister.save.pg.txnsDump");

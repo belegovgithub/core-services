@@ -207,7 +207,7 @@ public class TransactionServiceTest {
 
 
         assertEquals(transactionService.updateTransaction(requestInfo, Collections.singletonMap
-                ("ORDERID", "PT_001")).get(0).getTxnStatus(), Transaction.TxnStatusEnum.SUCCESS);
+                ("ORDERID", "PT_001"),false).get(0).getTxnStatus(), Transaction.TxnStatusEnum.SUCCESS);
     }
 
     /**
@@ -219,7 +219,7 @@ public class TransactionServiceTest {
 
         when(validator.validateUpdateTxn(any(Map.class))).thenThrow(new CustomException("MISSING_TXN_ID", "Cannot process request, missing transaction id"));
 
-        transactionService.updateTransaction(requestInfo, Collections.singletonMap("abc", "PT_001"));
+        transactionService.updateTransaction(requestInfo, Collections.singletonMap("abc", "PT_001"),false);
 
     }
 
@@ -231,6 +231,6 @@ public class TransactionServiceTest {
 
         when(validator.validateUpdateTxn(any(Map.class))).thenThrow(new CustomException("TXN_NOT_FOUND", "Transaction not found"));
 
-        transactionService.updateTransaction(requestInfo, Collections.singletonMap("abc", "PT_001"));
+        transactionService.updateTransaction(requestInfo, Collections.singletonMap("abc", "PT_001"),false);
     }
 }
