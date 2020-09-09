@@ -7,7 +7,7 @@
     "fields": [
       {
         "code": "OTP.UNKNOWN_MOBILE_NUMBER",
-        "message": "Mobile number is unknown.",
+        "message": "OTP will be send if user exists.",
         "field": "otp.mobileNumber"
       }
     ]
