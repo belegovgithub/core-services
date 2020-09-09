@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-//import org.egov.common.contract.request.User;
+import org.egov.common.contract.request.User;
 import org.egov.pg.config.AppProperties;
 import org.egov.pg.constants.PgConstants;
 import org.egov.pg.models.TaxAndPayment;
@@ -19,7 +19,6 @@ import org.egov.pg.service.GatewayService;
 import org.egov.pg.service.PaymentsService;
 import org.egov.pg.web.models.TransactionCriteria;
 import org.egov.pg.web.models.TransactionRequest;
-import org.egov.pg.web.models.User;
 import org.egov.tracer.model.CustomException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -153,23 +152,11 @@ public class TransactionValidator {
     }
 
     private void isUserDetailPresent(TransactionRequest transactionRequest, Map<String, String> errorMap) {
-        //User user = transactionRequest.getRequestInfo().getUserInfo();
-    	
-        User user = transactionRequest.getTransaction().getUser();        
-        
-        if (isNull(user) || isEmpty(user.getName()) || isNull(user.getTenantId()) || isNull(user.getMobileNumber())) {        	
-        	errorMap.put("INVALID_USER_DETAILS", "User UUID, Name, Username, Mobile Number and Tenant Id are " +
+        User user = transactionRequest.getRequestInfo().getUserInfo();
+        if (isNull(user) || isNull(user.getUuid()) || isEmpty(user.getName()) || isNull(user.getUserName()) ||
+                isNull(user.getTenantId()) || isNull(user.getMobileNumber()))
+            errorMap.put("INVALID_USER_DETAILS", "User UUID, Name, Username, Mobile Number and Tenant Id are " +
                     "mandatory");
-        }
-        
-//        if (isNull(user) || isNull(user.getUuid()) || isEmpty(user.getName()) || isNull(user.getUserName()) ||
-//                isNull(user.getTenantId()) || isNull(user.getMobileNumber())) {
-//        	System.out.println("came inside===>");
-//        	errorMap.put("INVALID_USER_DETAILS", "User UUID, Name, Username, Mobile Number and Tenant Id are " +
-//                    "mandatory");
-//        }
-            
-        
     }
 
     private void validateTxnAmount(TransactionRequest transactionRequest, Map<String, String> errorMap){
