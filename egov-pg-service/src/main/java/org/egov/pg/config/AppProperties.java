@@ -3,6 +3,7 @@ package org.egov.pg.config;
 import lombok.Getter;
 import lombok.ToString;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
@@ -60,6 +61,10 @@ public class AppProperties {
 	private String dailyReconcileUserName;
 
 	private String earlyReconcileUserName;
+	
+    private String demandHost;
+    
+    private String demandSearchEndpoint;
 
     @Autowired
     public AppProperties(Environment environment){
@@ -87,6 +92,8 @@ public class AppProperties {
         this.tenantId=environment.getRequiredProperty("egov.tenantid");
         this.dailyReconcileUserName =environment.getRequiredProperty("pg.dailyreconcileusername");
         this.earlyReconcileUserName =environment.getRequiredProperty("pg.earlyreconcileusername");
+        this.demandSearchEndpoint =environment.getRequiredProperty("egov.demand.search.endpoint");
+        this.demandHost =environment.getRequiredProperty("egov.demand.host");
     }
 
 }

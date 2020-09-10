@@ -10,14 +10,16 @@ import org.egov.pg.models.AuditDetails;
 import org.egov.pg.models.BankAccount;
 import org.egov.pg.models.Transaction;
 import org.egov.pg.repository.BankAccountRepository;
+import org.egov.pg.web.models.Demand;
 import org.egov.pg.web.models.TransactionRequest;
-import org.egov.pg.web.models.User;
+import org.egov.pg.web.models.User; 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 
 import static java.util.Collections.singletonMap;
@@ -29,12 +31,14 @@ public class EnrichmentService {
     private IdGenService idGenService;
     private BankAccountRepository bankAccountRepository;
     private ObjectMapper objectMapper;
+    private DemandService demandService;
 
     @Autowired
-    EnrichmentService(IdGenService idGenService, BankAccountRepository bankAccountRepository, ObjectMapper objectMapper) {
+    EnrichmentService(IdGenService idGenService, BankAccountRepository bankAccountRepository, ObjectMapper objectMapper,DemandService demandService) {
         this.idGenService = idGenService;
         this.bankAccountRepository = bankAccountRepository;
         this.objectMapper = objectMapper;
+        this.demandService=demandService;
     }
 
     void enrichCreateTransaction(TransactionRequest transactionRequest) {
@@ -49,12 +53,14 @@ public class EnrichmentService {
         transaction.setTxnId(txnId);
         org.egov.common.contract.request.User userInfo =requestInfo.getUserInfo();
         boolean isCitizen =userInfo.getRoles().stream().anyMatch(role -> role.getCode().equals("CITIZEN"));
-//        if(isCitizen) {
-//        	transaction.setUser(new User(requestInfo.getUserInfo()));	
-//        }else {
-//        	transaction.getUser().setUuid(requestInfo.getUserInfo().getUuid());
-//        }
-        transaction.setUser(new User(requestInfo.getUserInfo()));	
+        if(isCitizen) {
+        	transaction.setUser(new User(requestInfo.getUserInfo()));	
+        }else {
+        	List<Demand> demands =demandService.searchDemand(transaction.getTenantId(), transaction.getConsumerCode(), requestInfo, transaction.getModule());
+        	if(demands!=null && demands.size()>0) {
+        		 transaction.setUser(new User(demands.get(0).getPayer()));
+        	}
+        }
         transaction.setTxnStatus(Transaction.TxnStatusEnum.PENDING);
         transaction.setTxnStatusMsg(PgConstants.TXN_INITIATED);
 
