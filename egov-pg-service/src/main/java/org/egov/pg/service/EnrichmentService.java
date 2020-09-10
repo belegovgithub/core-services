@@ -51,6 +51,8 @@ public class EnrichmentService {
         boolean isCitizen =userInfo.getRoles().stream().anyMatch(role -> role.getCode().equals("CITIZEN"));
         if(isCitizen) {
         	transaction.setUser(new User(requestInfo.getUserInfo()));	
+        }else {
+        	transaction.getUser().setUuid(requestInfo.getUserInfo().getUuid());
         }
         
         transaction.setTxnStatus(Transaction.TxnStatusEnum.PENDING);
