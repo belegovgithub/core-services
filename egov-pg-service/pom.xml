@@ -179,9 +179,11 @@
           <customTypeNaming>
             <customTypeNaming>org.egov.pg.models.TransactionRequest:TransactionRequestModel</customTypeNaming>
             <customTypeNaming>org.egov.pg.models.Bill$StatusEnum:BillStatus</customTypeNaming>
+            <customTypeNaming>org.egov.pg.web.models.Demand$StatusEnum:DemandStatus</customTypeNaming>
           </customTypeNaming>
           <customTypeMappings>
             <customTypeMapping>org.egov.common.contract.request.RequestInfo:RequestInfo</customTypeMapping>
+            <customTypeMapping>org.egov.common.contract.request.User:User</customTypeMapping>
             <customTypeMapping>org.egov.common.contract.response.ResponseInfo:ResponseInfo</customTypeMapping>
           </customTypeMappings>
           <namespace>Digit</namespace>
