@@ -102,6 +102,7 @@ public class NICSMSServiceImpl extends BaseSMSService {
 				stringBuffer.append(line);
 			}
 			log.info("sms response " + stringBuffer.toString());
+			log.info("sms data " + final_data);
 			rd.close();
         }
         catch(Exception e) {
