@@ -49,12 +49,12 @@ public class EnrichmentService {
         transaction.setTxnId(txnId);
         org.egov.common.contract.request.User userInfo =requestInfo.getUserInfo();
         boolean isCitizen =userInfo.getRoles().stream().anyMatch(role -> role.getCode().equals("CITIZEN"));
-        if(isCitizen) {
-        	transaction.setUser(new User(requestInfo.getUserInfo()));	
-        }else {
-        	transaction.getUser().setUuid(requestInfo.getUserInfo().getUuid());
-        }
-        
+//        if(isCitizen) {
+//        	transaction.setUser(new User(requestInfo.getUserInfo()));	
+//        }else {
+//        	transaction.getUser().setUuid(requestInfo.getUserInfo().getUuid());
+//        }
+        transaction.setUser(new User(requestInfo.getUserInfo()));	
         transaction.setTxnStatus(Transaction.TxnStatusEnum.PENDING);
         transaction.setTxnStatusMsg(PgConstants.TXN_INITIATED);
 
