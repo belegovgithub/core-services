@@ -72,6 +72,9 @@ public class SMSProperties {
     @Value("${sms.verify.certificate:false}")
     private boolean verifyCertificate;
 
+    @Value("${sms.debug.msggateway:false}")
+    private boolean debugMsggateway;
+    
     @Setter(AccessLevel.PROTECTED) private List<Pattern> whitelistPatterns;
     @Setter(AccessLevel.PROTECTED) private List<Pattern> blacklistPatterns;
 

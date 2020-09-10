@@ -101,8 +101,11 @@ public class NICSMSServiceImpl extends BaseSMSService {
 			while ((line = rd.readLine()) != null) {
 				stringBuffer.append(line);
 			}
-			log.info("sms response " + stringBuffer.toString());
-			log.info("sms data " + final_data);
+			if(smsProperties.isDebugMsggateway())
+			{
+				log.info("sms response: " + stringBuffer.toString());
+				log.info("sms data: " + final_data);
+			}
 			rd.close();
         }
         catch(Exception e) {
