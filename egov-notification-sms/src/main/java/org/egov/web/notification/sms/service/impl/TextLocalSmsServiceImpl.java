@@ -42,6 +42,11 @@ public class TextLocalSmsServiceImpl extends BaseSMSService {
 			while ((line = rd.readLine()) != null) {
 				stringBuffer.append(line);
 			}
+			if(smsProperties.isDebugMsggateway())
+			{
+				log.info("sms response: " + stringBuffer.toString());
+				log.info("sms data: " + data);
+			}
 			rd.close();
 			
 		} catch (Exception e) {
