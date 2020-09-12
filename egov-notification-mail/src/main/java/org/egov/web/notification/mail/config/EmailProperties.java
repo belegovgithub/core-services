@@ -78,4 +78,8 @@ public class EmailProperties {
     @Value("${mail.smtps.debug}")
     @Getter
     private String mailSmtpsDebug;
+    
+    @Value("${mail.response.debug:false}")
+    @Getter
+    private boolean mailResponseDebug;
 }

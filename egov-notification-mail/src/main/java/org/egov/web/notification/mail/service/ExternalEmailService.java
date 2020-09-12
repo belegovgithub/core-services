@@ -2,6 +2,7 @@ package org.egov.web.notification.mail.service;
 
 import java.util.Properties;
 
+import javax.mail.Address;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.Session;
@@ -62,8 +63,14 @@ public class ExternalEmailService implements EmailService {
 			tp.connect(emailProperties.getMailHost(),emailProperties.getMailPort(),
 				emailProperties.getMailSenderUsername(),emailProperties.getMailSenderPassword());
 			tp.sendMessage(message, message.getAllRecipients());
-			log.info("Response 1 from server : " + ((SMTPTransport) tp).getLastServerResponse());
-			log.info("Response 2 from server : " + ((SMTPTransport) tp).getLastReturnCode());
+			if(emailProperties.isMailResponseDebug()) {
+				log.info("Mail : "+email.getBody());
+				for(Address a :message.getRecipients(Message.RecipientType.TO)){
+					log.info("To :"+a.toString());
+				}
+				log.info("LastServerResponse from server : " + ((SMTPTransport) tp).getLastServerResponse());
+				log.info("LastReturnCode from server : " + ((SMTPTransport) tp).getLastReturnCode());
+			}
 			tp.close();
 			log.info("Mail sent successfully....");
 		} catch (Exception e) {
