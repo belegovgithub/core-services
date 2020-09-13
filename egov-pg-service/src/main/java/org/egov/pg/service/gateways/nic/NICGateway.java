@@ -111,14 +111,11 @@ public class NICGateway implements Gateway {
     private final String ADDITIONAL_FIELD4_KEY = "additionalField4";
     private final String ADDITIONAL_FIELD5_KEY = "additionalField5";
     private final String ADDITIONAL_FIELD_VALUE = "111111";
-    private final String GATEWAY_TRANSACTION_STATUS_URL; 
-    private final String GATEWAY_TRANSACTION_STATUS_URL_WITHIP; 
+    private final String GATEWAY_TRANSACTION_STATUS_URL;  
     private final String GATEWAY_URL;
     private final String CITIZEN_URL;
     private static final String SEPERATOR ="|";
-    private String TX_DATE_FORMAT;
-    @Autowired
-    private RestTemplateBuilder restTemplateBuilder;
+    private String TX_DATE_FORMAT; 
     private  final RequestInfo requestInfo;
     private PgDetailRepository pgDetailRepository;
     
@@ -137,7 +134,6 @@ public class NICGateway implements Gateway {
         REDIRECT_URL = environment.getRequiredProperty("nic.redirect.url");
         ORIGINAL_RETURN_URL_KEY = environment.getRequiredProperty("nic.original.return.url.key");
         GATEWAY_TRANSACTION_STATUS_URL = environment.getRequiredProperty("nic.gateway.status.url");
-        GATEWAY_TRANSACTION_STATUS_URL_WITHIP= environment.getRequiredProperty("nic.gateway.status.url.withip");
         CITIZEN_URL = environment.getRequiredProperty("egov.default.citizen.url");
         GATEWAY_URL = environment.getRequiredProperty("nic.gateway.url");
         TX_DATE_FORMAT =environment.getRequiredProperty("nic.dateformat");
@@ -276,7 +272,7 @@ public class NICGateway implements Gateway {
     @Override
     public Transaction fetchStatus(Transaction currentStatus, Map<String, String> param) {
     	PgDetail pgDetail = pgDetailRepository.getPgDetailByTenantId(requestInfo, currentStatus.getTenantId());
-    	log.info("tx input ", currentStatus);
+    	log.debug("tx input "+ currentStatus);
     	try {
     		// create auth credentials
     	    String authStr = pgDetail.getMerchantUserName()+":"+pgDetail.getMerchantPassword();
@@ -291,22 +287,24 @@ public class NICGateway implements Gateway {
         	String requestmsg =SEPERATOR+ pgDetail.getMerchantId() +SEPERATOR+currentStatus.getTxnId();
             params.add("requestMsg", requestmsg);
     	    HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(params, headers);
-    	    log.info("Auth Info : "+ authStr);
-    	    log.info("requestmsg : "+ requestmsg);
+    	    log.debug("Auth Info : "+ authStr);
+    	    log.debug("requestmsg : "+ requestmsg);
     	    // make a request
     	    ResponseEntity<String> response = new RestTemplate().exchange(GATEWAY_TRANSACTION_STATUS_URL, HttpMethod.POST, entity, String.class);
     	    HttpStatus statusCode = response.getStatusCode();
     	    if(statusCode.equals(HttpStatus.OK)) {
     	    	Transaction resp = transformRawResponse(response.getBody(), currentStatus, pgDetail.getMerchantSecretKey());
-    	    	log.info("RESPONSE ON SUCCESS "+resp);
+    	    	log.debug("RESPONSE ON SUCCESS "+resp);
     	    	return resp;
     	    }else {
-    	    	log.info("NOT A SUCCESSFUL TX "+response);
+    	    	log.error("tx input "+ currentStatus);
+    	    	log.error("NOT A SUCCESSFUL TX "+response);
     	    	throw new CustomException("UNABLE_TO_FETCH_STATUS", "Unable to fetch status from NIC gateway");
     	    }
     	}catch (HttpStatusCodeException ex) {
-    		log.info("Error code "+ex.getStatusCode());
-    		log.info("Error getResponseBodyAsString code "+ex.getResponseBodyAsString());
+    		log.error("tx input "+ currentStatus);
+    		log.error("Error code "+ex.getStatusCode());
+    		log.error("Error getResponseBodyAsString code "+ex.getResponseBodyAsString());
     		try {
 				NICStatusResponse errorResponse = new ObjectMapper().readValue(ex.getResponseBodyAsString(),NICStatusResponse.class);
 				//Error 404 --> No Data Found for given Request and 408 --> Session Time Out Error if not transaction has been initiated for 15 min 
@@ -323,12 +321,12 @@ public class NICGateway implements Gateway {
 			}
 
     		log.error("Unable to fetch status from NIC gateway ", ex);
-            throw new CustomException("UNABLE_TO_FETCH_STATUS", "Unable to fetch status from NIC gateway");
+            throw new CustomException("UNABLE_TO_FETCH_STATUS", "Unable to fetch status from PayGov gateway");
         } catch (RestClientException e) {
-            log.error("Unable to fetch status from NIC gateway ", e);
-            throw new CustomException("UNABLE_TO_FETCH_STATUS", "Unable to fetch status from NIC gateway");
+            log.error("Unable to fetch status from PayGov gateway ", e);
+            throw new CustomException("UNABLE_TO_FETCH_STATUS", "Unable to fetch status from PayGov gateway");
         } catch (Exception e) {
-            log.error("NIC Checksum validation failed ", e);
+            log.error("PayGov Checksum validation failed ", e);
             throw new CustomException("CHECKSUM_GEN_FAILED","Checksum generation failed, gateway redirect URI cannot be generated");
         }
     }
@@ -362,7 +360,7 @@ public class NICGateway implements Gateway {
      */
     private Transaction transformRawResponse(String resp, Transaction currentStatus, String secretKey)
             throws JsonParseException, JsonMappingException, IOException {
-    	log.info("Response Data "+resp);
+    	log.debug("Response Data "+resp);
         if (resp!=null) {
         	
         	//Validate the response against the checksum
