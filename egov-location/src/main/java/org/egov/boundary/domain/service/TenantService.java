@@ -59,9 +59,9 @@ public class TenantService {
 
             //Check if provided tenant matches, resolved tenant
 
-            if (state.equalsIgnoreCase(STATE_CODES.get(loc.getState()))) {
-                String filter = "$.[?(@.name == '" + loc.getCity() + "')]";
-
+            if (state.equalsIgnoreCase("pb")) {//state.equalsIgnoreCase(STATE_CODES.get(loc.getState()))
+                String filter = "$.[?(@.code == 'pb." + loc.getCity().toLowerCase() + "')]";
+                //System.out.println("Check: state: "+ state +" Filter: "+filter+" RequestInfo: "+requestInfo);
                 Optional<Tenant> tenant = mdmsService.fetchTenant(state, filter, requestInfo);
 
                 // If tenant is not found by mdms, throw error

@@ -8,6 +8,7 @@ import static org.springframework.util.ObjectUtils.isEmpty;
 @Getter
 @Builder
 @AllArgsConstructor
+@NoArgsConstructor
 @EqualsAndHashCode
 public class Tenant {
 
