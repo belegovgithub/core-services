@@ -171,8 +171,7 @@ public class BoundaryConstants {
             "state module";
 
     public static final String TENANT_SEARCH_TENANT_MAPPING_NOT_FOUND = "TENANT_SEARCH_TENANT_MAPPING_NOT_FOUND";
-    public static final String TENANT_SEARCH_TENANT_MAPPING_NOT_FOUND_DESC = "Unable to find mapping in MDMS " +
-            "for provided lat / lng ";
+    public static final String TENANT_SEARCH_TENANT_MAPPING_NOT_FOUND_DESC = "Location chosen is outside jurisdiction boundary";
 
     public static final String TENANT_SEARCH_GMAPS_NO_RESP = "TENANT_SEARCH_GMAPS_NO_RESP";
     public static final String TENANT_SEARCH_GMAPS_NO_RESP_DESC = "GMAPS could not resolve provided lat / lng";

@@ -1,5 +1,13 @@
 package org.egov.boundary.domain.service;
 
+import static org.egov.boundary.util.BoundaryConstants.TENANT_SEARCH_GMAPS_NO_RESP;
+import static org.egov.boundary.util.BoundaryConstants.TENANT_SEARCH_GMAPS_NO_RESP_DESC;
+import static org.egov.boundary.util.BoundaryConstants.TENANT_SEARCH_STATE_MISMATCH;
+import static org.egov.boundary.util.BoundaryConstants.TENANT_SEARCH_STATE_MISMATCH_DESC;
+
+import java.util.HashMap;
+import java.util.Optional;
+
 import org.egov.boundary.domain.model.Location;
 import org.egov.boundary.util.BoundaryConstants;
 import org.egov.boundary.web.contract.tenant.model.Tenant;
@@ -10,20 +18,23 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.Optional;
-
-import static org.egov.boundary.util.BoundaryConstants.*;
-
 @Service
 public class TenantService {
     private static final Logger LOG = LoggerFactory.getLogger(TenantService.class);
     private static final HashMap<String, String> STATE_CODES = new HashMap<>();
-
+    private static final HashMap<String, String> VALID_DISTRICTS = new HashMap<>();
+    
     static {
         STATE_CODES.put("Andhra Pradesh", "ap");
         STATE_CODES.put("Maharashtra", "mh");
         STATE_CODES.put("Punjab", "pb");
+        
+        VALID_DISTRICTS.put("hyderabad", "secunderabad");
+        VALID_DISTRICTS.put("pune", "pune");
+        VALID_DISTRICTS.put("lucknow", "lucknow");
+        VALID_DISTRICTS.put("agra", "agra");
+        VALID_DISTRICTS.put("new delhi","delhi");
+        VALID_DISTRICTS.put("south west delhi","delhi");
     }
 
     private final GoogleLocationService locationService;
@@ -58,10 +69,10 @@ public class TenantService {
             LOG.debug(loc.toString());
 
             //Check if provided tenant matches, resolved tenant
-
-            if (state.equalsIgnoreCase("pb")) {//state.equalsIgnoreCase(STATE_CODES.get(loc.getState()))
-                String filter = "$.[?(@.code == 'pb." + loc.getCity().toLowerCase() + "')]";
-                //System.out.println("Check: state: "+ state +" Filter: "+filter+" RequestInfo: "+requestInfo);
+            //System.out.println("Check state: "+loc.getState()+" District: "+loc.getDistrict()+" City: "+loc.getCity()+" PinCode: "+loc.getPostalCode());
+            if (state.equalsIgnoreCase("pb") && VALID_DISTRICTS.containsKey(loc.getDistrict().toLowerCase())) {//state.equalsIgnoreCase(STATE_CODES.get(loc.getState()))
+                String filter = "$.[?(@.code == 'pb." + VALID_DISTRICTS.get(loc.getDistrict().toLowerCase()) + "')]";
+                //System.out.println("Check: state: "+ state + " District: "+loc.getDistrict()+" Filter: "+filter+" RequestInfo: "+requestInfo);
                 Optional<Tenant> tenant = mdmsService.fetchTenant(state, filter, requestInfo);
 
                 // If tenant is not found by mdms, throw error
