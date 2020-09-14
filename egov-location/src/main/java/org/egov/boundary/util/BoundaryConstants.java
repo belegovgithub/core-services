@@ -167,8 +167,8 @@ public class BoundaryConstants {
             "MDMS Service is unavailable";
 
     public static final String TENANT_SEARCH_STATE_MISMATCH = "TENANT_SEARCH_STATE_MISMATCH";
-    public static final String TENANT_SEARCH_STATE_MISMATCH_DESC = "Attempting to raise a complaint from a different " +
-            "state module";
+    public static final String TENANT_SEARCH_STATE_MISMATCH_DESC = "Attempting to raise a complaint which is outside " +
+            " Cantonment Board's Judistriction";
 
     public static final String TENANT_SEARCH_TENANT_MAPPING_NOT_FOUND = "TENANT_SEARCH_TENANT_MAPPING_NOT_FOUND";
     public static final String TENANT_SEARCH_TENANT_MAPPING_NOT_FOUND_DESC = "Location chosen is outside jurisdiction boundary";
