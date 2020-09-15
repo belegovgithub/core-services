@@ -312,7 +312,10 @@ public class IdGenerationService {
                     }
                 }
             }
-            currentFinancialYear = preYear + "-" + postYear;
+            if(postYear!=0)
+            	currentFinancialYear = preYear + "-" + postYear;
+            else
+            	currentFinancialYear = preYear + "";
             return currentFinancialYear;
 
         } catch (Exception e) {
