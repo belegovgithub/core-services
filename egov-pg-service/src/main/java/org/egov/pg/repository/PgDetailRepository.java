@@ -58,14 +58,14 @@ public class PgDetailRepository {
             else {
                 log.error("Expected to fetch payment gateway detail for tenant " +
                         "{}, instead found {}", tenantId, response.getPgDetail().size());
-                throw new CustomException("PG_DETAIL_FETCH_ERROR", "Unable to fetch payment gateway credential");
+                throw new CustomException("PG_DETAIL_FETCH_ERROR", "Online Payment is not allowed for selected Cant Board");
             }
         } catch (HttpClientErrorException e) {
             log.error("Unable to fetch payment gateway detail for tenant " + tenantId, e);
             throw new ServiceCallException(e.getResponseBodyAsString());
         } catch (Exception e) {
             log.error("Unable to fetch payment gateway detail for tenant "+ tenantId, e);
-            throw new CustomException("PG_DETAIL_SEARCH_ERROR", "Failed to fetch payment gateway credential, unknown error " +
+            throw new CustomException("PG_DETAIL_SEARCH_ERROR", "Failed to fetch Payment Gateway Detail, unknown error " +
                     "occurred");
         }
     }
