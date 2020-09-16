@@ -40,7 +40,6 @@ public class GoogleLocationService {
             GeocodingResult[] gResp = GeocodingApi.newRequest(gtx).latlng(new LatLng(lat, lng)).region("IN")
                     .await();
 
-
             Location location = new Location();
             for (AddressComponent addressComponent : gResp[0].addressComponents) {
                 List<AddressComponentType> addressComponentTypes = Arrays.asList(addressComponent.types);
@@ -63,7 +62,7 @@ public class GoogleLocationService {
             LOG.error("Invalid latitude longitude pair provided. ");
             return Optional.empty();
         } catch (Exception e) {
-            LOG.error("Unable to reverse geocode");
+            LOG.error("Unable to reverse geocode: "+e.getMessage());
             return Optional.empty();
         }
     }

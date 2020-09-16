@@ -174,7 +174,7 @@ public class BoundaryConstants {
     public static final String TENANT_SEARCH_TENANT_MAPPING_NOT_FOUND_DESC = "Location chosen is outside jurisdiction boundary";
 
     public static final String TENANT_SEARCH_GMAPS_NO_RESP = "TENANT_SEARCH_GMAPS_NO_RESP";
-    public static final String TENANT_SEARCH_GMAPS_NO_RESP_DESC = "GMAPS could not resolve provided lat / lng";
+    public static final String TENANT_SEARCH_GMAPS_NO_RESP_DESC = "Google maps could not resolve provided lat / lng";
 
     public static final String GMAPS_API_KEY = System.getenv("GMAPS_API_KEY");
 
