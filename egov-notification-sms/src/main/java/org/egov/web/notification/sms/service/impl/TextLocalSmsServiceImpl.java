@@ -28,26 +28,29 @@ public class TextLocalSmsServiceImpl extends BaseSMSService {
 			String message = "&message=" + sms.getMessage();
 			String sender = "&sender=" + smsProperties.getSenderid();
 			String numbers = "&numbers=" +"91"+ sms.getMobileNumber();
-			
-			HttpURLConnection conn = (HttpURLConnection) new URL(smsProperties.getUrl()).openConnection();
 			String data = apiKey + numbers + message + sender;
-			//System.out.println("data "+data);
-			conn.setDoOutput(true);
-			conn.setRequestMethod("POST");
-			conn.setRequestProperty("Content-Length", Integer.toString(data.length()));
-			conn.getOutputStream().write(data.getBytes("UTF-8"));
-			final BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-			final StringBuffer stringBuffer = new StringBuffer();
-			String line;
-			while ((line = rd.readLine()) != null) {
-				stringBuffer.append(line);
+			if(smsProperties.isSmsEnabled()) {
+				HttpURLConnection conn = (HttpURLConnection) new URL(smsProperties.getUrl()).openConnection();
+				conn.setDoOutput(true);
+				conn.setRequestMethod("POST");
+				conn.setRequestProperty("Content-Length", Integer.toString(data.length()));
+				conn.getOutputStream().write(data.getBytes("UTF-8"));
+				final BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+				final StringBuffer stringBuffer = new StringBuffer();
+				String line;
+				while ((line = rd.readLine()) != null) {
+					stringBuffer.append(line);
+				}
+				if(smsProperties.isDebugMsggateway())
+				{
+					log.info("sms response: " + stringBuffer.toString());
+					log.info("sms data: " + data);
+				}
+				rd.close();
 			}
-			if(smsProperties.isDebugMsggateway())
-			{
-				log.info("sms response: " + stringBuffer.toString());
-				log.info("sms data: " + data);
+			else {
+				log.info("SMS Data: "+data);
 			}
-			rd.close();
 			
 		} catch (Exception e) {
 			e.printStackTrace();

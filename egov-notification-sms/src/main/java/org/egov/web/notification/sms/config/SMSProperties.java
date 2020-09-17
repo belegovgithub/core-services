@@ -75,6 +75,9 @@ public class SMSProperties {
     @Value("${sms.debug.msggateway:false}")
     private boolean debugMsggateway;
     
+    @Value("${sms.enabled:false}")
+    private boolean smsEnabled;
+    
     @Setter(AccessLevel.PROTECTED) private List<Pattern> whitelistPatterns;
     @Setter(AccessLevel.PROTECTED) private List<Pattern> blacklistPatterns;
 

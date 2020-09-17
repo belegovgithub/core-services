@@ -88,25 +88,29 @@ public class NICSMSServiceImpl extends BaseSMSService {
 	    		sslContext.init(null, new TrustManager[] { tm }, null);
         	}
     		SSLContext.setDefault(sslContext);
-			//System.out.println("ssl check done. URL about to hit : "+smsProperties.getUrl()+final_data);
-			HttpsURLConnection conn = (HttpsURLConnection) new URL(smsProperties.getUrl()).openConnection();
-			conn.setSSLSocketFactory(sslContext.getSocketFactory());
-			conn.setDoOutput(true);
-			conn.setRequestMethod("POST");
-			conn.setRequestProperty("Content-Length", Integer.toString(final_data.length()));
-			conn.getOutputStream().write(final_data.getBytes());
-			final BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-			final StringBuffer stringBuffer = new StringBuffer();
-			String line;
-			while ((line = rd.readLine()) != null) {
-				stringBuffer.append(line);
-			}
-			if(smsProperties.isDebugMsggateway())
-			{
-				log.info("sms response: " + stringBuffer.toString());
-				log.info("sms data: " + final_data);
-			}
-			rd.close();
+	    	if(smsProperties.isSmsEnabled()) {
+				HttpsURLConnection conn = (HttpsURLConnection) new URL(smsProperties.getUrl()).openConnection();
+				conn.setSSLSocketFactory(sslContext.getSocketFactory());
+				conn.setDoOutput(true);
+				conn.setRequestMethod("POST");
+				conn.setRequestProperty("Content-Length", Integer.toString(final_data.length()));
+				conn.getOutputStream().write(final_data.getBytes());
+				final BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+				final StringBuffer stringBuffer = new StringBuffer();
+				String line;
+				while ((line = rd.readLine()) != null) {
+					stringBuffer.append(line);
+				}
+				if(smsProperties.isDebugMsggateway())
+				{
+					log.info("sms response: " + stringBuffer.toString());
+					log.info("sms data: " + final_data);
+				}
+				rd.close();
+	    	}
+    		else {
+    			log.info("SMS Data: "+final_data);
+    		}
         }
         catch(Exception e) {
         	e.printStackTrace();
