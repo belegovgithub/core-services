@@ -85,6 +85,7 @@ public class StorageController {
 			e.printStackTrace();
 		}
 		return ResponseEntity.ok()
+				.header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + resource.getFileName()  + "\"")
 				.header(HttpHeaders.CONTENT_TYPE, resource.getContentType()).body(resource.getResource());
 	}
 	
