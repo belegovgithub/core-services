@@ -57,7 +57,7 @@ public class StorageService {
 	private String azureBlobSource;
 
     @Value("#{${static.file.map}}")
-    private Map<String, String> staticFileMap;
+    private Map<String,List<String>> staticFileMap;
     
 	@Autowired
 	private CloudFilesManager cloudFilesManager;
@@ -116,9 +116,9 @@ public class StorageService {
 		{
 			if(staticFileMap.containsKey(fileStoreId))
 			{
-				Path path = Paths.get(staticFileMap.get(fileStoreId));
-				org.springframework.core.io.Resource resource = (org.springframework.core.io.Resource) new FileSystemResource(path.toFile());
-				return new Resource(Files.probeContentType(path), resource.getFilename(), resource, "",
+				Path path = Paths.get(staticFileMap.get(fileStoreId).get(0));
+				org.springframework.core.io.Resource resource = new FileSystemResource(path.toFile());
+				return new Resource(staticFileMap.get(fileStoreId).get(1), resource.getFilename(), resource, "",
 						"" + resource.getFile().length() + " bytes");
 			}
 		}
