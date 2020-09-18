@@ -76,11 +76,10 @@ public class StorageController {
 
 	@GetMapping("/static")
 	@ResponseBody
-	public ResponseEntity<Resource> getFileStatic(@RequestParam(value = "tenantId") String tenantId,
-			@RequestParam("fileStoreId") String fileStoreId) {
+	public ResponseEntity<Resource> getFileStatic(@RequestParam("fileStoreId") String fileStoreId) {
 		org.egov.filestore.domain.model.Resource resource =null;
 		try {
-			resource = storageService.retrieve(fileStoreId, tenantId);
+			resource = storageService.retrieveStatic(fileStoreId);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

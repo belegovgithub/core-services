@@ -2,12 +2,16 @@ package org.egov.filestore.domain.service;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.egov.filestore.domain.exception.ArtifactNotFoundException;
 import org.egov.filestore.domain.exception.EmptyFileUploadRequestException;
 import org.egov.filestore.domain.model.Artifact;
 import org.egov.filestore.domain.model.FileInfo;
@@ -17,6 +21,7 @@ import org.egov.filestore.persistence.repository.ArtifactRepository;
 import org.egov.filestore.repository.CloudFilesManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.multipart.MultipartFile;
@@ -51,6 +56,9 @@ public class StorageService {
 	@Value("${source.azure.blob}")
 	private String azureBlobSource;
 
+    @Value("#{${static.file.map}}")
+    private Map<String, String> staticFileMap;
+    
 	@Autowired
 	private CloudFilesManager cloudFilesManager;
 
@@ -103,6 +111,23 @@ public class StorageService {
 		return artifactRepository.find(fileStoreId, tenantId);
 	}
 
+	public Resource retrieveStatic(String fileStoreId) throws IOException {
+		try
+		{
+			if(staticFileMap.containsKey(fileStoreId))
+			{
+				Path path = Paths.get(staticFileMap.get(fileStoreId));
+				org.springframework.core.io.Resource resource = (org.springframework.core.io.Resource) new FileSystemResource(path.toFile());
+				return new Resource(Files.probeContentType(path), resource.getFilename(), resource, "",
+						"" + resource.getFile().length() + " bytes");
+			}
+		}
+		catch (Exception e) {
+			throw new ArtifactNotFoundException(fileStoreId);
+		}
+		throw new ArtifactNotFoundException(fileStoreId);
+	}
+	
 	public List<FileInfo> retrieveByTag(String tag, String tenantId) {
 		return artifactRepository.findByTag(tag, tenantId);
 	}
