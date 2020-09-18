@@ -74,6 +74,21 @@ public class StorageController {
 				.header(HttpHeaders.CONTENT_TYPE, resource.getContentType()).body(resource.getResource());
 	}
 
+	@GetMapping("/static")
+	@ResponseBody
+	public ResponseEntity<Resource> getFileStatic(@RequestParam(value = "tenantId") String tenantId,
+			@RequestParam("fileStoreId") String fileStoreId) {
+		org.egov.filestore.domain.model.Resource resource =null;
+		try {
+			resource = storageService.retrieve(fileStoreId, tenantId);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return ResponseEntity.ok()
+				.header(HttpHeaders.CONTENT_TYPE, resource.getContentType()).body(resource.getResource());
+	}
+	
 	@GetMapping("/metadata")
 	@ResponseBody
 	public ResponseEntity<org.egov.filestore.domain.model.Resource> getMetaData(
