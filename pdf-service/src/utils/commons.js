@@ -130,6 +130,7 @@ const getLocalisationLabel = (key, localisationMap, prefix) => {
 };
 
 export const getDateInRequiredFormat = (et, dateformat = "DD/MM/YYYY") => {
+  console.log("getDateInRequiredFormat--",et);
   if (!et) return "NA";
   // var date = new Date(Math.round(Number(et)));
   return moment(et).tz(datetimezone).format(dateformat);
@@ -137,7 +138,9 @@ export const getDateInRequiredFormat = (et, dateformat = "DD/MM/YYYY") => {
 
 export const getDateInNewFinYear = (et, dateformat = "DD/MM/YYYY") => {
   if (!et) return "NA";
+  console.log("getDateInNewFinYear before--",et);
   et = et+10000000;
+  console.log("getDateInNewFinYear after--",et);
   var date = new Date(Math.round(Number(et)));
   var formattedDate =
     date.getDate() + "/" + (date.getMonth() + 1) + "/" + date.getFullYear();
