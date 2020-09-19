@@ -5,7 +5,8 @@ import envVariables from "../EnvironmentVariables";
 import {
   findAndUpdateLocalisation,
   getDateInRequiredFormat,
-  getValue
+  getValue,
+  getDateInNewFinYear
 } from "./commons";
 
 var jp = require("jsonpath");
@@ -244,6 +245,15 @@ export const directMapping = async (
         variableTovalueMap[directArr[i].jPath] = "NA";
       } else {
         let replaceValue = getDateInRequiredFormat(directArr[i].val[0],directArr[i].format);
+        variableTovalueMap[directArr[i].jPath] = replaceValue;
+      }
+    }
+    else if (directArr[i].type == "newFinYear") {
+      let myDate = new Date(directArr[i].val[0]);
+      if (isNaN(myDate) || directArr[i].val[0] === 0) {
+        variableTovalueMap[directArr[i].jPath] = "NA";
+      } else {
+        let replaceValue = getDateInNewFinYear(directArr[i].val[0],directArr[i].format);
         variableTovalueMap[directArr[i].jPath] = replaceValue;
       }
     }

@@ -135,6 +135,15 @@ export const getDateInRequiredFormat = (et, dateformat = "DD/MM/YYYY") => {
   return moment(et).tz(datetimezone).format(dateformat);
 };
 
+export const getDateInNewFinYear = (et, dateformat = "DD/MM/YYYY") => {
+  if (!et) return "NA";
+  et = et+10000000;
+  var date = new Date(Math.round(Number(et)));
+  var formattedDate =
+    date.getDate() + "/" + (date.getMonth() + 1) + "/" + date.getFullYear();
+  return formattedDate;
+};
+
 /**
  *
  * @param {*} value - values to be checked
