@@ -6,6 +6,7 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.security.KeyStore;
 import java.util.ArrayList;
 
@@ -44,11 +45,13 @@ public class NICSMSServiceImpl extends BaseSMSService {
         	String message=sms.getMessage();
         	if(textHasHindi(message) && !textIsInEnglish(message)) 
         		message = Hex.encodeHexString(message.getBytes("UTF-16")).toUpperCase();
+        	else
+        		message=URLEncoder.encode(message,"UTF-8");
         	
         	final_data+="&message="+ message;
         	final_data+="&mnumber=91"+ sms.getMobileNumber();
         	final_data+="&signature="+ smsProperties.getSenderid();
-        	if(!message.equalsIgnoreCase(sms.getMessage())) {
+        	if(!textIsInEnglish(sms.getMessage())) {
         		final_data+="&msgType=UC";
         		log.info("Non-English");
         	}
