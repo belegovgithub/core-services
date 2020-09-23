@@ -72,8 +72,8 @@ abstract public class BaseSMSService implements SMSService, SMSBodyBuilder {
             log.error(String.format("Sms to %s is not in whitelist", sms.getMobileNumber()));
             return;
         }
-        if(sms.getMessage().contains("&"))
-        	sms.setMessage(sms.getMessage().replaceAll("&", "and"));
+        //if(sms.getMessage().contains("&"))
+        //	sms.setMessage(sms.getMessage().replaceAll("&", "and"));
         submitToExternalSmsService(sms);
     }
 
