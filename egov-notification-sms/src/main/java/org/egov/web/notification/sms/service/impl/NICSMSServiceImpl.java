@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.security.KeyStore;
 import java.util.ArrayList;
 
@@ -43,18 +44,18 @@ public class NICSMSServiceImpl extends BaseSMSService {
         	final_data+="&pin="+ smsProperties.getPassword();
         	
         	String message=sms.getMessage();
-        	if(textHasHindi(message) && !textIsInEnglish(message)) 
-        		message = Hex.encodeHexString(message.getBytes("UTF-16")).toUpperCase();
-        	else
-        		message=URLEncoder.encode(message,"UTF-8");
-        	
+        	if(textIsInEnglish(message)) {
+				message=URLEncoder.encode(message,"UTF-8");
+        	}
+			else{
+				message = Hex.encodeHexString(message.getBytes("UTF-16")).toUpperCase();
+			    final_data+="&msgType=UC";
+        		log.info("Non-English");
+			}
+   	
         	final_data+="&message="+ message;
         	final_data+="&mnumber=91"+ sms.getMobileNumber();
         	final_data+="&signature="+ smsProperties.getSenderid();
-        	if(!textIsInEnglish(sms.getMessage())) {
-        		final_data+="&msgType=UC";
-        		log.info("Non-English");
-        	}
         	
         	SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
         	if(smsProperties.isVerifyCertificate()) {
@@ -121,16 +122,6 @@ public class NICSMSServiceImpl extends BaseSMSService {
         }
     }
     
-    private boolean textHasHindi(String text) {
-        for (char charac : text.toCharArray()) {
-            if (Character.UnicodeBlock.of(charac) == Character.UnicodeBlock.DEVANAGARI) {
-                return true;
-            }
-        }
-        return false;
-    }
-	
-	
 	private boolean textIsInEnglish(String text) {
 		ArrayList<Character.UnicodeBlock> english = new ArrayList<>();
 		english.add(Character.UnicodeBlock.BASIC_LATIN);
