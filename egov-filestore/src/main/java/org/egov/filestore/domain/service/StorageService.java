@@ -67,7 +67,7 @@ public class StorageService {
 	@Value("${static.file.path}")
 	private String staticFilePath;
 	
-    private Map<String,List<String>> staticFileMap = new HashedMap<String, List<String>>();
+    private Map<String,List<String>> staticFileMap = new HashMap<String, List<String>>();
 	
 	@Autowired
 	private CloudFilesManager cloudFilesManager;
