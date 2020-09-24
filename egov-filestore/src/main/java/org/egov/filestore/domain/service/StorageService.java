@@ -1,16 +1,20 @@
 package org.egov.filestore.domain.service;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import javax.annotation.PostConstruct;
+
+import org.apache.commons.io.FilenameUtils;
 import org.egov.filestore.domain.exception.ArtifactNotFoundException;
 import org.egov.filestore.domain.exception.EmptyFileUploadRequestException;
 import org.egov.filestore.domain.model.Artifact;
@@ -55,10 +59,15 @@ public class StorageService {
 
 	@Value("${source.azure.blob}")
 	private String azureBlobSource;
-
-    @Value("#{${static.file.map}}")
-    private Map<String,List<String>> staticFileMap;
+   
+    @Value("#{${static.file.extmap}}")
+    private Map<String,String> staticFileExtMap;
     
+	@Value("${staic.file.path}")
+	private String staticFilePath;
+	
+    private Map<String,List<String>> staticFileMap;
+	
 	@Autowired
 	private CloudFilesManager cloudFilesManager;
 
@@ -68,6 +77,46 @@ public class StorageService {
 	private ArtifactRepository artifactRepository;
 	private IdGeneratorService idGeneratorService;
 
+	@PostConstruct
+	private void enrichStaticFileMap() {
+		try {
+			Path root = Paths.get(staticFilePath);
+			List<String> rootDirs;
+			try (Stream<Path> stream = Files.list(root)) {
+				rootDirs = stream
+						.filter(f -> !f.endsWith(".git"))
+						.filter(Files::isDirectory)
+						.map(String::valueOf)
+						.sorted()
+						.collect(Collectors.toList());
+			}
+			for (String rootDir : rootDirs) {
+				Path start = Paths.get(rootDir);
+				try (Stream<Path> stream = Files.walk(start, 5)) {
+					List<String> collect = stream
+							.filter(Files::isRegularFile)
+							.map(String::valueOf)
+							.sorted()
+							.collect(Collectors.toList());
+					for (String filepath : collect) {
+						Path path = Paths.get(filepath);
+						String ext = FilenameUtils.getExtension(filepath);
+						if(staticFileExtMap.containsKey(ext) && path.startsWith(root))
+						{
+							List<String> fileexts =  new ArrayList<String>();
+							fileexts.add(filepath);
+							fileexts.add(staticFileExtMap.get(ext));
+							staticFileMap.put(FilenameUtils.getName(filepath), fileexts);
+						}
+					}
+				}
+			}
+		}
+		catch (Exception e) {
+			throw new ArtifactNotFoundException("startup");
+		}
+	}
+	
 	@Autowired
 	public StorageService(ArtifactRepository artifactRepository, IdGeneratorService idGeneratorService) {
 		this.artifactRepository = artifactRepository;
