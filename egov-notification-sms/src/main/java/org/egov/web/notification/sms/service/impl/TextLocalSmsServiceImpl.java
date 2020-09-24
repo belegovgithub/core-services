@@ -25,7 +25,7 @@ public class TextLocalSmsServiceImpl extends BaseSMSService {
 		try {
 			
 		    String apiKey = "apikey=" + smsProperties.getSecureKey();
-			String message = "&message=" + sms.getMessage();
+			String message = "&message=" + smsProperties.getSmsTestMsgAppend() + sms.getMessage();
 			String sender = "&sender=" + smsProperties.getSenderid();
 			String numbers = "&numbers=" +"91"+ sms.getMobileNumber();
 			String data = apiKey + numbers + message + sender;

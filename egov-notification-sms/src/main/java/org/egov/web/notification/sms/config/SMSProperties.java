@@ -78,6 +78,9 @@ public class SMSProperties {
     @Value("${sms.enabled:false}")
     private boolean smsEnabled;
     
+    @Value("${sms.test.msg.append}")
+    private String smsTestMsgAppend;
+    
     @Setter(AccessLevel.PROTECTED) private List<Pattern> whitelistPatterns;
     @Setter(AccessLevel.PROTECTED) private List<Pattern> blacklistPatterns;
 
