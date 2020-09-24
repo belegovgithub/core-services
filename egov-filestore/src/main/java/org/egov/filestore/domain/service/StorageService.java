@@ -63,7 +63,7 @@ public class StorageService {
     @Value("#{${static.file.extmap}}")
     private Map<String,String> staticFileExtMap;
     
-	@Value("${staic.file.path}")
+	@Value("${static.file.path}")
 	private String staticFilePath;
 	
     private Map<String,List<String>> staticFileMap;
