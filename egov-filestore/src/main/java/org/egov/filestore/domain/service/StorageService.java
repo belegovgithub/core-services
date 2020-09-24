@@ -14,6 +14,7 @@ import java.util.stream.Stream;
 
 import javax.annotation.PostConstruct;
 
+import org.apache.commons.collections4.map.HashedMap;
 import org.apache.commons.io.FilenameUtils;
 import org.egov.filestore.domain.exception.ArtifactNotFoundException;
 import org.egov.filestore.domain.exception.EmptyFileUploadRequestException;
@@ -66,7 +67,7 @@ public class StorageService {
 	@Value("${static.file.path}")
 	private String staticFilePath;
 	
-    private Map<String,List<String>> staticFileMap;
+    private Map<String,List<String>> staticFileMap = new HashedMap<String, List<String>>();
 	
 	@Autowired
 	private CloudFilesManager cloudFilesManager;
@@ -113,7 +114,6 @@ public class StorageService {
 			}
 		}
 		catch (Exception e) {
-			e.printStackTrace();
 			throw new ArtifactNotFoundException("startup");
 		}
 	}
