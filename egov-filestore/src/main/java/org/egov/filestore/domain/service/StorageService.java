@@ -113,6 +113,7 @@ public class StorageService {
 			}
 		}
 		catch (Exception e) {
+			e.printStackTrace();
 			throw new ArtifactNotFoundException("startup");
 		}
 	}
