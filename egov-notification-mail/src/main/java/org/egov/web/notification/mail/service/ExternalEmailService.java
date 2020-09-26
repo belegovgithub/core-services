@@ -62,6 +62,7 @@ public class ExternalEmailService implements EmailService {
 			Transport tp = session.getTransport(emailProperties.getMailProtocol());
 			tp.connect(emailProperties.getMailHost(),emailProperties.getMailPort(),
 				emailProperties.getMailSenderUsername(),emailProperties.getMailSenderPassword());
+			if(emailProperties.isMailEnableFlag()) {
 			tp.sendMessage(message, message.getAllRecipients());
 			if(emailProperties.isMailResponseDebug()) {
 				log.info("Mail : "+email.getBody());
@@ -71,8 +72,14 @@ public class ExternalEmailService implements EmailService {
 				log.info("LastServerResponse from server : " + ((SMTPTransport) tp).getLastServerResponse());
 				log.info("LastReturnCode from server : " + ((SMTPTransport) tp).getLastReturnCode());
 			}
+			}
+			else {
+				log.info("Mail disabled: "+email.getBody());
+				for(Address a :message.getRecipients(Message.RecipientType.TO)){
+					log.info("To :"+a.toString());
+				}
+			}
 			tp.close();
-			log.info("Mail sent successfully....");
 		} catch (Exception e) {
 			log.error("Error sending in mail.", e);
 			throw new RuntimeException(e);

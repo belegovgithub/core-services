@@ -82,4 +82,8 @@ public class EmailProperties {
     @Value("${mail.response.debug:false}")
     @Getter
     private boolean mailResponseDebug;
+    
+    @Value("${mail.enable.flag:false}")
+    @Getter
+    private boolean mailEnableFlag;
 }
