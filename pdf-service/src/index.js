@@ -650,7 +650,7 @@ const updateBorderlayout = (formatconfig) => {
 export const fillValues = (variableTovalueMap, formatconfig) => {
   let input = JSON.stringify(formatconfig);
   //console.log(variableTovalueMap);
-  //console.log(mustache.render(input, variableTovalueMap).replace(/""/g,"\"").replace(/\\/g,"").replace(/"\[/g,"\[").replace(/\]"/g,"\]").replace(/\]\[/g,"\],\[").replace(/"\{/g,"\{").replace(/\}"/g,"\}"));
+ // console.log(mustache.render(input, variableTovalueMap).replace(/""/g,"\"").replace(/\\/g,"").replace(/"\[/g,"\[").replace(/\]"/g,"\]").replace(/\]\[/g,"\],\[").replace(/"\{/g,"\{").replace(/\}"/g,"\}"));
   let output = JSON.parse(
     mustache
       .render(input, variableTovalueMap)
@@ -680,12 +680,12 @@ const generateQRCodes = async (
     [],
     "$.DataConfigs.mappings.*.mappings.*.qrcodeConfig.*"
   );
-
   for (var i = 0, len = qrcodeMappings.length; i < len; i++) {
     let qrmapping = qrcodeMappings[i];
     let varname = qrmapping.variable;
     let qrtext = mustache.render(qrmapping.value, variableTovalueMap);
-
+    if(envVariables.EGOV_SETUP && envVariables.EGOV_SETUP=== "UAT")
+    qrtext = qrtext.concat(" -BEL UAT");
     let qrCodeImage = await QRCode.toDataURL(qrtext);
     variableTovalueMap[varname] = qrCodeImage;
   }
@@ -802,6 +802,7 @@ const handlelogic = async (
   formatObject = fillValues(variableTovalueMap, formatObject);
   if (isCommonTableBorderRequired === true)
     formatObject = updateBorderlayout(formatObject);
+    //console.log("formatObject--",formatObject);
   return formatObject;
 };
 
@@ -843,9 +844,13 @@ const prepareBulk = async (
         entityIdPath
       );
       entityIds.push(entityKey[0]);
-
+      //If the setup is not UAT then remove the watermark
+      if(!envVariables.EGOV_SETUP)
+      {
+        formatconfig.watermark.text=" ";
+      }
       let formatObject = JSON.parse(JSON.stringify(formatconfig));
-
+     // console.log("formatObject--",formatObject);
       // Multipage pdf, each pdf from new page
       if (
         formatObjectArrayObject.length != 0 &&
@@ -878,6 +883,7 @@ const prepareBulk = async (
         countOfObjectsInCurrentFile = 0;
       }
     }
+    //console.log("formatConfigByFile--",formatConfigByFile);
     return [formatConfigByFile, totalobjectcount, entityIds];
   } else {
     logger.error(
