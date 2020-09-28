@@ -96,13 +96,20 @@
 		<dependency>
 			<groupId>org.egov.services</groupId>
 			<artifactId>services-common</artifactId>
-			<version>0.9.0</version>
+			<!-- <version>0.9.0</version> -->
+			<version>1.0.1-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-devtools</artifactId>
 			<scope>runtime</scope>
 		</dependency>
+		<dependency>
+    <groupId>org.json</groupId>
+    <artifactId>json</artifactId>
+    <version>20200518</version>
+</dependency>
+		
 	</dependencies>
 	<repositories>
 		<repository>
@@ -158,10 +165,12 @@
 					<classes>
 						<class>org.egov.filestore.web.contract.FileStoreResponse</class>
 						<class>org.egov.filestore.web.contract.StorageResponse</class>
+						<class>org.egov.filestore.web.contract.RequestInfoWrapper</class>
 					</classes>
 					<customTypeMappings>
-						<customTypeMapping>org.egov.common.contract.request.RequestInfo:RequestInfo</customTypeMapping>
-						<customTypeMapping>org.egov.common.contract.response.ResponseInfo:ResponseInfo</customTypeMapping>
+						<!-- <customTypeMapping>org.egov.common.contract.request.RequestInfo:RequestInfo</customTypeMapping>
+						<customTypeMapping>org.egov.common.contract.response.ResponseInfo:ResponseInfo</customTypeMapping> -->
+						<customTypeMapping>org.egov.filestore.domain.model.User:User</customTypeMapping>
 					</customTypeMappings>
 					<namespace>Digit</namespace>
 					<outputKind>module</outputKind>
