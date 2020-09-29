@@ -47,7 +47,7 @@ public class FileStoreConfig {
 	@Value("#{'${image.formats}'.split(',')}") 
 	private List<String> imageFormats;
 	
-	//PDF configuration
+  //PDF configuration
 	   @Value("${egov.echallan.host}")
 	    private String eChallanHost;
 
@@ -60,7 +60,14 @@ public class FileStoreConfig {
 	    @Value("${egov.bill.gen.endpoint}")
 	    private String fetchBillEndpoint;
 	    
-//END Pdf data configuration changes
+	    
+	    @Value("${egov.pdfservice.host}")
+	    private String pdfServiceHost;
+	    
+	    @Value("${egov.pdfservice.endpoint}")
+	    private String pdfServiceEndPoint;
+	    
+	//END Pdf data configuration changes
 	
 	@PostConstruct
 	private void enrichKeysetForFormats() {
