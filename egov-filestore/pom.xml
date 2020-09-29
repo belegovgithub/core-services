@@ -168,9 +168,9 @@
 						<class>org.egov.filestore.web.contract.RequestInfoWrapper</class>
 					</classes>
 					<customTypeMappings>
-						<!-- <customTypeMapping>org.egov.common.contract.request.RequestInfo:RequestInfo</customTypeMapping>
-						<customTypeMapping>org.egov.common.contract.response.ResponseInfo:ResponseInfo</customTypeMapping> -->
-						<customTypeMapping>org.egov.filestore.domain.model.User:User</customTypeMapping>
+					    <customTypeMapping>org.egov.common.contract.request.RequestInfo:RequestInfo</customTypeMapping>
+						<customTypeMapping>org.egov.common.contract.response.ResponseInfo:ResponseInfo</customTypeMapping> 
+						<!-- <customTypeMapping>org.egov.filestore.domain.model.User:User</customTypeMapping> -->
 					</customTypeMappings>
 					<namespace>Digit</namespace>
 					<outputKind>module</outputKind>
