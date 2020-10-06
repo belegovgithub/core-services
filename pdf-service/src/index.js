@@ -650,7 +650,7 @@ const updateBorderlayout = (formatconfig) => {
 export const fillValues = (variableTovalueMap, formatconfig) => {
   let input = JSON.stringify(formatconfig);
   //console.log(variableTovalueMap);
- // console.log(mustache.render(input, variableTovalueMap).replace(/""/g,"\"").replace(/\\/g,"").replace(/"\[/g,"\[").replace(/\]"/g,"\]").replace(/\]\[/g,"\],\[").replace(/"\{/g,"\{").replace(/\}"/g,"\}"));
+  console.log(mustache.render(input, variableTovalueMap).replace(/""/g,"\"").replace(/\\/g,"").replace(/"\[/g,"\[").replace(/\]"/g,"\]").replace(/\]\[/g,"\],\[").replace(/"\{/g,"\{").replace(/\}"/g,"\}"));
   let output = JSON.parse(
     mustache
       .render(input, variableTovalueMap)
@@ -847,6 +847,7 @@ const prepareBulk = async (
       //If the setup is not UAT then remove the watermark
       if(!envVariables.EGOV_SETUP)
       {
+        console.log("setting empty text");
         formatconfig.watermark.text=" ";
       }
       let formatObject = JSON.parse(JSON.stringify(formatconfig));
