@@ -845,6 +845,7 @@ const prepareBulk = async (
       );
       entityIds.push(entityKey[0]);
       //If the setup is not UAT then remove the watermark
+      console.log("env var value--",envVariables.EGOV_SETUP);
       if(!envVariables.EGOV_SETUP)
       {
         console.log("setting empty text");
