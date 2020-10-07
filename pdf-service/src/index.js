@@ -684,7 +684,7 @@ const generateQRCodes = async (
     let qrmapping = qrcodeMappings[i];
     let varname = qrmapping.variable;
     let qrtext = mustache.render(qrmapping.value, variableTovalueMap);
-    if(envVariables.EGOV_SETUP && envVariables.EGOV_SETUP=== "UAT")
+    if(envVariables.SETUP_NAME && envVariables.SETUP_NAME=== "UAT")
     qrtext = qrtext.concat(" -BEL UAT");
     let qrCodeImage = await QRCode.toDataURL(qrtext);
     variableTovalueMap[varname] = qrCodeImage;
@@ -846,7 +846,7 @@ const prepareBulk = async (
       entityIds.push(entityKey[0]);
       //If the setup is not UAT then remove the watermark
       console.log("env var value--",envVariables);
-      if(!envVariables.EGOV_SETUP)
+      if(!envVariables.SETUP_NAME)
       {
         console.log("setting empty text");
         formatconfig.watermark.text=" ";
