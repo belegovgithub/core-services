@@ -9,7 +9,7 @@ const envVariables = {
   process.env.EGOV_FILESTORE_SERVICE_HOST || "http://egov-filestore:8080",
   EGOV_HOST:
   process.env.EGOV_HOST || "https://13.71.65.215.nip.io/", 
-  SETUP_NAME: process.env.SETUP_NAME || "UAT",
+  SETUP_NAME: process.env.SETUP_NAME,
   EGOV_HOST_LOGO_URL: process.env.EGOV_HOST_LOGO_URL || "https://raw.githubusercontent.com/belegovgithub/egov-mdms-data/BEL-CB-Impl/data/pb/images/",
 
   KAFKA_BROKER_HOST: process.env.KAFKA_BROKER_HOST || "localhost:9092",
