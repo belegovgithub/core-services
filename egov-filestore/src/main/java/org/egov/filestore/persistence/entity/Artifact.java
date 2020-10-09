@@ -41,17 +41,24 @@
 package org.egov.filestore.persistence.entity;
 
 
+import static org.egov.filestore.persistence.entity.Artifact.SEQ_FILESTOREMAP;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.SequenceGenerator;
+import javax.persistence.Table;
+
+import org.egov.filestore.domain.model.FileLocation;
+import org.hibernate.validator.constraints.NotBlank;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.egov.filestore.domain.model.FileLocation;
-import org.hibernate.validator.constraints.NotBlank;
-
-import javax.persistence.*;
-
-import static org.egov.filestore.persistence.entity.Artifact.SEQ_FILESTOREMAP;
 
 
 @Getter
@@ -93,9 +100,12 @@ public class Artifact extends AbstractPersistable<Long> {
     private Long createdTime;
 
     private Long lastModifiedTime; 
+    
+    @Column(name = "isActive")
+    private Boolean isActive;
 
     public FileLocation getFileLocation() {
-        return new FileLocation(fileStoreId, module, tag,tenantId,fileName,fileSource);
+        return new FileLocation(fileStoreId, module, tag,tenantId,fileName,fileSource, isActive);
     }
 }
 

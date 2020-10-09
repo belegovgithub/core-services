@@ -10,8 +10,14 @@ import java.util.List;
 @Repository
 public interface FileStoreJpaRepository extends JpaRepository<Artifact, Long> {
 	Artifact findByFileStoreIdAndTenantId(String fileStoreId, String tenantId);
+	
+	Artifact findByFileStoreIdAndTenantIdAndIsActive(String fileStoreId, String tenantId, Boolean isActive);
 
 	List<Artifact> findByTagAndTenantId(String tag, String tenantId);
+	
+	@Query(value = "SELECT * FROM eg_filestoremap T WHERE T.tenantId = (?1) AND T.fileStoreId IN (?2) AND T.isActive = (?3)",nativeQuery = true)
+	List<Artifact> findByTenantIdAndFileStoreIdList(String tenantId, List<String> fileStoreIds , Boolean isActive);
+	
 	
 	@Query(value = "SELECT * FROM eg_filestoremap T WHERE T.tenantId = (?1) AND T.fileStoreId IN (?2)",nativeQuery = true)
 	List<Artifact> findByTenantIdAndFileStoreIdList(String tenantId, List<String> fileStoreIds);

@@ -83,7 +83,7 @@ public class StorageService {
 			String fileName = folderName + System.currentTimeMillis() + file.getOriginalFilename();
 			// String fileName = file.getOriginalFilename();
 			String id = this.idGeneratorService.getId();
-			FileLocation fileLocation = new FileLocation(id, module, tag, tenantId, fileName, null);
+			FileLocation fileLocation = new FileLocation(id, module, tag, tenantId, fileName, null,true);
 			try {
 				inputStreamAsString = IOUtils.toString(file.getInputStream(), fileStoreConfig.getImageCharsetType());
 				artifact = Artifact.builder().fileContentInString(inputStreamAsString).multipartFile(file)
@@ -145,8 +145,15 @@ public class StorageService {
 
 	public Map<String, String> getUrls(String tenantId, List<String> fileStoreIds) {
 		Map<String, String> urlMap = getUrlMap(
-				artifactRepository.getByTenantIdAndFileStoreIdList(tenantId, fileStoreIds));
+				artifactRepository.getByTenantIdAndFileStoreIdList(tenantId, fileStoreIds , true));
 		return urlMap;
+	}
+	
+	
+	public Boolean updateActiveStatus(String tenantId, List<String> fileStoreIds) {
+		  return artifactRepository.updateActiveStatus(tenantId, fileStoreIds, false);
+		//System.out.println("status-->>"+status);
+		//return true;
 	}
 
 	private Map<String, String> getUrlMap(List<org.egov.filestore.persistence.entity.Artifact> artifactList) {
