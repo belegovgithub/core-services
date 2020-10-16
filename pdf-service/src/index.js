@@ -229,6 +229,8 @@ const uploadFiles = async (
       fileStoreAPICall(filename, tenantId, data)
         .then((result) => {
           listOfFilestoreIds.push(result);
+          console.log("isconsolidated--",isconsolidated);
+          console.log("listOfFilestoreIds--",listOfFilestoreIds);
           if (!isconsolidated) {
             dbInsertSingleRecords.push({
               jobid,
