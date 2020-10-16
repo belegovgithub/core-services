@@ -263,6 +263,14 @@ export const directMapping = async (
       directArr[i].val = "";
       variableTovalueMap[directArr[i].jPath] = directArr[i].val;
     } 
+    else if (directArr[i].type == "challanStatus") 
+    {
+     // console.log("directArr[i].type--",directArr[i].val[0]);
+      if(directArr[i].val[0] == "ACTIVE" || directArr[i].val[0] =="PAID")
+      directArr[i].val[0] = " ";
+     // console.log("directArr[i].val--",directArr[i].val[0]);
+      variableTovalueMap[directArr[i].jPath] = directArr[i].val;
+    } 
     else if (directArr[i].type == "splitString") 
     {
     //  console.log("directArr[i].type--",directArr[i].val[0]);
