@@ -260,7 +260,7 @@ export const directMapping = async (
     else if (directArr[i].type == "setEmpty") 
     {
       if(directArr[i].val == "NA")
-      directArr[i].val = "";
+      directArr[i].val = " ";
       variableTovalueMap[directArr[i].jPath] = directArr[i].val;
     } 
     else if (directArr[i].type == "challanStatus") 
