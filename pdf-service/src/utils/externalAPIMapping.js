@@ -164,7 +164,7 @@ export const externalAPIMapping = async function(
         { RequestInfo: requestInfo },
         headers
       );
-      if(key == "tradelicense-appl-receipt" || key == "tradelicense-receipt" || key == "consolidatedreceipt" || key == "tlcertificate" || key == "tlrenewalcertificate")
+      if(key == "tradelicense-appl-receipt" || key == "tradelicense-receipt" || key == "consolidatedreceipt" || key == "tlcertificate" || key == "tlrenewalcertificate" || key == "ws-estimationnotice"|| key == "ws-sanctionletter")
       {
         //console.warn("calling in---"+JSON.stringify(res));
         if(null!=res.MdmsRes)
@@ -213,6 +213,7 @@ export const externalAPIMapping = async function(
       );   
       let loc = externalAPIArray[i].jPath[j].localisation;
       if (externalAPIArray[i].jPath[j].type == "image") {
+        console.log("externalAPIArray[i].jPath[j].type--",externalAPIArray[i].jPath[j],"replaceValue--",replaceValue);
         // default empty image
         var imageData =
           "data:image/jpeg;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8Xw8AAoMBgDTD2qgAAAAASUVORK5CYII=";
