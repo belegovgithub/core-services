@@ -263,6 +263,14 @@ export const directMapping = async (
       directArr[i].val = " ";
       variableTovalueMap[directArr[i].jPath] = directArr[i].val;
     } 
+    else if (directArr[i].type == "statusMessage") 
+    {
+      if(directArr[i].val == "NA")
+      directArr[i].val = " ";
+      else
+      directArr[i].val = "* Cancellation Remarks : "+directArr[i].val;
+      variableTovalueMap[directArr[i].jPath] = directArr[i].val;
+    } 
     else if (directArr[i].type == "challanStatus") 
     {
      // console.log("directArr[i].type--",directArr[i].val[0]);
