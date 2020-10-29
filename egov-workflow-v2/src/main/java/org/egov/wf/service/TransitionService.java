@@ -47,12 +47,11 @@ public class TransitionService {
      */
     public List<ProcessStateAndAction> getProcessStateAndActions(List<ProcessInstance> processInstances,Boolean isTransitionCall){
         List<ProcessStateAndAction> processStateAndActions = new LinkedList<>();
-
-        BusinessService businessService = getBusinessService(processInstances);
-        Map<String,ProcessInstance> idToProcessInstanceFromDbMap = prepareProcessStateAndAction(processInstances,businessService);
-        List<String> allowedRoles = workflowUtil.rolesAllowedInService(businessService);
+        
         for(ProcessInstance processInstance: processInstances){
-
+            BusinessService businessService = getBusinessService(processInstance);
+            Map<String,ProcessInstance> idToProcessInstanceFromDbMap = prepareProcessStateAndAction(processInstance,businessService);
+            List<String> allowedRoles = workflowUtil.rolesAllowedInService(businessService);
             ProcessStateAndAction processStateAndAction = new ProcessStateAndAction();
             processStateAndAction.setProcessInstanceFromRequest(processInstance);
             if(isTransitionCall){
@@ -127,16 +126,14 @@ public class TransitionService {
      *
      * @param processInstances The list of ProcessInstance to be created
      */
-    private Map<String,ProcessInstance> prepareProcessStateAndAction(List<ProcessInstance> processInstances,BusinessService businessService) {
+    private Map<String,ProcessInstance> prepareProcessStateAndAction(ProcessInstance processInstances,BusinessService businessService) {
 
         /*
          * preparing the criteria to search the process instances from DB
          */
         ProcessInstanceSearchCriteria criteria = new ProcessInstanceSearchCriteria();
-        List<String> businessIds = processInstances.stream().map(ProcessInstance::getBusinessId)
-                .collect(Collectors.toList());
-        criteria.setTenantId(processInstances.get(0).getTenantId());
-        criteria.setBusinessIds(businessIds);
+        criteria.setTenantId(processInstances.getTenantId());
+        criteria.setBusinessIds(Collections.singletonList(processInstances.getBusinessId()));
         /*
          * fetching the result from repository
          *
@@ -152,10 +149,11 @@ public class TransitionService {
 
 
 
-    private BusinessService getBusinessService(List<ProcessInstance> processInstances){
+    private BusinessService getBusinessService(ProcessInstance processInstances){
         BusinessServiceSearchCriteria criteria = new BusinessServiceSearchCriteria();
-        String tenantId = processInstances.get(0).getTenantId();
-        String businessService = processInstances.get(0).getBusinessService();
+        
+        String tenantId = processInstances.getTenantId();
+        String businessService = processInstances.getBusinessService();
         criteria.setTenantIds(Collections.singletonList(tenantId));
         criteria.setBusinessServices(Collections.singletonList(businessService));
         List<BusinessService> businessServices = businessServiceRepository.getBusinessServices(criteria);
