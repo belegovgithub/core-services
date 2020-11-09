@@ -58,7 +58,7 @@ public class WorkflowQueryBuilder {
 
     private final String ORDERBY_CREATEDTIME = " ORDER BY result_offset.wf_createdTime DESC ";
 
-    private final String LATEST_RECORD = " pi.lastmodifiedTime  IN  (SELECT max(lastmodifiedTime) from eg_wf_processinstance_v2 GROUP BY businessid) ";
+    private final String LATEST_RECORD = " CONCAT( pi.businessid,pi.lastmodifiedTime)  IN   (SELECT concat( businessid, max(lastmodifiedtime)) from eg_wf_processinstance_v2 GROUP BY businessid)  ";
 
     /**
      * Creates the query according to the search params
@@ -185,7 +185,7 @@ public class WorkflowQueryBuilder {
     public String getAssigneeSearchQuery(ProcessInstanceSearchCriteria criteria, List<Object> preparedStmtList){
         String query = QUERY +" asg.assignee = ? "+
                 " AND pi.tenantid = ? " +
-                " AND pi.lastmodifiedTime IN  (SELECT max(lastmodifiedTime) from eg_wf_processinstance_v2 GROUP BY businessid)";
+                " AND CONCAT( pi.businessid,pi.lastmodifiedTime)  IN  (SELECT concat( businessid, max(lastmodifiedtime)) from eg_wf_processinstance_v2 GROUP BY businessid)";
         preparedStmtList.add(criteria.getAssignee());
         preparedStmtList.add(criteria.getTenantId());
       //  query = OUTER_QUERY+query+")" + " fp "+STATE_JOIN_QUERY;
@@ -201,7 +201,7 @@ public class WorkflowQueryBuilder {
 //        String query = QUERY +" pi.tenantid = ? " +
 //                "AND pi.lastmodifiedTime  IN  (SELECT max(lastmodifiedTime) from eg_wf_processinstance_v2 GROUP BY businessid)";
         String query = QUERY  +
-                "pi.lastmodifiedTime  IN  (SELECT max(lastmodifiedTime) from eg_wf_processinstance_v2 GROUP BY businessid)";
+                " CONCAT( pi.businessid,pi.lastmodifiedTime)   IN  (SELECT concat( businessid, max(lastmodifiedtime)) from eg_wf_processinstance_v2 GROUP BY businessid)";
         StringBuilder builder = new StringBuilder(query);
 //        preparedStmtList.add(criteria.getTenantId());
         List<String> statuses = criteria.getStatus();
