@@ -164,23 +164,12 @@ export const externalAPIMapping = async function(
         { RequestInfo: requestInfo },
         headers
       );
-      if(key == "tradelicense-appl-receipt" || key == "tradelicense-receipt" || key == "consolidatedreceipt" || key == "tlcertificate" || key == "tlrenewalcertificate" || key == "ws-estimationnotice"|| key == "ws-sanctionletter")
-      {
-        //console.warn("calling in---"+JSON.stringify(res));
-        if(null!=res.MdmsRes)
-        {
-        if(null!=res.MdmsRes.tenant.tenants)
-        {
-          if(res.MdmsRes.tenant.tenants.length>0)
-          {
-        
-        let tempObj = res.MdmsRes.tenant.tenants[0].logoIdPdf;
-        res.MdmsRes.tenant.tenants[0].logoIdPdf = egovHostUrl.concat(tempObj);
-        //console.warn("respo is tempObj--->>"+res.MdmsRes.tenant.tenants[0].logoIdPdf);
-          }
-        }
+      //Prefix Pod url before logo in case if the key exist in response
+      //console.warn("calling in---"+JSON.stringify(res));
+      var logoPdf =get(res,"MdmsRes.tenant.tenants[0].logoIdPdf",null);
+      if (logoPdf != null){
+          res.MdmsRes.tenant.tenants[0].logoIdPdf = egovHostUrl.concat(logoPdf);
       }
-    }
     } else {
       var apires = await axios.get(
         externalAPIArray[i].uri + "?" + externalAPIArray[i].queryParams,
@@ -251,7 +240,6 @@ export const externalAPIMapping = async function(
         }
       }
       else if (externalAPIArray[i].jPath[j].type == "array"){
-
         let arrayOfOwnerObject = [];
       // let ownerObject = JSON.parse(JSON.stringify(get(formatconfig, directArr[i].jPath + "[0]", [])));
       let { format = {}, value = [], variable } = externalAPIArray[i].jPath[j];
@@ -320,16 +308,16 @@ export const externalAPIMapping = async function(
      //console.log("arrayOfOwnerObject--"+JSON.stringify(arrayOfOwnerObject));
       variableTovalueMap[variable] = arrayOfOwnerObject;
       //console.log("\nvariableTovalueMap[externalAPIArray[i].jPath.variable]--->\n"+JSON.stringify(variableTovalueMap[externalAPIArray[i].jPath.variable]));
-
       } 
       
       
       else {
+        //Removed checking of prefix. As sometime value is only sufficient for finding localization 
+        //and findAndUpdateLocalisation interally do check for undefined case before adding prefix. 
         if (
           replaceValue !== "NA" &&
           externalAPIArray[i].jPath[j].localisation &&
-          externalAPIArray[i].jPath[j].localisation.required &&
-          externalAPIArray[i].jPath[j].localisation.prefix
+          externalAPIArray[i].jPath[j].localisation.required  
         )
           variableTovalueMap[
             externalAPIArray[i].jPath[j].variable
