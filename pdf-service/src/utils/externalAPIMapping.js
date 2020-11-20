@@ -245,7 +245,7 @@ export const externalAPIMapping = async function(
       let { format = {}, value = [], variable } = externalAPIArray[i].jPath[j];
       let { scema = [] } = format;
       let val= getValue(jp.query(res, value ), "NA", value);
-      console.warn("value--->"+value+"data is--"+JSON.stringify(val)+ "length-->"+val.length+ "type--"+typeof(val));
+      //console.warn("value--->"+value+"data is--"+JSON.stringify(val)+ "length-->"+val.length+ "type--"+typeof(val));
         if(typeof val !== "string") // if the var is not present and the value is NA
         {
       //taking values about owner from request body
@@ -280,7 +280,8 @@ export const externalAPIMapping = async function(
                 loc.isCategoryRequired,
                 loc.isMainTypeRequired,
                 loc.isSubTypeRequired,
-                loc.delimiter
+                loc.delimiter,
+                null
               );
             }
             else
@@ -331,7 +332,8 @@ export const externalAPIMapping = async function(
             loc.isCategoryRequired,
             loc.isMainTypeRequired,
             loc.isSubTypeRequired,
-            loc.delimiter
+            loc.delimiter,
+            null
           );
         else
           variableTovalueMap[

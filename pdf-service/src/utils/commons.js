@@ -35,7 +35,8 @@ export const findAndUpdateLocalisation = async (
   isCategoryRequired,
   isMainTypeRequired,
   isSubTypeRequired,
-  delimiter = " / "
+  delimiter = " / ",
+  statetenantid
 ) => {
   let keyArray = [];
   let localisedLabels = [];
@@ -47,11 +48,15 @@ export const findAndUpdateLocalisation = async (
   } else {
     locale = defaultLocale;
   }
-  let statetenantid = get(
+
+  if(!statetenantid)
+  {
+   statetenantid = get(
     requestInfo,
     "userInfo.tenantId",
     defaultTenant
   ).split(".")[0];
+  }
 
   if (key == null) {
     return key;

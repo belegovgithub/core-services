@@ -63,6 +63,7 @@ export const directMapping = async (
         variableTovalueMap[directArr[i].jPath] = "Citizen Copy";
       }
     }
+
     if (directArr[i].type == "selectFromRequestInfo") {
       directArr[i].val = getValue(
         jp.query(requestInfo, directArr[i].valJsonPath),
@@ -132,7 +133,8 @@ export const directMapping = async (
                 loc.isCategoryRequired,
                 loc.isMainTypeRequired,
                 loc.isSubTypeRequired,
-                loc.delimiter
+                loc.delimiter,
+                null
               );
             }
             ownerObject[scema[k].variable] = fieldValue;
@@ -202,7 +204,8 @@ export const directMapping = async (
                 loc.isCategoryRequired,
                 loc.isMainTypeRequired,
                 loc.isSubTypeRequired,
-                loc.delimiter
+                loc.delimiter,
+                null
               );
             }
             arrayOfItems.push(fieldValue);
@@ -237,9 +240,34 @@ export const directMapping = async (
         directArr[i].localisation.isCategoryRequired,
         directArr[i].localisation.isMainTypeRequired,
         directArr[i].localisation.isSubTypeRequired,
-        directArr[i].localisation.delimiter
+        directArr[i].localisation.delimiter,
+        null
       );
-    } else if (directArr[i].type == "date") {
+    } 
+    else if(directArr[i].type == "boundary") 
+    {
+      //console.log("directArr[i].type--",directArr[i]);
+      if(directArr[i].localisation && directArr[i].localisation.prefixCbName)
+      {
+        let tenantId =  get(req.query || req, "tenantId");
+        directArr[i].localisation.prefix = (tenantId.toUpperCase() + "_" + directArr[i].localisation.prefix).replace(".","_");
+        directArr[i].localisation.module = directArr[i].localisation.module + "-" + tenantId;
+        //console.log("directArr[i].localisation.module-",directArr[i]);
+        variableTovalueMap[directArr[i].jPath] = await findAndUpdateLocalisation(
+          requestInfo,
+          localisationMap,
+          directArr[i].localisation.prefix,
+          directArr[i].val,
+          directArr[i].localisation.module,
+          localisationModuleList,
+          directArr[i].localisation.isCategoryRequired,
+          directArr[i].localisation.isMainTypeRequired,
+          directArr[i].localisation.isSubTypeRequired,
+          directArr[i].localisation.delimiter,
+          tenantId
+        );
+      }
+    }else if (directArr[i].type == "date") {
       let myDate = new Date(directArr[i].val[0]);
       if (isNaN(myDate) || directArr[i].val[0] === 0) {
         variableTovalueMap[directArr[i].jPath] = "NA";
@@ -300,7 +328,8 @@ export const directMapping = async (
           directArr[i].localisation.isCategoryRequired,
           directArr[i].localisation.isMainTypeRequired,
           directArr[i].localisation.isSubTypeRequired,
-          directArr[i].localisation.delimiter
+          directArr[i].localisation.delimiter,
+          null
         );
     //  if(directArr[i].val == "NA")
     //  directArr[i].val = "";
@@ -330,7 +359,8 @@ export const directMapping = async (
           directArr[i].localisation.isCategoryRequired,
           directArr[i].localisation.isMainTypeRequired,
           directArr[i].localisation.isSubTypeRequired,
-          directArr[i].localisation.delimiter
+          directArr[i].localisation.delimiter,
+          null
         );
       else variableTovalueMap[directArr[i].jPath] = directArr[i].val;
       if (directArr[i].uCaseNeeded) {
