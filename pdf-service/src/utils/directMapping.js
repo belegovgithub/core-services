@@ -249,7 +249,9 @@ export const directMapping = async (
       //console.log("directArr[i].type--",directArr[i]);
       if(directArr[i].localisation && directArr[i].localisation.prefixCbName)
       {
-        let tenantId =  get(req.query || req, "tenantId");
+        const tenantId =  get(req.query || req, "tenantId");
+        const tempPrefix = directArr[i].localisation.prefix;
+        const tempModule = directArr[i].localisation.module;
         directArr[i].localisation.prefix = (tenantId.toUpperCase() + "_" + directArr[i].localisation.prefix).replace(".","_");
         directArr[i].localisation.module = directArr[i].localisation.module + "-" + tenantId;
         //console.log("directArr[i].localisation.module-",directArr[i]);
@@ -266,6 +268,8 @@ export const directMapping = async (
           directArr[i].localisation.delimiter,
           tenantId
         );
+        directArr[i].localisation.prefix = tempPrefix; //if this condition is called twice then the old state of prefix is retained
+        directArr[i].localisation.module = tempModule;
       }
     }else if (directArr[i].type == "date") {
       let myDate = new Date(directArr[i].val[0]);
