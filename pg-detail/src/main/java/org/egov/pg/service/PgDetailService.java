@@ -10,6 +10,7 @@ import org.egov.pg.domain.service.utils.EncryptionDecryptionUtil;
 import org.egov.pg.repository.PgDetailRepository;
 import org.egov.pg.utils.PgDetailUtils;
 import org.egov.pg.utils.ResponseInfoFactory;
+import org.egov.pg.validator.PgValidator;
 import org.egov.pg.web.contract.PgDetail;
 import org.egov.pg.web.contract.PgDetailRequest;
 import org.egov.pg.web.contract.PgDetailResponse;
@@ -38,11 +39,10 @@ public class PgDetailService {
 	
 	@Autowired
 	private EncryptionDecryptionUtil encryptionDecryptionUtil;
-//	@Autowired
-//	private BillingslabQueryBuilder queryBuilder;
-//	
-//	@Autowired
-//	private BillingSlabConfigs billingSlabConfigs;
+ 
+	@Autowired
+	private PgValidator pgValidator;
+ 
 	
 	/**
 	 * Service layer for creating billing slabs
@@ -50,6 +50,7 @@ public class PgDetailService {
 	 * @return
 	 */
 	public PgDetailResponse createPgDetails(PgDetailRequest pgDetailRequest) {
+		pgValidator.validateCreate(pgDetailRequest);
 		PgDetail pg =encryptionDecryptionUtil.encryptObject(pgDetailRequest.getPgDetail().get(0) , "PgDetail",PgDetail.class);
 		System.out.println("Encyription "+pg);
 		List<PgDetail> pgList = new ArrayList<PgDetail>();
@@ -62,6 +63,7 @@ public class PgDetailService {
 	}
 	
    public PgDetailResponse getPgDetails(PgDetailRequest pgDetailRequest) {
+	   pgValidator.validateForSearch(pgDetailRequest);
 	   List<PgDetail> pgDetailListResponse = repository.getPgDetails(pgDetailRequest.getPgDetail());
 	   ArrayList<PgDetail> decyrptList = new ArrayList<PgDetail>();
 	   if(pgDetailListResponse!=null && pgDetailListResponse.size()>0)

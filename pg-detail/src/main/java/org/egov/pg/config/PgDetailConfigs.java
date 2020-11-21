@@ -22,4 +22,10 @@ public class PgDetailConfigs {
 
     @Value("${egov.mdms.search.endpoint}")
     private String mdmsSearchEndpoint;
+    
+    @Value("${egov.allowed.createUserRoles}")
+    private String allowedCreateUserRoles;
+
+    @Value("${egov.allowed.accessUserRoles}")
+    private String allowedAccessUserRoles;
 }
