@@ -1,11 +1,12 @@
 package org.egov.web.notification.mail.consumer;
 
+
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
-
 import org.egov.web.notification.mail.config.ApplicationConfiguration;
 import org.egov.web.notification.mail.consumer.contract.Email;
 import org.egov.web.notification.mail.repository.UserRepository;
@@ -16,12 +17,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Service
 public class SmsNotificationListener {
 
 	private UserRepository userRepository;
-
+	private ObjectMapper objectMapper;
+	
 	private ApplicationConfiguration config;
 
 	private EmailService emailService;
@@ -31,19 +34,44 @@ public class SmsNotificationListener {
 
 	@Autowired
 	public SmsNotificationListener(UserRepository userRepository, ApplicationConfiguration config,
-			EmailService emailService) {
+			EmailService emailService,ObjectMapper mapper) {
 		this.userRepository = userRepository;
 		this.config = config;
 		this.emailService = emailService;
+		this.objectMapper =mapper;
 	}
 
 	@KafkaListener(topics = "${kafka.topics.notification.sms.topic.name}")
 	public void process(final HashMap<String, Object> record) {
-		List<String> emails = userRepository.getEmailsByMobileNo(config.getStateTenantId(),
-				(String) record.get(Constants.SMS_REQ_MOBILE_NO_KEY_NAME));
-		if(!CollectionUtils.isEmpty(emails))
-			emailService
-					.sendEmail(getEmailReq(getValideEmails(emails), (String) record.get(Constants.SMS_REQ_MSG_KEY_NAME)));
+		System.out.println("record" + record);
+		try {
+			String rcvData = objectMapper.writeValueAsString(record);
+			System.out.println(rcvData);
+
+			List<String> emails = new ArrayList<String>();
+			if (record.containsKey("users")) {
+				ArrayList<String> users = null;
+				if (record.get("users").getClass().equals(ArrayList.class)) {
+					users = (ArrayList<String>) record.get("users");
+					for (String uuid : users) {
+						List<String> em = userRepository.getUserDetails(config.getStateTenantId(), null, uuid);
+						if (em != null) {
+							emails.addAll(em);
+						}
+					}
+				}
+
+			} else {
+				emails = userRepository.getUserDetails(config.getStateTenantId(),
+						(String) record.get(Constants.SMS_REQ_MOBILE_NO_KEY_NAME), null);
+			}
+			if (!CollectionUtils.isEmpty(emails))
+				emailService.sendEmail(
+						getEmailReq(getValideEmails(emails), (String) record.get(Constants.SMS_REQ_MSG_KEY_NAME)));
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 
 	}
 

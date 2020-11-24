@@ -1,15 +1,12 @@
 package org.egov.web.notification.mail.repository;
 
-import java.util.HashSet;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
-
 import org.egov.tracer.model.CustomException;
 import org.egov.web.notification.mail.config.ApplicationConfiguration;
 import org.egov.web.notification.mail.consumer.contract.UserSearchRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.Configuration;
@@ -32,10 +29,10 @@ public class UserRepository {
 		this.objectMapper = objectMapper;
 	}
 
-	public List<String> getEmailsByMobileNo(String tenantId, String mobileNo) {
+	public List<String> getUserDetails(String tenantId, String mobileNo,String uuid) {
 		List<String> emails = null;
 		try {
-			String rcvData = objectMapper.writeValueAsString(fetchUser(tenantId, mobileNo));
+			String rcvData = objectMapper.writeValueAsString(fetchUser(tenantId, mobileNo,uuid));
 			Object document = Configuration.defaultConfiguration().jsonProvider().parse(rcvData);
 			emails = JsonPath.read(document, "$.user[?(@.emailId != null)].emailId");
 		} catch (IllegalArgumentException e) {
@@ -46,11 +43,19 @@ public class UserRepository {
 		}
 		return emails;
 	}
+	
 
-	private Object fetchUser(String tenantId, String mobileNo) {
+	private Object fetchUser(String tenantId, String mobileNo,String uuid) {
 		String url = config.getUserHost().concat(config.getUserContextPath()).concat(config.getUserSearchEndpoint());
 		UserSearchRequest searchRequest = UserSearchRequest.builder().mobileNumber(mobileNo).tenantId(tenantId).build();
+		if(uuid!=null) {
+			ArrayList<String> uuids =new ArrayList<String>();
+			uuids.add(uuid);
+			searchRequest.setUuid(uuids);
+		}
 		return serviceRequestRepository.fetchResult(new StringBuilder(url), searchRequest);
 	}
+	
+	
 
 }
