@@ -75,11 +75,12 @@ public class CustomPreAuthenticatedProvider implements AuthenticationProvider {
                     .type(user.getType() != null ? user.getType().name() : null).roles(contract_roles).build();
             RequestInfo requestInfo = RequestInfo.builder().userInfo(userInfo).build();
             user = encryptionDecryptionUtil.decryptObject(user, "User", User.class, requestInfo);
-            if(user.getUsername() !=null && user.getUsername() == "PRG_EMP_SEC_GRO" )
-            {
-            	for (org.egov.user.domain.model.Role role : user.getRoles()) {
-            		log.info("roles for PRG_EMP_SEC_GRO " + role.getCode());
-				}
+            
+            log.info("user details complete ");
+            log.info("user details complete " + user.getUsername());
+
+            for (org.egov.user.domain.model.Role role : user.getRoles()) {
+            	log.info("roles for PRG_EMP_SEC_GRO " + role.getCode());
             }
         } catch (UserNotFoundException e) {
             log.error("User not found", e);
