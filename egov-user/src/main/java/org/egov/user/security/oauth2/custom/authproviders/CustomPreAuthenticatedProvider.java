@@ -65,6 +65,13 @@ public class CustomPreAuthenticatedProvider implements AuthenticationProvider {
         User user;
         try {
             user = userService.getUniqueUser(userName, tenantId, UserType.fromValue(userType));
+            if(userName !=null && userName == "PRG_EMP_SEC_GRO" )
+            {
+            	
+            	for (org.egov.user.domain.model.Role role : user.getRoles()) {
+            		log.info("roles for PRG_EMP_SEC_GRO " + role.getCode());
+				}
+            }
             /* decrypt here */
             Set<org.egov.user.domain.model.Role> domain_roles = user.getRoles();
             List<org.egov.common.contract.request.Role> contract_roles = new ArrayList<>();
