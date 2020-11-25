@@ -1,16 +1,21 @@
 package org.egov.user.security.oauth2.custom;
 
 import org.egov.user.domain.model.SecureUser;
+import org.egov.user.domain.service.UserService;
+import org.egov.user.web.contract.auth.Role;
 import org.springframework.security.oauth2.common.DefaultOAuth2AccessToken;
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.security.oauth2.provider.token.TokenEnhancerChain;
 import org.springframework.stereotype.Service;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 @Service
+@Slf4j
 public class CustomTokenEnhancer extends TokenEnhancerChain {
 
     @Override
@@ -30,6 +35,13 @@ public class CustomTokenEnhancer extends TokenEnhancerChain {
         info.put("ResponseInfo", responseInfo);
         info.put("UserRequest", su.getUser());
 
+        log.info("user details complete2 ");
+        log.info("user details complete2 " + su.getUser().getUserName());
+
+        for (Role role : su.getUser().getRoles()) {
+        	log.info("roles for PRG_EMP_SEC_GRO2 " + role.getCode());
+        }
+        
         token.setAdditionalInformation(info);
 
         return super.enhance(token, authentication);
