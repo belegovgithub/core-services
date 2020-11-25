@@ -170,6 +170,13 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
             List<GrantedAuthority> grantedAuths = new ArrayList<>();
             grantedAuths.add(new SimpleGrantedAuthority("ROLE_" + user.getType()));
             final SecureUser secureUser = new SecureUser(getUser(user));
+            log.info("user details complete2 ");
+            log.info("user details complete2 " + secureUser.getUser().getUserName());
+
+            for (Role role : secureUser.getUser().getRoles()) {
+            	log.info("roles for PRG_EMP_SEC_GRO2 " + role.getCode());
+            }
+            
             userService.resetFailedLoginAttempts(user);
             return new UsernamePasswordAuthenticationToken(secureUser,
                     password, grantedAuths);
