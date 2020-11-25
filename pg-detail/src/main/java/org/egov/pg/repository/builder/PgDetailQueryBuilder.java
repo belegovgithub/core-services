@@ -16,6 +16,14 @@ public class PgDetailQueryBuilder {
 	   
 	}
 	
+	public static String updateUserQuery() {
+		return "UPDATE eg_pgdetail set merchantid=:merchantid,merchantSecretKey=:merchantSecretKey, merchantUserName=:merchantUserName, merchantPassword=:merchantPassword, merchantServiceId=:merchantServiceId,lastmodifieddate=:lastmodifieddate,lastmodifiedby=:lastmodifiedby where tenantid =:tenantid";
+	}
+	public static String insertDataToAuditTable() {
+		return "INSERT INTO eg_pgdetail_audit SELECT * FROM eg_pgdetail WHERE id =:id";
+		
+	}
+	
 	public static final String GET_PGDETAIL_BY_TENANTID = "SELECT * FROM eg_pgdetail where tenantid =:tenantId";
 	
 	

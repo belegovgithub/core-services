@@ -43,6 +43,11 @@ public class PgDetailController {
 		return new ResponseEntity<>(response, HttpStatus.OK);
 		
 	}
-	
+	@RequestMapping(value = "/_update", method = RequestMethod.POST)
+	public ResponseEntity<PgDetailResponse> updatePgDetails(@RequestBody PgDetailRequest pgDetailRequest){
+		PgDetailResponse response = service.updatePgDetails(pgDetailRequest);
+		return new ResponseEntity<>(response, HttpStatus.OK);
+		
+	}
 	 
 }

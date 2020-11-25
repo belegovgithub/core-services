@@ -101,7 +101,6 @@ public class PgDetailUtils {
         
         String jsonPath = "$.MdmsRes.tenant.tenants[*].code";
         List<String> jsonOutput =  JsonPath.read(result, jsonPath);
-        System.out.println("jsonOutput"+jsonOutput);
         return result;
     }
 }

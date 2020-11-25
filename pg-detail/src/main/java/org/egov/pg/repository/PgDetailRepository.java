@@ -3,6 +3,8 @@ package org.egov.pg.repository;
 
 import static org.egov.pg.repository.builder.PgDetailQueryBuilder.SELECT_NEXT_SEQUENCE_PGDETAIL;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -34,7 +36,7 @@ public class PgDetailRepository {
 	
  
 	
-	private Long getNextSequence() {
+	public Long getNextSequence() {
 		return jdbcTemplate.queryForObject(SELECT_NEXT_SEQUENCE_PGDETAIL, Long.class);
 	}
 
@@ -51,21 +53,14 @@ public class PgDetailRepository {
 	}
 	
 	
-	public List<PgDetail> createPgDetails(User user, List<PgDetail> pgDetails ) {
-		final Long newId = getNextSequence();
+	public void createPgDetails(List<PgDetail> pgDetails ) {
 		PgDetail pgDetail = pgDetails.get(0);
-		pgDetail.setId(newId);
 		pgDetail.setCreatedDate(new Date());
-		pgDetail.setLastModifiedDate(new Date());
-		pgDetail.setCreatedBy(user.getUuid());
-		PgDetail  pg= save(pgDetail);
-		if(pg!=null) {
-			return pgDetails;
-		}
-		return null;
+		saveOrUpdate(pgDetail,pgDetailQueryBuilder.getInsertUserQuery());
+		
 	}
 	
-	public PgDetail save(PgDetail pgDetail) {
+	public void saveOrUpdate(PgDetail pgDetail, String query) {
 		if(pgDetail!=null) {
 			Map<String,Object>pgDetilInputs = new HashMap<String, Object>();
 			pgDetilInputs.put("id", pgDetail.getId());
@@ -79,13 +74,24 @@ public class PgDetailRepository {
 			pgDetilInputs.put("lastmodifieddate", pgDetail.getLastModifiedDate());
 			pgDetilInputs.put("createdby", pgDetail.getCreatedBy());
 			pgDetilInputs.put("lastmodifiedby", pgDetail.getLastModifiedBy());
-			int result = namedParameterJdbcTemplate.update(pgDetailQueryBuilder.getInsertUserQuery(), pgDetilInputs);
-			if(result!=0) {
-				return pgDetail;
-			}
-		}
-		return null;
+			int result = namedParameterJdbcTemplate.update(query, pgDetilInputs);
+			insertDataToAuditTable(pgDetail);
+	 }
+	}
+	
+	public void update(List<PgDetail> pgDetails) {
+		PgDetail pgDetail = pgDetails.get(0);
+		saveOrUpdate(pgDetail, pgDetailQueryBuilder.updateUserQuery());
+	}
+	
+	public int insertDataToAuditTable(PgDetail pgDetail) {
+		final Map<String, Object> Map = new HashMap<String, Object>();
+		Map.put("id", pgDetail.getId());
+		int result = namedParameterJdbcTemplate.update(PgDetailQueryBuilder.insertDataToAuditTable(), Map);
+		return result;
 		
 	}
+	
+
 
 }

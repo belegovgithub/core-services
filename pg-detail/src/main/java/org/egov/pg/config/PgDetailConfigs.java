@@ -26,6 +26,9 @@ public class PgDetailConfigs {
     @Value("${egov.allowed.createUserRoles}")
     private String allowedCreateUserRoles;
 
+    @Value("${egov.allowed.updateUserRoles}")
+    private String allowedUpdateUserRoles;
+    
     @Value("${egov.allowed.accessUserRoles}")
     private String allowedAccessUserRoles;
 }
