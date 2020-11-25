@@ -96,6 +96,12 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
         RequestInfo requestInfo;
         try {
             user = userService.getUniqueUser(userName, tenantId, UserType.fromValue(userType));
+            log.info("user details complete0 ");
+            log.info("user details complete0 " + user.getUsername());
+
+            for (org.egov.user.domain.model.Role role : user.getRoles()) {
+            	log.info("roles for PRG_EMP_SEC_GRO " + role.getCode());
+            }
             /* decrypt here otp service and final response need decrypted data*/
             Set<org.egov.user.domain.model.Role> domain_roles = user.getRoles();
             List<org.egov.common.contract.request.Role> contract_roles = new ArrayList<>();
@@ -108,6 +114,12 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
             requestInfo = RequestInfo.builder().userInfo(userInfo).build();
             user = encryptionDecryptionUtil.decryptObject(user, "User", User.class, requestInfo);
 
+            log.info("user details complete1 ");
+            log.info("user details complete1 " + user.getUsername());
+
+            for (org.egov.user.domain.model.Role role : user.getRoles()) {
+            	log.info("roles for PRG_EMP_SEC_GRO1 " + role.getCode());
+            }
         } catch (UserNotFoundException e) {
             log.error("User not found", e);
             throw new OAuth2Exception("Invalid login credentials");
