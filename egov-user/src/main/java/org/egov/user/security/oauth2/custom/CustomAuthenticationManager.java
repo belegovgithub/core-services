@@ -35,11 +35,11 @@ public class CustomAuthenticationManager implements AuthenticationManager {
             if (!provider.supports(toTest)) {
                 continue;
             }
-            log.debug("Authentication attempt using " + provider.getClass().getName());
+            log.info("Authentication attempt using " + provider.getClass().getName());
 
             try {
                 result = provider.authenticate(authentication);
-
+                log.info("Authentication attempt using result " + result.getDetails() );
                 if (result != null) {
                     copyDetails(authentication, result);
                     break;

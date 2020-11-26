@@ -15,7 +15,6 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 @Service
-@Slf4j
 public class CustomTokenEnhancer extends TokenEnhancerChain {
 
     @Override
@@ -35,11 +34,11 @@ public class CustomTokenEnhancer extends TokenEnhancerChain {
         info.put("ResponseInfo", responseInfo);
         info.put("UserRequest", su.getUser());
 
-        log.info("user details complete2 ");
-        log.info("user details complete2 " + su.getUser().getUserName());
+        System.out.println("user details complete3 ");
+        System.out.println("user details complete3 " + su.getUser().getUserName());
 
         for (Role role : su.getUser().getRoles()) {
-        	log.info("roles for PRG_EMP_SEC_GRO2 " + role.getCode());
+        	System.out.println("roles for PRG_EMP_SEC_GRO3 " + role.getCode());
         }
         
         token.setAdditionalInformation(info);
