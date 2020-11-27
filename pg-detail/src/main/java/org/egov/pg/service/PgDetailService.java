@@ -14,8 +14,10 @@ import org.egov.pg.validator.PgValidator;
 import org.egov.pg.web.contract.PgDetail;
 import org.egov.pg.web.contract.PgDetailRequest;
 import org.egov.pg.web.contract.PgDetailResponse;
+import org.egov.tracer.model.CustomException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.client.RestTemplate;
 
 import lombok.extern.slf4j.Slf4j; 
@@ -49,48 +51,49 @@ public class PgDetailService {
 	 * @return
 	 */
 	public PgDetailResponse createPgDetails(PgDetailRequest pgDetailRequest) {
-		PgDetail pg = validateAndEncryptPgDetails(pgDetailRequest);
+		pgValidator.validateCreate(pgDetailRequest);
+		List<PgDetail> existingPgDetails = repository.getPgDetails(pgDetailRequest.getPgDetail());
+		if(!CollectionUtils.isEmpty(existingPgDetails)) {
+			throw new CustomException("DETAIL_EXIST","Detail exist for tenant");
+		}
+		PgDetail pg =encryptionDecryptionUtil.encryptObject(pgDetailRequest.getPgDetail().get(0) , "PgDetail",PgDetail.class);
 		List<PgDetail> pgList = new ArrayList<PgDetail>();
 		final Long newId = repository.getNextSequence();
 		pg.setId(newId);
+		pgDetailRequest.getPgDetail().get(0).setId(newId);
 		pg.setCreatedDate(new Date());
 		User userInfo = pgDetailRequest.getRequestInfo().getUserInfo();
 		pg.setCreatedBy(userInfo.getUuid());
 		pgList.add(pg);
 		repository.createPgDetails(pgList);
 		ResponseInfo responseInfo = responseInfoFactory.createResponseInfoFromRequestInfo(pgDetailRequest.getRequestInfo(), true);
-		return new PgDetailResponse(responseInfo, pgList);
+		return new PgDetailResponse(responseInfo, pgDetailRequest.getPgDetail());
 		
 	}
 	
-	public PgDetail validateAndEncryptPgDetails(PgDetailRequest pgDetailRequest){
+ 	public PgDetailResponse updatePgDetails(PgDetailRequest pgDetailRequest) {
 		pgValidator.validateCreate(pgDetailRequest);
-		PgDetail pg =encryptionDecryptionUtil.encryptObject(pgDetailRequest.getPgDetail().get(0) , "PgDetail",PgDetail.class);
-		return pg;
-	}
-	
-	public PgDetailResponse updatePgDetails(PgDetailRequest pgDetailRequest) {
-		List<PgDetail> pgList = new ArrayList<PgDetail>();
-		PgDetailResponse existingPgDetails = getPgDetails(pgDetailRequest);
-		if(!(existingPgDetails == null)) {
-			PgDetail existingPgDetail = existingPgDetails.getPgDetail().get(0);
-			existingPgDetail.setMerchantId(existingPgDetail.getMerchantId());
-			existingPgDetail.setMerchantSecretKey(existingPgDetail.getMerchantSecretKey());
-			existingPgDetail.setMerchantUserName(existingPgDetail.getMerchantUserName());
-			existingPgDetail.setMerchantPassword(existingPgDetail.getMerchantPassword());
-			existingPgDetail.setMerchantServiceId(existingPgDetail.getMerchantServiceId());
-			existingPgDetail.setCreatedDate(existingPgDetail.getCreatedDate());
+		List<PgDetail> existingPgDetails = repository.getPgDetails(pgDetailRequest.getPgDetail());
+		if(!CollectionUtils.isEmpty(existingPgDetails)) {
+			List<PgDetail> pgList = new ArrayList<PgDetail>();
+			PgDetail existingPgDetail = existingPgDetails.get(0);
+			PgDetail newPgDetail = pgDetailRequest.getPgDetail().get(0);
+			existingPgDetail.setMerchantId(newPgDetail.getMerchantId());
+			existingPgDetail.setMerchantSecretKey(newPgDetail.getMerchantSecretKey());
+			existingPgDetail.setMerchantUserName(newPgDetail.getMerchantUserName());
+			existingPgDetail.setMerchantPassword(newPgDetail.getMerchantPassword());
+			existingPgDetail.setMerchantServiceId(newPgDetail.getMerchantServiceId());
 			existingPgDetail.setLastModifiedDate(new Date());
 			existingPgDetail.setLastModifiedBy(pgDetailRequest.getRequestInfo().getUserInfo().getUuid());
 			pgDetailRequest.getPgDetail().set(0, existingPgDetail);
-			PgDetail pgDetail = validateAndEncryptPgDetails(pgDetailRequest);
-			pgList.add(pgDetail);
+			existingPgDetail =encryptionDecryptionUtil.encryptObject(existingPgDetail , "PgDetail",PgDetail.class);
+			pgList.add(existingPgDetail);
 			repository.update(pgList);
 			ResponseInfo responseInfo = responseInfoFactory.createResponseInfoFromRequestInfo(pgDetailRequest.getRequestInfo(), true);
-			return new PgDetailResponse(responseInfo, pgList);
+			return new PgDetailResponse(responseInfo, pgDetailRequest.getPgDetail());
 		}
 		else {
-			return null;
+			throw new CustomException("DETAIL_NOT_EXIST","Detail not exist for tenant");
 		}
 		
 	}
