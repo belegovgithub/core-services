@@ -250,17 +250,15 @@ export const directMapping = async (
       if(directArr[i].localisation && directArr[i].localisation.prefixCbName)
       {
         const tenantId =  get(req.query || req, "tenantId");
-        const tempPrefix = directArr[i].localisation.prefix;
-        const tempModule = directArr[i].localisation.module;
-        directArr[i].localisation.prefix = (tenantId.toUpperCase() + "_" + directArr[i].localisation.prefix).replace(".","_");
-        directArr[i].localisation.module = directArr[i].localisation.module + "-" + tenantId;
+        const tempPrefix = (tenantId.toUpperCase() + "_" + directArr[i].localisation.prefix).replace(".","_");
+        const tempModule = directArr[i].localisation.module + "-" + tenantId;
         //console.log("directArr[i].localisation.module-",directArr[i]);
         variableTovalueMap[directArr[i].jPath] = await findAndUpdateLocalisation(
           requestInfo,
           localisationMap,
-          directArr[i].localisation.prefix,
+          tempPrefix,
           directArr[i].val,
-          directArr[i].localisation.module,
+          tempModule,
           localisationModuleList,
           directArr[i].localisation.isCategoryRequired,
           directArr[i].localisation.isMainTypeRequired,
@@ -268,8 +266,6 @@ export const directMapping = async (
           directArr[i].localisation.delimiter,
           tenantId
         );
-        directArr[i].localisation.prefix = tempPrefix; //if this condition is called twice then the old state of prefix is retained
-        directArr[i].localisation.module = tempModule;
       }
     }else if (directArr[i].type == "date") {
       let myDate = new Date(directArr[i].val[0]);
