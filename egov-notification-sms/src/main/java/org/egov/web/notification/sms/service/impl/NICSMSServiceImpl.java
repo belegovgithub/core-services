@@ -55,8 +55,8 @@ public class NICSMSServiceImpl extends BaseSMSService {
 			}
    	
         	final_data+="&message="+ message;
-        	final_data+="&Mnumber=91"+ sms.getMobileNumber();
-        	final_data+="&Signature="+ smsProperties.getSenderid();
+        	final_data+="&mnumber=91"+ sms.getMobileNumber();
+        	final_data+="&signature="+ smsProperties.getSenderid();
         	final_data+="&dlt_entity_id="+ smsProperties.getSmsEntityId();
         	final_data+="&dlt_template_id="+ sms.getTemplateId();
         	log.info("dlt_entity_id "+smsProperties.getSmsEntityId());
