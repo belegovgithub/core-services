@@ -81,6 +81,9 @@ public class SMSProperties {
     @Value("${sms.test.msg.append}")
     private String smsTestMsgAppend;
     
+    @Value("${sms.provider.entityid}")
+    public String smsEntityId;
+    
     @Setter(AccessLevel.PROTECTED) private List<Pattern> whitelistPatterns;
     @Setter(AccessLevel.PROTECTED) private List<Pattern> blacklistPatterns;
 

@@ -17,6 +17,7 @@ public class Sms {
     private String message;
     private Category category;
     private Long expiryTime;
+    private String templateId;
 
     public boolean isValid() {
 
