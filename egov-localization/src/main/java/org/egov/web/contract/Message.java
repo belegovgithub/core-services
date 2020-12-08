@@ -22,12 +22,15 @@ public class Message {
 	private String module;
 	@NotEmpty
 	private String locale;
+	@NotEmpty
+	private String templateId;	
 
 	public Message(org.egov.domain.model.Message domainMessage) {
 		this.code = domainMessage.getCode();
 		this.message = domainMessage.getMessage();
 		this.module = domainMessage.getModule();
 		this.locale = domainMessage.getLocale();
+		this.templateId = domainMessage.getTemplateId();
 	}
 
 	@JsonIgnore
