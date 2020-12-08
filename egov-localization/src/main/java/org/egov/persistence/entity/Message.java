@@ -48,6 +48,9 @@ public class Message {
 
 	@Column(name = "lastmodifieddate")
 	private Date lastModifiedDate;
+	
+	@Column(name = "templateId")
+	private String templateId;
 
 	public Message(org.egov.domain.model.Message domainMessage) {
 		this.tenantId = domainMessage.getTenant();
@@ -55,12 +58,13 @@ public class Message {
 		this.module = domainMessage.getModule();
 		this.code = domainMessage.getCode();
 		this.message = domainMessage.getMessage();
+		this.templateId=domainMessage.getTemplateId();
 	}
 
 	public org.egov.domain.model.Message toDomain() {
 		final Tenant tenant = new Tenant(tenantId);
 		final MessageIdentity messageIdentity = MessageIdentity.builder().tenant(tenant).module(module).locale(locale)
-				.code(code).build();
+				.code(code).templateId(templateId).build();
 		return org.egov.domain.model.Message.builder().message(message).messageIdentity(messageIdentity).build();
 	}
 

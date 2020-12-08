@@ -37,4 +37,8 @@ public class Message {
 	public String getTenant() {
 		return messageIdentity.getTenant().getTenantId();
 	}
+	
+	public String getTemplateId() {
+		return messageIdentity.getTemplateId();
+	}
 }

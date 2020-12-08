@@ -14,4 +14,5 @@ public class MessageIdentity {
 	private Tenant tenant;
 	private String locale;
 	private String module;
+	private String templateId;
 }
