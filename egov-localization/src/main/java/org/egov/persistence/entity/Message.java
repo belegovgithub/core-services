@@ -49,7 +49,7 @@ public class Message {
 	@Column(name = "lastmodifieddate")
 	private Date lastModifiedDate;
 	
-	@Column(name = "templateId")
+	@Column(name = "templateid")
 	private String templateId;
 
 	public Message(org.egov.domain.model.Message domainMessage) {
