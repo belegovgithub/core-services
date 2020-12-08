@@ -6,6 +6,7 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyStore;
@@ -37,7 +38,7 @@ public class NICSMSServiceImpl extends BaseSMSService {
     private SMSProperties smsProperties;
 
     protected void submitToExternalSmsService(Sms sms) {
-        try {
+        /*try {
         	
         	String final_data="";
         	final_data+="username="+ smsProperties.getUsername();
@@ -124,7 +125,38 @@ public class NICSMSServiceImpl extends BaseSMSService {
         catch(Exception e) {
         	e.printStackTrace();
         	log.error("Error occurred while sending SMS to : " + sms.getMobileNumber(), e);
-        }
+        }*/
+    	
+    	try {
+    		String baseURL =smsProperties.getUrl()+"username="+smsProperties.getUsername()+"&pin="+smsProperties.getPassword();
+    		String replyTo = smsProperties.getSenderid(); 
+    		String recipient = sms.getMobileNumber();
+    		String messageBody = sms.getMessage();
+    		messageBody = URLEncoder.encode(messageBody, "UTF-8");
+    		StringBuffer URI = new StringBuffer();
+    		URI.append(baseURL); 
+    		URI.append("&signature=" + replyTo); 
+    		URI.append("&mnumber=" + recipient); 
+    		URI.append("&message=" + messageBody); 
+    		URI.append("&dlt_entity_id=" + smsProperties.getSmsEntityId()); 
+    		URI.append("&dlt_template_id=1007469750433363126"); 
+    		String result = "";
+    		URL url = new URL(URI.toString());
+    		URLConnection conn = url.openConnection();
+    		BufferedReader rd = new BufferedReader(new InputStreamReader( conn.getInputStream()));
+    		StringBuffer sb = new StringBuffer(); 
+    		String line;
+    		while ((line = rd.readLine()) != null) { 
+    			sb.append(line);
+    		}
+    		rd.close();
+    		result = sb.toString(); 
+    		log.info("Result:" + result);
+    	}
+    	catch (Exception e) {
+    		e.printStackTrace();
+        	log.error("Error occurred while sending SMS to : " + sms.getMobileNumber(), e);
+    	}
     }
     
 	private boolean textIsInEnglish(String text) {
