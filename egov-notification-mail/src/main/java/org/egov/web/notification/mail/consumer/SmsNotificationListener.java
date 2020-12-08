@@ -39,11 +39,17 @@ public class SmsNotificationListener {
 
 	@KafkaListener(topics = "${kafka.topics.notification.sms.topic.name}")
 	public void process(final HashMap<String, Object> record) {
+		try
+		{
 		List<String> emails = userRepository.getEmailsByMobileNo(config.getStateTenantId(),
 				(String) record.get(Constants.SMS_REQ_MOBILE_NO_KEY_NAME));
 		if(!CollectionUtils.isEmpty(emails))
 			emailService
 					.sendEmail(getEmailReq(getValideEmails(emails), (String) record.get(Constants.SMS_REQ_MSG_KEY_NAME)));
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
 
 	}
 
