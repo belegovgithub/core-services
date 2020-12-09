@@ -78,11 +78,14 @@ public class SMSProperties {
     @Value("${sms.enabled:false}")
     private boolean smsEnabled;
     
-    @Value("${sms.test.msg.append}")
-    private String smsTestMsgAppend;
+    @Value("${sms.msg.append}")
+    private String smsMsgAppend;
     
     @Value("${sms.provider.entityid}")
     public String smsEntityId;
+    
+    @Value("${sms.default.tmplid:1}")
+    public String smsDefaultTmplid;
     
     @Setter(AccessLevel.PROTECTED) private List<Pattern> whitelistPatterns;
     @Setter(AccessLevel.PROTECTED) private List<Pattern> blacklistPatterns;
