@@ -62,6 +62,8 @@ public class NICSMSServiceImpl extends BaseSMSService {
 			{
 				final_data+="&dlt_template_id="+smsProperties.getSmsDefaultTmplid();
 			}
+			else
+				final_data+="&dlt_template_id="+sms.getTemplateId();
         	SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
         	if(smsProperties.isVerifyCertificate()) {
         		log.info("checking certificate");
