@@ -1,6 +1,9 @@
 package org.egov.web.contract;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -22,6 +25,7 @@ public class Message {
 	private String module;
 	@NotEmpty
 	private String locale;
+	@JsonInclude(value = Include.NON_NULL)
 	private String templateId;	
 
 	public Message(org.egov.domain.model.Message domainMessage) {
