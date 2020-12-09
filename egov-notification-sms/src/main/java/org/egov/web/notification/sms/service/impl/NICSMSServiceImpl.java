@@ -44,8 +44,7 @@ public class NICSMSServiceImpl extends BaseSMSService {
         	final_data+="username="+ smsProperties.getUsername();
         	final_data+="&pin="+ smsProperties.getPassword();
         	
-        	String message=smsProperties.getSmsTestMsgAppend();
-        	message+=sms.getMessage();
+        	String message= "" + sms.getMessage();
         	if(textIsInEnglish(message)) {
 				message=URLEncoder.encode(message,"UTF-8");
         	}
@@ -54,14 +53,15 @@ public class NICSMSServiceImpl extends BaseSMSService {
 			    final_data+="&msgType=UC";
         		log.info("Non-English");
 			}
-   	
+        	message += smsProperties.getSmsMsgAppend();
+        			
         	final_data+="&message="+ message;
         	final_data+="&mnumber=91"+ sms.getMobileNumber();
         	final_data+="&signature="+ smsProperties.getSenderid();
         	final_data+="&dlt_entity_id="+ smsProperties.getSmsEntityId();
 			if(null == sms.getTemplateId())
 			{
-				final_data+="&dlt_template_id=1007469750433363126";
+				final_data+="&dlt_template_id="+smsProperties.getSmsDefaultTmplid();
 			}
         	SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
         	if(smsProperties.isVerifyCertificate()) {
