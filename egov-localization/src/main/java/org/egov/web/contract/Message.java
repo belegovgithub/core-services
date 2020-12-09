@@ -22,7 +22,6 @@ public class Message {
 	private String module;
 	@NotEmpty
 	private String locale;
-	@NotEmpty
 	private String templateId;	
 
 	public Message(org.egov.domain.model.Message domainMessage) {
