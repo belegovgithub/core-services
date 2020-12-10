@@ -2,9 +2,12 @@ package org.egov.persistence.contract;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.Setter;
+
 import org.egov.domain.model.Category;
 
 @Getter
+@Setter
 @AllArgsConstructor
 public class SMSRequest {
     private String mobileNumber;

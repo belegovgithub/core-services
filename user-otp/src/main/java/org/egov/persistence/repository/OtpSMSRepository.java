@@ -51,7 +51,7 @@ public class OtpSMSRepository {
 
     private SMSRequest getMessage(String otpNumber, OtpRequest otpRequest) {
         final SMSRequest messageFormat = getMessageFormat(otpRequest);
-        format(messageFormat.getMessage(), otpNumber);
+        messageFormat.setMessage(format(messageFormat.getMessage(), otpNumber));
         return messageFormat;
     }
 
