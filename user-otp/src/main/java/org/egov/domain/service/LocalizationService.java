@@ -1,6 +1,8 @@
 package org.egov.domain.service;
 
 import lombok.extern.slf4j.Slf4j;
+
+import org.egov.persistence.contract.SMSRequest;
 import org.egov.persistence.repository.RestCallRepository;
 import org.egov.web.contract.RequestInfo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,9 +33,9 @@ public class LocalizationService {
      * @param locale
      * @param module
      */
-    public Map<String, String> getLocalisedMessages(String tenantId, String locale, String module) {
+    public Map<String, SMSRequest> getLocalisedMessages(String tenantId, String locale, String module) {
         RequestInfo requestInfo = new RequestInfo("apiId", "ver", new Date(), "action", "did", "key", "msgId", "requesterId", "authToken");
-        Map<String, String> mapOfCodesAndMessages = new HashMap<>();
+        Map<String, SMSRequest> mapOfCodesAndMessages = new HashMap<>();
         StringBuilder uri = new StringBuilder();
         Map<String, Object> request = new HashMap<>();
         request.put("RequestInfo", requestInfo);
@@ -46,7 +48,9 @@ public class LocalizationService {
                     for (Object message : locMessages) {
                         String code = ((Map<String, String>) message).get("code");
                         String messsage = ((Map<String, String>) message).get("message");
-                        mapOfCodesAndMessages.put(code, messsage);
+                        String templateId= ((Map<String, String>) message).get("templateId");
+                        SMSRequest smsRequest = new SMSRequest("", messsage, null, 0, templateId);
+                        mapOfCodesAndMessages.put(code, smsRequest);
                     }
                 }
             }

@@ -45,24 +45,25 @@ public class OtpSMSRepository {
 
     public void send(OtpRequest otpRequest, String otpNumber) {
 		Long currentTime = System.currentTimeMillis() + maxExecutionTime;
-		final String message = getMessage(otpNumber, otpRequest);
-        kafkaTemplate.send(smsTopic, new SMSRequest(otpRequest.getMobileNumber(), message, Category.OTP, currentTime));
+		final SMSRequest message = getMessage(otpNumber, otpRequest);
+        kafkaTemplate.send(smsTopic, new SMSRequest(otpRequest.getMobileNumber(), message.getMessage(), Category.OTP, currentTime, message.getTemplateId()));
     }
 
-    private String getMessage(String otpNumber, OtpRequest otpRequest) {
-        final String messageFormat = getMessageFormat(otpRequest);
-        return format(messageFormat, otpNumber);
+    private SMSRequest getMessage(String otpNumber, OtpRequest otpRequest) {
+        final SMSRequest messageFormat = getMessageFormat(otpRequest);
+        format(messageFormat.getMessage(), otpNumber);
+        return messageFormat;
     }
 
-    private String getMessageFormat(OtpRequest otpRequest) {
-        Map<String, String> localisedMsgs = localizationService.getLocalisedMessages(otpRequest.getTenantId(), "en_IN", "egov-user");
+    private SMSRequest getMessageFormat(OtpRequest otpRequest) {
+        Map<String, SMSRequest> localisedMsgs = localizationService.getLocalisedMessages(otpRequest.getTenantId(), "en_IN", "egov-user");
         if (localisedMsgs.isEmpty()) {
             log.info("Localization Service didn't return any msgs so using default...");
-            localisedMsgs.put(LOCALIZATION_KEY_REGISTER_SMS, "Dear Citizen, Your OTP to complete Registration is %s.");
-            localisedMsgs.put(LOCALIZATION_KEY_LOGIN_SMS, "Dear Citizen, Your Login OTP is %s.");
-            localisedMsgs.put(LOCALIZATION_KEY_PWD_RESET_SMS, "Dear Citizen, Your OTP for recovering password is %s.");
+            localisedMsgs.put(LOCALIZATION_KEY_REGISTER_SMS, new SMSRequest("", "Dear Citizen, Your OTP to complete Registration is %s.", null, 0, ""));
+            localisedMsgs.put(LOCALIZATION_KEY_LOGIN_SMS, new SMSRequest("", "Dear Citizen, Your Login OTP is %s.", null, 0, ""));
+            localisedMsgs.put(LOCALIZATION_KEY_PWD_RESET_SMS, new SMSRequest("","Dear Citizen, Your OTP for recovering password is %s.",null,0,""));
         }
-        String message = null;
+        SMSRequest message = null;
 
         if (otpRequest.isRegistrationRequestType())
             message = localisedMsgs.get(LOCALIZATION_KEY_REGISTER_SMS);
