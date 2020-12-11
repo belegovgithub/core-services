@@ -6,7 +6,7 @@ const Producer = kafka.Producer;
 let client;
 // if (process.env.NODE_ENV === "development") {
 // client = new kafka.Client();
-client = new kafka.KafkaClient({ kafkaHost: envVariables.KAFKA_BROKER_HOST });
+client = new kafka.KafkaClient({ kafkaHost: envVariables.KAFKA_BROKER_HOST,connectRetryOptions :{retries: 0,factor: 2, minTimeout: 1000, maxTimeout: 60000, randomize: true}});
 //   console.log("local - ");
 // } else {
 //   client = new kafka.KafkaClient({ kafkaHost: envVariables.KAFKA_BROKER_HOST });

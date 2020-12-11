@@ -11,8 +11,9 @@ let receiveJob = topic;
 
 const Consumer = kafka.Consumer;
 let client = new kafka.KafkaClient({
-  kafkaHost: envVariables.KAFKA_BROKER_HOST
-});
+  kafkaHost: envVariables.KAFKA_BROKER_HOST,
+  connectRetryOptions :{retries: 0,factor: 2, minTimeout: 1000, maxTimeout: 60000, randomize: true}}
+);
 
 
 var topicList = [];
