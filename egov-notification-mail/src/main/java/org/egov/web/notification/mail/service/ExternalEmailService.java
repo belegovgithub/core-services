@@ -58,7 +58,10 @@ public class ExternalEmailService implements EmailService {
 			message.setFrom(new InternetAddress(emailProperties.getMailSenderUsername()));
 			message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(String.join(",", email.getEmailTo())));
 			message.setSubject(email.getSubject());
-			message.setText(email.getBody());
+			if(email.isHTML()) 
+				message.setContent(email.getBody(),"text/html");
+			else
+				message.setText(email.getBody());
 			Transport tp = session.getTransport(emailProperties.getMailProtocol());
 			tp.connect(emailProperties.getMailHost(),emailProperties.getMailPort(),
 				emailProperties.getMailSenderUsername(),emailProperties.getMailSenderPassword());
