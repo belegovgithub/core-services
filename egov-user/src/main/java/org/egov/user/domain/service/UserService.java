@@ -455,7 +455,7 @@ public class UserService {
         if (user.getType().toString().equals(UserType.EMPLOYEE.toString()) && isEmployeeLoginOtpBased)
             throw new InvalidUpdatePasswordRequestException();
 
-        validateExistingPassword(user, updatePasswordRequest.getExistingPassword());
+        validateExistingPassword(user, updatePasswordRequest.getExistingPassword(),updatePasswordRequest.getNewPassword());
         validatePassword(updatePasswordRequest.getNewPassword());
         user.updatePassword(encryptPwd(updatePasswordRequest.getNewPassword()));
         userRepository.update(user, user);
@@ -568,11 +568,18 @@ public class UserService {
      *
      * @param user
      * @param existingRawPassword
+     * @param newPassword 
      */
-    private void validateExistingPassword(User user, String existingRawPassword) {
+    private void validateExistingPassword(User user, String existingRawPassword, String newPassword) {
+    System.out.println("new pass"+existingRawPassword+newPassword+user.getPassword());
         if (!passwordEncoder.matches(existingRawPassword, user.getPassword())) {
             Map<String, String> map = new HashMap<>();
             map.put("PasswordMismatchException","Incorrect Current Password");
+            throw new CustomException(map);
+        }
+        if (existingRawPassword.equalsIgnoreCase(newPassword)) {
+            Map<String, String> map = new HashMap<>();
+            map.put("PasswordcannotbeSameException","Old and new passwords must be different");
             throw new CustomException(map);
         }
     }
