@@ -41,6 +41,9 @@ public class ProcessInstanceSearchCriteria {
     private Integer limit;
 
 
+    @JsonProperty("role")
+    private String role;
+    
     public Boolean isNull(){
         if(this.getBusinessIds()==null && this.getIds()==null && this.getAssignee()==null &&
                 this.getStatus()==null)
