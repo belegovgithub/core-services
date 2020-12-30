@@ -209,6 +209,11 @@ public class WorkflowQueryBuilder {
             builder.append(" and CONCAT  (pi.tenantid,':',pi.status) IN (").append(createQuery(statuses)).append(")");
             addToPreparedStatement(preparedStmtList,statuses);
         }
+        if(null!=criteria.getRole() && !criteria.getRole().isEmpty())
+        {
+        	 builder.append(" and ac.roles=? ");
+        	 preparedStmtList.add(criteria.getRole());
+        }
         return builder.toString();
         // return OUTER_QUERY+builder.toString()+")" + " fp "+STATE_JOIN_QUERY;
     }
