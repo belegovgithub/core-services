@@ -69,7 +69,7 @@ public class EnrichmentService {
 
         ((ObjectNode) transaction.getAdditionalDetails()).set("taxAndPayments",
                 objectMapper.valueToTree(transaction.getTaxAndPayments()));
-
+        log.info("Callback url"+transaction.getCallbackUrl());
         String uri = UriComponentsBuilder
                 .fromHttpUrl(transaction.getCallbackUrl())
                 .queryParams(new LinkedMultiValueMap<>(singletonMap(PgConstants.PG_TXN_IN_LABEL,
