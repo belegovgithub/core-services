@@ -172,16 +172,20 @@ public class WorkflowUtil {
                 }else{
                     businessServicesByTenantId = tenantIdToBuisnessSevicesMap.get(entry.getKey());
                 }
-                businessServicesByTenantId.forEach(service -> {
-                    List<State> states = service.getStates();
-                    states.forEach(state -> {
-                        Set<String> stateRoles = stateToRoleMap.get(state.getUuid());
-                        if(!CollectionUtils.isEmpty(stateRoles) && !Collections.disjoint(stateRoles,entry.getValue())){
-                            actionableStatuses.add(entry.getKey() + ':' + state.getUuid());
-                        }
+                if(null!=businessServicesByTenantId)
+                {
+                    businessServicesByTenantId.forEach(service -> {
+                        List<State> states = service.getStates();
+                        states.forEach(state -> {
+                            Set<String> stateRoles = stateToRoleMap.get(state.getUuid());
+                            if(!CollectionUtils.isEmpty(stateRoles) && !Collections.disjoint(stateRoles,entry.getValue())){
+                                actionableStatuses.add(entry.getKey() + ':' + state.getUuid());
+                            }
 
+                        });
                     });
-                });
+                }
+
             }         
         }
         return actionableStatuses;

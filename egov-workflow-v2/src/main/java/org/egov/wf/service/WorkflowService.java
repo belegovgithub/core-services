@@ -113,7 +113,7 @@ public class WorkflowService {
         List<ProcessInstance> processInstancesForAssignee = workflowRepository.getProcessInstancesForAssignee(criteria);
         List<ProcessInstance> processInstancesForStatus = new LinkedList<>();
         //In case of empty actionableStatuses the service give result for all the business Service. 
-        if(!config.getAssignedOnly() && !CollectionUtils.isEmpty(actionableStatuses))
+        if(!config.getAssignedOnly())
             processInstancesForStatus = workflowRepository.getProcessInstancesForStatus(criteria);
         Set<ProcessInstance> processInstanceSet = new LinkedHashSet<>(processInstancesForStatus);
         processInstanceSet.addAll(processInstancesForAssignee);
