@@ -687,7 +687,10 @@ const generateQRCodes = async (
     let varname = qrmapping.variable;
     let qrtext = mustache.render(qrmapping.value, variableTovalueMap);
     if(envVariables.SETUP_NAME && envVariables.SETUP_NAME=== "UAT")
+    {
+    console.log("setting QR===========",qrtext);
     qrtext = qrtext.concat(" -BEL UAT");
+    }
     let qrCodeImage = await QRCode.toDataURL(qrtext);
     variableTovalueMap[varname] = qrCodeImage;
   }
