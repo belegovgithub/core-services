@@ -55,6 +55,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
@@ -189,7 +190,23 @@ public class NICGateway implements Gateway {
      	 
          queryMap.put(SUCCESS_URL_KEY, getReturnUrl(returnUrl, REDIRECT_URL));
          queryMap.put(FAIL_URL_KEY, getReturnUrl(returnUrl, REDIRECT_URL));
-         queryMap.put(ADDITIONAL_FIELD1_KEY, ADDITIONAL_FIELD_VALUE); //Not in use 
+         StringBuffer userDetail = new StringBuffer();
+         if( transaction.getUser()!=null) {
+        	 if(!StringUtils.isEmpty(transaction.getUser().getMobileNumber())) {
+        		 userDetail.append(transaction.getUser().getMobileNumber());
+        	 }
+        	 
+        	 if(!StringUtils.isEmpty(transaction.getUser().getEmailId())) {
+        		 if(userDetail.length()>0) {
+            		 userDetail.append("^");
+            	 }
+        		 userDetail.append(transaction.getUser().getEmailId());
+        	 }
+         }
+         if(userDetail.length() == 0) {
+        	 userDetail.append(ADDITIONAL_FIELD_VALUE);
+         }
+         queryMap.put(ADDITIONAL_FIELD1_KEY, userDetail.toString());  
          queryMap.put(ADDITIONAL_FIELD2_KEY, ADDITIONAL_FIELD_VALUE); //Not in use 
          queryMap.put(ADDITIONAL_FIELD3_KEY, ADDITIONAL_FIELD_VALUE); //Not in use 
          queryMap.put(ADDITIONAL_FIELD4_KEY, transaction.getConsumerCode());   
