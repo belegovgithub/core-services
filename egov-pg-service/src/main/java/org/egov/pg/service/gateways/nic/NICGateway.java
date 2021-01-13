@@ -57,6 +57,7 @@ import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.util.StringUtils;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
@@ -175,6 +176,15 @@ public class NICGateway implements Gateway {
      	 String returnUrl = transaction.getCallbackUrl().replace(CITIZEN_URL, "");
      	 
      	 
+     	String moduleCode ="------";
+     	if(!StringUtils.isEmpty(transaction.getModule())) {
+     		if(transaction.getModule().length() < 6) {
+     			moduleCode= transaction.getModule() + moduleCode.substring(transaction.getModule().length()-1);	
+     		}else {
+     			moduleCode =transaction.getModule();
+     		}
+     	}
+     	
      	 
      	 
          queryMap.put(SUCCESS_URL_KEY, getReturnUrl(returnUrl, REDIRECT_URL));
@@ -182,8 +192,8 @@ public class NICGateway implements Gateway {
          queryMap.put(ADDITIONAL_FIELD1_KEY, ADDITIONAL_FIELD_VALUE); //Not in use 
          queryMap.put(ADDITIONAL_FIELD2_KEY, ADDITIONAL_FIELD_VALUE); //Not in use 
          queryMap.put(ADDITIONAL_FIELD3_KEY, ADDITIONAL_FIELD_VALUE); //Not in use 
-         queryMap.put(ADDITIONAL_FIELD4_KEY, ADDITIONAL_FIELD_VALUE); //Not in use 
-         queryMap.put(ADDITIONAL_FIELD5_KEY, ADDITIONAL_FIELD_VALUE); //Not in use 
+         queryMap.put(ADDITIONAL_FIELD4_KEY, transaction.getConsumerCode());   
+         queryMap.put(ADDITIONAL_FIELD5_KEY, moduleCode);  
          
          
          
