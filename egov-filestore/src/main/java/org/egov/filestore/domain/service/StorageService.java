@@ -169,7 +169,7 @@ public class StorageService {
 				Path path = Paths.get(staticFileMap.get(fileStoreId).get(0));
 				org.springframework.core.io.Resource resource = new FileSystemResource(path.toFile());
 				return new Resource(staticFileMap.get(fileStoreId).get(1), resource.getFilename(), resource, "",
-						"" + resource.getFile().length() + " bytes");
+						resource.getFile().length() );
 			}
 		}
 		catch (Exception e) {

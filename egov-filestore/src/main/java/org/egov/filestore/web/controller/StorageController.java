@@ -86,7 +86,7 @@ public class StorageController {
 		}
 		return ResponseEntity.ok()
 				.header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + resource.getFileName()  + "\"")
-				.header(HttpHeaders.CONTENT_TYPE, resource.getContentType()).body(resource.getResource());
+				.header(HttpHeaders.CONTENT_TYPE, resource.getContentType()).contentLength(resource.getFileSize()).body(resource.getResource());
 	}
 	
 	@GetMapping("/metadata")
