@@ -69,6 +69,7 @@ public class StorageController {
 			e.printStackTrace();
 		}
 		String fileName=resource.getFileName().substring(resource.getFileName().lastIndexOf('/')+1,resource.getFileName().length());
+		fileName = null!=fileName && fileName.startsWith("\\")?fileName.substring(1, fileName.length()):fileName;
 		return ResponseEntity.ok()
 				.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" +fileName  + "\"")
 				.header(HttpHeaders.CONTENT_TYPE, resource.getContentType()).contentLength(resource.getFileSize()).body(resource.getResource());
