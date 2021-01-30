@@ -6,12 +6,11 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
-import java.net.URLConnection;
 import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.security.KeyStore;
 import java.util.ArrayList;
 
+import javax.annotation.PostConstruct;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
@@ -36,6 +35,53 @@ public class NICSMSServiceImpl extends BaseSMSService {
     
     @Autowired
     private SMSProperties smsProperties;
+    
+    private SSLContext sslContext;
+    
+	@PostConstruct
+	private void postConstruct() {
+		try
+		{
+			sslContext = SSLContext.getInstance("TLSv1.2");
+			if(smsProperties.isVerifyCertificate()) {
+				log.info("checking certificate");
+				KeyStore trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
+				File file = new File(System.getenv("JAVA_HOME")+"/lib/security/cacerts");
+				InputStream is = new FileInputStream(file);
+				trustStore.load(is, "changeit".toCharArray());
+				TrustManagerFactory trustFactory = TrustManagerFactory
+						.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+				trustFactory.init(trustStore);
+
+				TrustManager[] trustManagers = trustFactory.getTrustManagers();
+				sslContext.init(null, trustManagers, null);
+			}
+			else {
+				log.info("not checking certificate");
+				TrustManager tm = new X509TrustManager() {
+					@Override
+					public void checkClientTrusted(java.security.cert.X509Certificate[] chain, String authType)
+							throws java.security.cert.CertificateException {
+					}
+
+					@Override
+					public void checkServerTrusted(java.security.cert.X509Certificate[] chain, String authType)
+							throws java.security.cert.CertificateException {
+					}
+
+					@Override
+					public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+						return null;
+					}
+				};
+				sslContext.init(null, new TrustManager[] { tm }, null);
+			}
+			SSLContext.setDefault(sslContext);
+
+		}catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
 
     protected void submitToExternalSmsService(Sms sms) {
         try {
@@ -64,43 +110,9 @@ public class NICSMSServiceImpl extends BaseSMSService {
 			}
 			else
 				final_data+="&dlt_template_id="+sms.getTemplateId();
-        	SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
-        	if(smsProperties.isVerifyCertificate()) {
-        		log.info("checking certificate");
-	        	KeyStore trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
-	    		File file = new File(System.getenv("JAVA_HOME")+"/lib/security/cacerts");
-	            InputStream is = new FileInputStream(file);
-	    		trustStore.load(is, "changeit".toCharArray());
-	    		TrustManagerFactory trustFactory = TrustManagerFactory
-	    				.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-	    		trustFactory.init(trustStore);
-	    		
-	    		TrustManager[] trustManagers = trustFactory.getTrustManagers();
-	    		sslContext.init(null, trustManagers, null);
-        	}
-        	else {
-        		log.info("not checking certificate");
-	    			TrustManager tm = new X509TrustManager() {
-					@Override
-					public void checkClientTrusted(java.security.cert.X509Certificate[] chain, String authType)
-							throws java.security.cert.CertificateException {
-					}
-	
-					@Override
-					public void checkServerTrusted(java.security.cert.X509Certificate[] chain, String authType)
-							throws java.security.cert.CertificateException {
-					}
-	
-					@Override
-					public java.security.cert.X509Certificate[] getAcceptedIssuers() {
-						return null;
-					}
-	            };
-	    		sslContext.init(null, new TrustManager[] { tm }, null);
-        	}
-    		SSLContext.setDefault(sslContext);
+
 	    	if(smsProperties.isSmsEnabled()) {
-				HttpsURLConnection conn = (HttpsURLConnection) new URL(smsProperties.getUrl()).openConnection();
+	    		HttpsURLConnection conn = (HttpsURLConnection) new URL(smsProperties.getUrl()).openConnection();
 				conn.setSSLSocketFactory(sslContext.getSocketFactory());
 				conn.setDoOutput(true);
 				conn.setRequestMethod("POST");
@@ -118,6 +130,7 @@ public class NICSMSServiceImpl extends BaseSMSService {
 					log.info("sms data: " + final_data);
 				}
 				rd.close();
+				conn.disconnect();
 	    	}
     		else {
     			log.info("SMS Data: "+final_data);
@@ -127,7 +140,6 @@ public class NICSMSServiceImpl extends BaseSMSService {
         	e.printStackTrace();
         	log.error("Error occurred while sending SMS to : " + sms.getMobileNumber(), e);
         }
-    	
     }
     
 	private boolean textIsInEnglish(String text) {
