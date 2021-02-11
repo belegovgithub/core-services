@@ -6,7 +6,8 @@ import {
   findAndUpdateLocalisation,
   getDateInRequiredFormat,
   getValue,
-  getDateInNewFinYear
+  getDateInNewFinYear,
+  getCurrentFinancialYear
 } from "./commons";
 
 var jp = require("jsonpath");
@@ -307,6 +308,20 @@ export const directMapping = async (
         variableTovalueMap[directArr[i].jPath] = "NA";
       } else {
         let replaceValue = getDateInNewFinYear(directArr[i].val[0],directArr[i].format);
+        variableTovalueMap[directArr[i].jPath] = replaceValue;
+      }
+    }
+    else if (directArr[i].type == "currentFinYear") {
+      let myDate = new Date(directArr[i].val[0]);
+      if (isNaN(myDate) || directArr[i].val[0] === 0) {
+        variableTovalueMap[directArr[i].jPath] = "NA";
+      } else {
+        let replaceValue = getCurrentFinancialYear(directArr[i].val[0],directArr[i].format);
+        if(replaceValue!="NA")
+        {
+        replaceValue = replaceValue.split("-")[1];
+        console.log("currentFinYear--",replaceValue);
+        }
         variableTovalueMap[directArr[i].jPath] = replaceValue;
       }
     }

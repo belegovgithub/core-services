@@ -149,6 +149,17 @@ export const getDateInNewFinYear = (et, dateformat = "DD/MM/YYYY") => {
   return formattedDate;
 };
 
+export const getCurrentFinancialYear = (et, dateformat = "DD/MM/YYYY") => {  
+    var financial_year = "";
+    var today = new Date(Math.round(Number(et)));
+    if ((today.getMonth() + 1) <= 3) {
+        financial_year = (today.getFullYear() - 1) + "-" + today.getFullYear()
+    } else {
+        financial_year = today.getFullYear() + "-" + (today.getFullYear() + 1)
+    }
+    return financial_year;
+}
+
 /**
  *
  * @param {*} value - values to be checked
