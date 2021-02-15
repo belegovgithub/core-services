@@ -63,10 +63,12 @@ public class TokenService {
         if (tokens != null && tokens.getTokens() != null && !tokens.getTokens().isEmpty()) {
             Token token = tokens.getTokens().get(0);
             if (token.isValidated()) {
+                System.out.println("tokens already in use: "+validateRequest.getIdentity()+", otp:"+validateRequest.getOtp()+", tenant:"+validateRequest.getTenantId());
                 throw new TokenAlreadyUsedException();
             }
             createdTime = token.getCreatedTime() / 1000;
         } else if (tokens.getTokens().isEmpty()) {
+        	System.out.println("tokens empty for identity:"+validateRequest.getIdentity()+", otp:"+validateRequest.getOtp()+", tenant:"+validateRequest.getTenantId());
             throw new TokenValidationFailureException();
         }
 
