@@ -33,6 +33,13 @@ public class Token {
     public boolean isExpired(LocalDateTime now) {
         return now.isAfter(expiryDateTime);
     }
+
+	@Override
+	public String toString() {
+		return "Token [tenantId=" + tenantId + ", identity=" + identity + ", number=" + number + ", uuid=" + uuid
+				+ ", expiryDateTime=" + expiryDateTime + ", createdTime=" + createdTime + ", timeToLiveInSeconds="
+				+ timeToLiveInSeconds + ", validated=" + validated + ", createdDate=" + createdDate + "]";
+	}
 }
 
 

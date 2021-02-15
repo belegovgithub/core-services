@@ -60,7 +60,10 @@ public class TokenService {
         Tokens tokens = tokenRepository.findByIdentityAndTenantId(validateRequest);
 
         if (tokens == null || tokens.getTokens().isEmpty())
+        {
+        	System.out.println("tokens empty for identity:"+validateRequest.getIdentity()+", otp:"+validateRequest.getOtp()+", tenant:"+validateRequest.getTenantId());
             throw new TokenValidationFailureException();
+        }
 
         for (Token t: tokens.getTokens()) {
 
@@ -70,6 +73,11 @@ public class TokenService {
                 return t;
             }
         }
+    	System.out.println("tokens dint match : "+validateRequest.getIdentity()+", otp:"+validateRequest.getOtp()+", tenant:"+validateRequest.getTenantId());
+    	for (Token t: tokens.getTokens()) {
+    		System.out.println(t.toString());
+    	}
+    	
         throw new TokenValidationFailureException();
     }
 
