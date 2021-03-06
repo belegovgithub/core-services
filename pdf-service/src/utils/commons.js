@@ -3,7 +3,7 @@ import logger from "../config/logger";
 import envVariables from "../EnvironmentVariables";
 import get from "lodash/get";
 var moment = require("moment-timezone");
-
+var jp = require("jsonpath");
 let datetimezone = envVariables.DATE_TIMEZONE;
 let egovLocHost = envVariables.EGOV_LOCALISATION_HOST;
 let defaultLocale = envVariables.DEFAULT_LOCALISATION_LOCALE;
@@ -134,6 +134,27 @@ const getLocalisationLabel = (key, localisationMap, prefix) => {
   }
 };
 
+export const getDefaultFontStyle = (locale = "en_IN") => {
+  let fontStyle = 'Cambay';
+  if (locale != undefined && locale != "") {
+    switch (locale) {
+      case 'kn_IN':
+        fontStyle = 'kannada'
+        break;
+      case 'ml_IN':
+        fontStyle = 'malyalam'
+        break;
+      case 'hi_IN':
+      case 'en_IN':
+          fontStyle = 'Cambay'
+          break;
+      default:
+         fontStyle = 'Cambay';
+  }
+}
+return fontStyle;  
+}
+
 export const getDateInRequiredFormat = (et, dateformat = "DD/MM/YYYY") => {
   //console.log("getDateInRequiredFormat--",et);
   if (!et) return "NA";
@@ -178,9 +199,32 @@ export const getValue = (value, defaultValue, path) => {
   } else return value;
 };
 
-export const convertFooterStringtoFunctionIfExist = (footer) => {
+export const convertFooterStringtoFunctionIfExist = (footer) => { 
   if (footer != undefined) {
     footer = eval(footer);
   }
+  //console.log("footer next---",footer);
   return footer;
 };
+
+/*export const convertBackgroundImagetoFunctionIfExist = (background , dataconfig) => {
+  //console.log("footer value---",background);
+  var objectOfDirectMapping = jp.query(
+    dataconfig,
+    "$.DataConfigs.mappings.*.mappings.*.direct.*"
+  );
+  if (background != undefined) {
+    background = eval(background);
+  }
+ 
+  console.log("background next---",background);
+  let sample = background();
+  console.log("sample---",sample.image);
+  //console.log("objectOfDirectMapping---",objectOfDirectMapping);
+  var res = objectOfDirectMapping.filter(item => item.variable == sample.image)
+  console.log("res---",res[0].url);
+  
+  var attribute = get(objectOfDirectMapping[0].variable, sample.image, "NA");
+  console.log("sample---",attribute);
+  return background;
+};*/

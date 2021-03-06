@@ -24,7 +24,7 @@ import QRCode from "qrcode";
 import { getValue } from "./utils/commons";
 import { getFileStoreIds, insertStoreIds } from "./queries";
 import { listenConsumer } from "./kafka/consumer";
-import { convertFooterStringtoFunctionIfExist } from "./utils/commons";
+import { convertFooterStringtoFunctionIfExist,getDefaultFontStyle } from "./utils/commons";
 
 var jp = require("jsonpath");
 //create binary
@@ -60,6 +60,16 @@ var fontDescriptors = {
     bold: "src/fonts/Roboto-Bold.ttf",
     normal: "src/fonts/Roboto-Regular.ttf",
   },
+  kannada: {
+    bold: "src/fonts/tungab.ttf",
+    normal: "src/fonts/tunga.ttf",
+    italics: "src/fonts/tunga.ttf",
+  },
+  malyalam: {
+    bold: "src/fonts/kartika-bold.ttf",
+    normal: "src/fonts/kartika-regular.ttf",
+    italics: "src/fonts/kartika-regular.ttf",
+  }
 };
 
 const printer = new pdfMakePrinter(fontDescriptors);
@@ -209,6 +219,9 @@ const uploadFiles = async (
     objectCopy.footer = convertFooterStringtoFunctionIfExist(
       formatconfig.footer
     );
+    /*objectCopy.background = convertBackgroundImagetoFunctionIfExist(
+      formatconfig.background
+    );*/
     const doc = printer.createPdfKitDocument(objectCopy);
     let fileNameAppend = "-" + new Date().getTime();
     // let filename="src/pdfs/"+key+" "+fileNameAppend+".pdf"
@@ -366,9 +379,9 @@ app.post(
       logger.info("received createnosave request on key: " + key);
       requestInfo = get(req.body, "RequestInfo");
       //
-
+     // logger.info("requestInfo: " + req+"=="+res+"=="+ key+"=="+ tenantId+"=="+ requestInfo);
       var valid = validateRequest(req, res, key, tenantId, requestInfo);
-
+     // logger.info("valid: " + valid);
       if (valid) {
         let [
           formatConfigByFile,
@@ -384,6 +397,8 @@ app.post(
         );
         // restoring footer function
         formatConfigByFile[0].footer = convertFooterStringtoFunctionIfExist(formatconfig.footer);
+        //formatConfigByFile[0].background = convertBackgroundImagetoFunctionIfExist(formatconfig.background,dataconfig);
+        //console.log("formatConfigByFile[0]---",JSON.stringify(formatConfigByFile[0]));
         const doc = printer.createPdfKitDocument(formatConfigByFile[0]);
         let fileNameAppend = "-" + new Date().getTime();
         let filename = key + "" + fileNameAppend + ".pdf";
@@ -651,7 +666,7 @@ const updateBorderlayout = (formatconfig) => {
  */
 export const fillValues = (variableTovalueMap, formatconfig) => {
   let input = JSON.stringify(formatconfig);
-  //console.log(variableTovalueMap);
+  //console.log("input---",input);
   //console.log(mustache.render(input, variableTovalueMap).replace(/""/g,"\"").replace(/\\/g,"").replace(/"\[/g,"\[").replace(/\]"/g,"\]").replace(/\]\[/g,"\],\[").replace(/"\{/g,"\{").replace(/\}"/g,"\}"));
   let output = JSON.parse(
     mustache
@@ -732,6 +747,7 @@ const validateRequest = (req, res, key, tenantId, requestInfo) => {
   if (formatConfigMap[key] == undefined || dataConfigMap[key] == undefined) {
     errorMessage += ` no config found for key ${key}`;
   }
+  //console.info("errorMessage--",errorMessage);
   if (res && errorMessage !== "") {
     res.status(400);
     res.json({
@@ -802,8 +818,10 @@ const handlelogic = async (
       localisationModuleList
     ),
   ]);
+  //console.log("variableTovalueMap--",variableTovalueMap);
   await generateQRCodes(moduleObject, dataconfig, variableTovalueMap);
   handleDerivedMapping(dataconfig, variableTovalueMap);
+  //console.log("formatObject--",formatObject);
   formatObject = fillValues(variableTovalueMap, formatObject);
   if (isCommonTableBorderRequired === true)
     formatObject = updateBorderlayout(formatObject);
@@ -854,10 +872,30 @@ const prepareBulk = async (
       if(!envVariables.SETUP_NAME)
       {
         //console.log("setting empty text");
+        if(formatconfig.watermark)
         formatconfig.watermark.text=" ";
       }
+      let locale = requestInfo.msgId;
+      if (null != locale) {
+        locale = locale.split("|");
+        locale = locale.length > 1 ? locale[1] : defaultLocale;
+      } else {
+        locale = "en_IN";
+      }
+     // console.log("formatconfig before--",formatconfig);
+      let defaultFontStyle = getDefaultFontStyle(locale)
+      console.log("defaultFontStyle--",defaultFontStyle);
+      if(formatconfig.defaultStyle)
+      formatconfig.defaultStyle.font =defaultFontStyle;
+      else
+      {
+        let defaultStyle = {
+          font:defaultFontStyle
+        }
+        formatconfig["defaultStyle"] = defaultStyle;
+      }
+      //console.log("formatconfig after--",formatconfig);
       let formatObject = JSON.parse(JSON.stringify(formatconfig));
-     // console.log("formatObject--",formatObject);
       // Multipage pdf, each pdf from new page
       if (
         formatObjectArrayObject.length != 0 &&
