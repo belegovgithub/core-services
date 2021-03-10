@@ -60,6 +60,15 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
     @Value("${citizen.login.password.otp.fixed.enabled}")
     private boolean fixedOTPEnabled;
 
+    @Value("${citizen.login.password.otp.fixed.value.demo}")
+    private String fixedOTPPasswordDemo;
+
+    @Value("${citizen.login.password.otp.fixed.enabled.demo}")
+    private boolean fixedOTPEnabledDemo;
+    
+    @Value("${citizen.login.password.otp.fixed.enabled.mnumber.demo}")
+    private String fixedOTPEnabledMnumberDemo;
+    
     @Autowired
     private HttpServletRequest request;
 
@@ -141,7 +150,12 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
             if (fixedOTPEnabled && !fixedOTPPassword.equals("") && fixedOTPPassword.equals(password)) {
                 //for automation allow fixing otp validation to a fixed otp
                 isPasswordMatched = true;
-            } else {
+            } else if(fixedOTPEnabledDemo && !fixedOTPEnabledMnumberDemo.equals("") && fixedOTPEnabledMnumberDemo.equals(user.getMobileNumber()) &&  
+            		 !fixedOTPPasswordDemo.equals("") && fixedOTPPasswordDemo.equals(password))
+            {
+            	isPasswordMatched = true;
+            }
+            else {
                 isPasswordMatched = isPasswordMatch(citizenLoginPasswordOtpEnabled, password, user, authentication);
             }
         } else {
