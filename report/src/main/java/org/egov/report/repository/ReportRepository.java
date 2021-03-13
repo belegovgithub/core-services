@@ -48,6 +48,7 @@ public class ReportRepository {
         parameters.put("tenantId", reportRequest.getTenantId());
         parameters.put("userId",  userId);
         parameters.put("currentTime",  System.currentTimeMillis());
+        parameters.put("multipleTenantId", reportRequest.getMultipleTenantId());
 
         for (SearchParam param :reportRequest.getSearchParams()) {
             parameters.put(param.getName(), param.getInput());

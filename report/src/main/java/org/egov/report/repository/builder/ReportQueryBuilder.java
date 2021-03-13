@@ -70,6 +70,8 @@ public class ReportQueryBuilder {
         baseQuery = baseQuery.replaceAll("\\$tenantid", ":tenantId");
 
         baseQuery = baseQuery.replaceAll("\\$userid", ":userId");
+        
+        baseQuery = baseQuery.replaceAll("\\$multipleTenantId", ":multipleTenantId");
 
         for (SearchParam searchParam : searchParams) {
             baseQuery = baseQuery.replaceAll("\\$" + searchParam.getName(), ":" + searchParam.getName());

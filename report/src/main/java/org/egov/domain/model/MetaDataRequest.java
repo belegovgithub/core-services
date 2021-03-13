@@ -28,6 +28,8 @@ public class MetaDataRequest {
     private String tenantId;
 
     private String reportName;
+    
+    private String multipleTenantId;
 
 }
 
