@@ -48,7 +48,9 @@ public class ReportRepository {
         parameters.put("tenantId", reportRequest.getTenantId());
         parameters.put("userId",  userId);
         parameters.put("currentTime",  System.currentTimeMillis());
-        parameters.put("multipleTenantId", reportRequest.getMultipleTenantId());
+        String[] values = String.valueOf(reportRequest.getMultipleTenantId()).split(",");
+        List<String> valueList = Arrays.asList(values).stream().map(value -> value.trim()).collect(Collectors.toList());
+        parameters.put("multipleTenantId",valueList);
 
         for (SearchParam param :reportRequest.getSearchParams()) {
             parameters.put(param.getName(), param.getInput());
