@@ -69,6 +69,21 @@ var fontDescriptors = {
     bold: "src/fonts/kartika-bold.ttf",
     normal: "src/fonts/kartika-regular.ttf",
     italics: "src/fonts/kartika-regular.ttf",
+  },
+  tamil: {
+    bold: "src/fonts/lathab.ttf",
+    normal: "src/fonts/latha.ttf",
+    italics: "src/fonts/latha.ttf",
+  },
+  bangla:{
+    bold: "src/fonts/Kalpurush.ttf",
+    normal: "src/fonts/Kalpurush.ttf",
+    italics: "src/fonts/Kalpurush.ttf",
+  },
+  telugu:{
+    bold: "src/fonts/gautamib.ttf",
+    normal: "src/fonts/gautami.ttf",
+    italics: "src/fonts/gautami.ttf",
   }
 };
 
@@ -219,7 +234,7 @@ const uploadFiles = async (
     objectCopy.footer = convertFooterStringtoFunctionIfExist(
       formatconfig.footer
     );
-    /*objectCopy.background = convertBackgroundImagetoFunctionIfExist(
+   /* objectCopy.background = convertBackgroundImagetoFunctionIfExist(
       formatconfig.background
     );*/
     const doc = printer.createPdfKitDocument(objectCopy);
@@ -378,10 +393,9 @@ app.post(
       var dataconfig = dataConfigMap[key];
       logger.info("received createnosave request on key: " + key);
       requestInfo = get(req.body, "RequestInfo");
-      //
-     // logger.info("requestInfo: " + req+"=="+res+"=="+ key+"=="+ tenantId+"=="+ requestInfo);
+      //logger.info("requestInfo: " + req+"=="+res+"=="+ key+"=="+ tenantId+"=="+ requestInfo);
       var valid = validateRequest(req, res, key, tenantId, requestInfo);
-     // logger.info("valid: " + valid);
+      logger.info("valid: " + valid);
       if (valid) {
         let [
           formatConfigByFile,
@@ -882,7 +896,10 @@ const prepareBulk = async (
       } else {
         locale = "en_IN";
       }
-     // console.log("formatconfig before--",formatconfig);
+       
+      // for birth and death cert the default format should not be changed wrt locale
+      if(key.split("-")[0] !== "bd")
+      {
       let defaultFontStyle = getDefaultFontStyle(locale)
       console.log("defaultFontStyle--",defaultFontStyle);
       if(formatconfig.defaultStyle)
@@ -894,7 +911,7 @@ const prepareBulk = async (
         }
         formatconfig["defaultStyle"] = defaultStyle;
       }
-      //console.log("formatconfig after--",formatconfig);
+    }
       let formatObject = JSON.parse(JSON.stringify(formatconfig));
       // Multipage pdf, each pdf from new page
       if (

@@ -144,6 +144,12 @@ export const getDefaultFontStyle = (locale = "en_IN") => {
       case 'ml_IN':
         fontStyle = 'malyalam'
         break;
+      case 'ta_IN':
+          fontStyle = 'tamil'
+          break;
+      case 'te_IN':
+            fontStyle = 'telugu'
+            break;
       case 'hi_IN':
       case 'en_IN':
           fontStyle = 'Cambay'
