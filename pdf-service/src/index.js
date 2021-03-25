@@ -84,6 +84,16 @@ var fontDescriptors = {
     bold: "src/fonts/gautamib.ttf",
     normal: "src/fonts/gautami.ttf",
     italics: "src/fonts/gautami.ttf",
+  },
+  gujarati:{
+    bold: "src/fonts/shrutib.ttf",
+    normal: "src/fonts/shruti.ttf",
+    italics: "src/fonts/shruti.ttf",
+  },
+  punjabi:{
+    bold: "src/fonts/AnmolLipi_Bold.ttf",
+    normal: "src/fonts/AnmolLipi.ttf",
+    italics: "src/fonts/AnmolLipi.ttf",
   }
 };
 
@@ -393,7 +403,7 @@ app.post(
       var dataconfig = dataConfigMap[key];
       logger.info("received createnosave request on key: " + key);
       requestInfo = get(req.body, "RequestInfo");
-      //logger.info("requestInfo: " + req+"=="+res+"=="+ key+"=="+ tenantId+"=="+ requestInfo);
+      logger.info("requestInfo: " + req+"=="+res+"=="+ key+"=="+ tenantId+"=="+ requestInfo);
       var valid = validateRequest(req, res, key, tenantId, requestInfo);
       logger.info("valid: " + valid);
       if (valid) {
@@ -681,7 +691,7 @@ const updateBorderlayout = (formatconfig) => {
 export const fillValues = (variableTovalueMap, formatconfig) => {
   let input = JSON.stringify(formatconfig);
   //console.log("input---",input);
-  //console.log(mustache.render(input, variableTovalueMap).replace(/""/g,"\"").replace(/\\/g,"").replace(/"\[/g,"\[").replace(/\]"/g,"\]").replace(/\]\[/g,"\],\[").replace(/"\{/g,"\{").replace(/\}"/g,"\}"));
+ // console.log(mustache.render(input, variableTovalueMap).replace(/""/g,"\"").replace(/\\/g,"").replace(/"\[/g,"\[").replace(/\]"/g,"\]").replace(/\]\[/g,"\],\[").replace(/"\{/g,"\{").replace(/\}"/g,"\}"));
   let output = JSON.parse(
     mustache
       .render(input, variableTovalueMap)
