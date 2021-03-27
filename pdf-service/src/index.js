@@ -91,9 +91,9 @@ var fontDescriptors = {
     italics: "src/fonts/shruti.ttf",
   },
   punjabi:{
-    bold: "src/fonts/AnmolLipi_Bold.ttf",
-    normal: "src/fonts/AnmolLipi.ttf",
-    italics: "src/fonts/AnmolLipi.ttf",
+    bold: "src/fonts/raavib.ttf",
+    normal: "src/fonts/raavi.ttf",
+    italics: "src/fonts/raavi.ttf",
   }
 };
 
@@ -691,7 +691,7 @@ const updateBorderlayout = (formatconfig) => {
 export const fillValues = (variableTovalueMap, formatconfig) => {
   let input = JSON.stringify(formatconfig);
   //console.log("input---",input);
- // console.log(mustache.render(input, variableTovalueMap).replace(/""/g,"\"").replace(/\\/g,"").replace(/"\[/g,"\[").replace(/\]"/g,"\]").replace(/\]\[/g,"\],\[").replace(/"\{/g,"\{").replace(/\}"/g,"\}"));
+  //console.log(mustache.render(input, variableTovalueMap).replace(/""/g,"\"").replace(/\\/g,"").replace(/"\[/g,"\[").replace(/\]"/g,"\]").replace(/\]\[/g,"\],\[").replace(/"\{/g,"\{").replace(/\}"/g,"\}"));
   let output = JSON.parse(
     mustache
       .render(input, variableTovalueMap)
