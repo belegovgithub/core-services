@@ -728,7 +728,7 @@ const generateQRCodes = async (
     if(envVariables.SETUP_NAME && envVariables.SETUP_NAME=== "UAT")
     {
     console.log("setting QR===========",qrtext);
-    qrtext = qrtext.concat(" -BEL UAT");
+    //qrtext = qrtext.concat(" -BEL UAT");
     }
     let qrCodeImage = await QRCode.toDataURL(qrtext);
     variableTovalueMap[varname] = qrCodeImage;
