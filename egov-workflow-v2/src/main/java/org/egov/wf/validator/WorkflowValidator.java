@@ -5,6 +5,7 @@ import org.egov.common.contract.request.RequestInfo;
 import org.egov.common.contract.request.Role;
 import org.egov.common.contract.request.User;
 import org.egov.tracer.model.CustomException;
+import org.egov.wf.service.UserService;
 import org.egov.wf.util.BusinessUtil;
 import org.egov.wf.util.WorkflowUtil;
 import org.egov.wf.web.models.*;
@@ -26,11 +27,13 @@ public class WorkflowValidator {
 
     private BusinessUtil businessUtil;
 
+    private UserService userService;
 
     @Autowired
-    public WorkflowValidator(WorkflowUtil util, BusinessUtil businessUtil) {
+    public WorkflowValidator(WorkflowUtil util, BusinessUtil businessUtil, UserService userService) {
         this.util = util;
         this.businessUtil = businessUtil;
+        this.userService = userService;
     }
 
 
@@ -177,9 +180,16 @@ public class WorkflowValidator {
             if(requestInfo.getUserInfo().getType().equalsIgnoreCase(CITIZEN_TYPE)){
                 ProcessInstance processInstanceFromDB = processStateAndAction.getProcessInstanceFromDb();
                 if(processInstanceFromDB!=null && processInstanceFromDB.getAction().equalsIgnoreCase(SENDBACKTOCITIZEN)){
-                    List<String> assignes = processInstanceFromDB.getAssignes().stream().map(User::getMobileNumber).collect(Collectors.toList());
-                    if(!assignes.contains(requestInfo.getUserInfo().getMobileNumber()))
-                        throw new CustomException("INVALID_USER","The user: "+requestInfo.getUserInfo().getMobileNumber()+" is not authorized to take action");
+                    List<String> uuids = processInstanceFromDB.getAssignes().stream().map(User::getUuid).collect(Collectors.toList());
+                    Map<String,User> idToUserMap = userService.searchUser(requestInfo,uuids);
+                    List<User> assignes = new LinkedList<>();
+                    processInstanceFromDB.getAssignes().forEach(assigne -> {
+                        if(idToUserMap.containsKey(assigne.getUuid()))
+                            assignes.add(idToUserMap.get(assigne.getUuid()));
+                    });
+                    List<String> mobileNos = assignes.stream().map(User::getMobileNumber).collect(Collectors.toList());
+                    if(!mobileNos.contains(requestInfo.getUserInfo().getMobileNumber()))
+                        throw new CustomException("INVALID_USER","The user: "+requestInfo.getUserInfo().getUuid()+" is not authorized to take action");
                 }
             }
 
