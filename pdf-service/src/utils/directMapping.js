@@ -288,6 +288,15 @@ export const directMapping = async (
         variableTovalueMap[directArr[i].jPath] = replaceValue;
       }
     }
+    else if (directArr[i].type == "dateOrEmpty") {
+      let myDate = new Date(directArr[i].val[0]);
+      if (isNaN(myDate) || directArr[i].val[0] === 0) {
+        variableTovalueMap[directArr[i].jPath] = " ";
+      } else {
+        let replaceValue = getDateInRequiredFormat(directArr[i].val[0],directArr[i].format);
+        variableTovalueMap[directArr[i].jPath] = replaceValue;
+      }
+    }
     else if (directArr[i].type == "dateToWord") {
       let myDate = new Date(directArr[i].val[0]);
       if (isNaN(myDate) || directArr[i].val[0] === 0) {
