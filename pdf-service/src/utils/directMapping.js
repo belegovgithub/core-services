@@ -303,7 +303,8 @@ export const directMapping = async (
         variableTovalueMap[directArr[i].jPath] = "NA";
       } else {
         let replaceValue = getDateInWordFormat(directArr[i].val[0],directArr[i].format);
-         
+        if(directArr[i].uCaseNeeded)
+        replaceValue = replaceValue.toUpperCase();
         variableTovalueMap[directArr[i].jPath] = replaceValue;
       }
     }
@@ -334,6 +335,13 @@ export const directMapping = async (
     {
       if(directArr[i].val == "NA")
       directArr[i].val = " ";
+      if(directArr[i].uCaseNeeded){
+        let currentVal = directArr[i].val;
+        if (typeof currentVal == "object" && currentVal.length > 0)
+        {
+        directArr[i].val[0] = currentVal[0].toUpperCase();
+        }
+      }
       variableTovalueMap[directArr[i].jPath] = directArr[i].val;
     } 
     else if (directArr[i].type == "statusMessage") 
