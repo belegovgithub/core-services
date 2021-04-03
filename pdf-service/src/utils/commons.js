@@ -177,10 +177,12 @@ export const getDateInWordFormat = (et, dateformat = "DD/MM/YYYY") => {
   let splitDate = parsedDate.split("/");
   let dateStr = getNumberInWords(splitDate[0]);
   let yearStr = getAmountInWords(splitDate[2]);
-  let finalStr = parsedDate + " " +dateStr + " " + check.format('MMMM') + " " + yearStr; 
+ // let finalStr = parsedDate + " " +dateStr + " " + check.format('MMMM') + " " + yearStr;
+  let finalStr = dateStr + "-" + check.format('MMMM') + "-" + yearStr; 
   console.log("date value---",finalStr)
   return finalStr;
 };
+
 
 export const getAmountInWords = (value) => {
   let a = ['','One ','Two ','Three ','Four ', 'Five ','Six ','Seven ','Eight ','Nine ','Ten ','Eleven ','Twelve ','Thirteen ','Fourteen ','Fifteen ','Sixteen ','Seventeen ','Eighteen ','Nineteen '];
@@ -202,7 +204,7 @@ export const getAmountInWords = (value) => {
 };
 
  const getNumberInWords = (value) => {
-  let a = ['','First ','Second ','Third ','Fourth ', 'Fifth ','Sixth ','Seventh ','Eighth ','Nineth ','Tenth ','Eleventh ','Twelveth ','Thirteenth ','Fourteenth ','Fifteenth ','Sixteenth ','Seventeenth ','Eighteenth ','Nineteenth '];
+  let a = ['','First','Second','Third','Fourth', 'Fifth','Sixth','Seventh','Eighth','Nineth','Tenth','Eleventh','Twelveth','Thirteenth','Fourteenth','Fifteenth','Sixteenth','Seventeenth','Eighteenth','Nineteenth'];
   let b = ['', '', 'Twenty','Thirty','Forty','Fifty', 'Sixty','Seventy','Eighty','Ninety'];
   let finalStr = '';
 
