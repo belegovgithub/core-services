@@ -61,4 +61,8 @@ public class OtpRequest {
     public boolean isMobileNumberAbsent() {
         return isEmpty(mobileNumber);
     }
+
+	public void setTenantId(String tenantId) {
+		this.tenantId = tenantId;
+	}
 }
