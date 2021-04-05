@@ -64,10 +64,6 @@ public class OtpService {
             throw new UserMobileNumberNotFoundException();
         log.info("MobileNumber : "+matchingUser.getMobileNumber());
         try {
-        	if(null!=otpRequest.getUserType()  && otpRequest.getUserType().equalsIgnoreCase("EMPLOYEE")  && null!=otpRequest.getTenantId() && otpRequest.getTenantId().contains(".") )
-        	{
-        		otpRequest.setTenantId(otpRequest.getTenantId().split("\\.")[0]);
-        	}
             final String otpNumber = otpRepository.fetchOtp(otpRequest);
             otpRequest.setMobileNumber(matchingUser.getMobileNumber());
             otpSMSSender.send(otpRequest, otpNumber);

@@ -62,6 +62,15 @@ public class OtpSMSRepository {
             localisedMsgs.put(LOCALIZATION_KEY_REGISTER_SMS, new SMSRequest("", "Dear Citizen, Your OTP to complete Registration is %s.", null, 0, ""));
             localisedMsgs.put(LOCALIZATION_KEY_LOGIN_SMS, new SMSRequest("", "Dear Citizen, Your Login OTP is %s.", null, 0, ""));
             localisedMsgs.put(LOCALIZATION_KEY_PWD_RESET_SMS, new SMSRequest("","Dear Citizen, Your OTP for recovering password is %s.",null,0,""));
+        	if(null!=otpRequest.getUserType()  && otpRequest.getUserType().equalsIgnoreCase("EMPLOYEE")  && null!=otpRequest.getTenantId() && otpRequest.getTenantId().contains(".") )
+        	{
+        		log.info("Localization attempt for employee");
+        		Map<String, SMSRequest> dbMaplocalisedMsgs = localizationService.getLocalisedMessages(otpRequest.getTenantId().split("\\.")[0], "en_IN", "egov-user");
+        		if(dbMaplocalisedMsgs.containsKey(LOCALIZATION_KEY_PWD_RESET_SMS))
+        		{
+        			localisedMsgs.put(LOCALIZATION_KEY_PWD_RESET_SMS,dbMaplocalisedMsgs.get(LOCALIZATION_KEY_PWD_RESET_SMS));
+        		}
+        	}
         }
         SMSRequest message = null;
 
