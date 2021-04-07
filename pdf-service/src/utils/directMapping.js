@@ -15,6 +15,7 @@ import {
 var jp = require("jsonpath");
 
 let externalHost = envVariables.EGOV_EXTERNAL_HOST;
+let egovHostUrl = envVariables.EGOV_HOST_LOGO_URL;
 /**
  *
  * @param {*} req - current module object, picked from request body
@@ -51,6 +52,7 @@ export const directMapping = async (
       valJsonPath: item.value && item.value.path,
       type: item.type,
       url: item.url,
+      id: item.id,
       format: item.format,
       localisation: item.localisation,
       uCaseNeeded: item.isUpperCaseRequired
@@ -82,6 +84,12 @@ export const directMapping = async (
       var fun = Function("type", directArr[i].format);
       variableTovalueMap[directArr[i].jPath] = fun(directArr[i].val[0]);
     } else if (directArr[i].type == "image") {
+     // console.log("directArr[i].url--",directArr[i].url);
+      if(directArr[i].id)
+      {
+        directArr[i].url = egovHostUrl.concat(directArr[i].id);
+        //console.log("directArr[i].url after--",directArr[i].url);
+      }
       try {
         var response = await axios.get(directArr[i].url, {
           responseType: "arraybuffer"
