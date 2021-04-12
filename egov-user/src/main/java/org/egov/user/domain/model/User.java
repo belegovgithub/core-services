@@ -44,13 +44,13 @@ public class User {
     private String password;
     private String salutation;
 
-    @Pattern(regexp = UserServiceConstants.PATTERN_NAME)
+    //@Pattern(regexp = UserServiceConstants.PATTERN_NAME)
     private String guardian;
 
     private GuardianRelation guardianRelation;
 
-    @Pattern(regexp = UserServiceConstants.PATTERN_NAME)
-    @Size(max = 50)
+    //@Pattern(regexp = UserServiceConstants.PATTERN_NAME)
+    @Size(max = 200)
     private String name;
     private Gender gender;
     private String mobileNumber;
