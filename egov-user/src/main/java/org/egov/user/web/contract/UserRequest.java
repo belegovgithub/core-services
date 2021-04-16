@@ -32,8 +32,8 @@ public class UserRequest {
     private String userName;
     private String salutation;
 
-    @Pattern(regexp = UserServiceConstants.PATTERN_NAME)
-    @Size(max = 50)
+   // @Pattern(regexp = UserServiceConstants.PATTERN_NAME)
+    @Size(max = 200)
     private String name;
 
     @Pattern(regexp = UserServiceConstants.PATTERN_GENDER)
@@ -63,8 +63,8 @@ public class UserRequest {
     private Boolean accountLocked;
     private Long accountLockedDate;
 
-    @Pattern(regexp = UserServiceConstants.PATTERN_NAME)
-    @Size(max = 50)
+   // @Pattern(regexp = UserServiceConstants.PATTERN_NAME)
+    @Size(max = 200)
     private String fatherOrHusbandName;
     private String signature;
     private String bloodGroup;
