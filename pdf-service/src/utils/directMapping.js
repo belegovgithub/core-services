@@ -118,6 +118,11 @@ export const directMapping = async (
         let ownerObject = {};
         for (let k = 0; k < scema.length; k++) {
           let fieldValue = get(val[j], scema[k].value, "NA");
+          if(scema[k].type == "setZero")
+          {
+            if(fieldValue == "NA")
+              fieldValue = "0"
+          }
           if (scema[k].type == "date") {
             let myDate = new Date(fieldValue);
             if (isNaN(myDate) || fieldValue === 0) {
@@ -351,7 +356,20 @@ export const directMapping = async (
         }
       }
       variableTovalueMap[directArr[i].jPath] = directArr[i].val;
-    } 
+    }
+    else if (directArr[i].type == "setZero") 
+    {
+      if(directArr[i].val == "NA")
+      directArr[i].val = "0";
+      if(directArr[i].uCaseNeeded){
+        let currentVal = directArr[i].val;
+        if (typeof currentVal == "object" && currentVal.length > 0)
+        {
+        directArr[i].val[0] = currentVal[0].toUpperCase();
+        }
+      }
+      variableTovalueMap[directArr[i].jPath] = directArr[i].val;
+    }  
     else if (directArr[i].type == "statusMessage") 
     {
       if(directArr[i].val == "NA")
