@@ -76,7 +76,7 @@ var fontDescriptors = {
     italics: "src/fonts/latha.ttf",
   },
   bangla:{
-    bold: "src/fonts/Kalpurush.ttf",
+    bold: "src/fonts/SutonnyMJ-Bold.ttf",
     normal: "src/fonts/Kalpurush.ttf",
     italics: "src/fonts/Kalpurush.ttf",
   },
