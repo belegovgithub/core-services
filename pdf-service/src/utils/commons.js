@@ -154,7 +154,7 @@ export const getDefaultFontStyle = (locale = "en_IN") => {
       case 'en_IN':
           fontStyle = 'Cambay'
           break;
-      case 'be_IN':
+      case 'bn_IN':
             fontStyle = 'bangla'
             break;
       default:

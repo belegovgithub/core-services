@@ -75,10 +75,10 @@ var fontDescriptors = {
     normal: "src/fonts/latha.ttf",
     italics: "src/fonts/latha.ttf",
   },
-  bangla:{
-    bold: "src/fonts/SutonnyMJ-Bold.ttf",
-    normal: "src/fonts/Kalpurush.ttf",
-    italics: "src/fonts/Kalpurush.ttf",
+  bangla: {
+    bold: "src/fonts/SolaimanLipi_Bold.ttf",
+    normal: "src/fonts/SolaimanLipi.ttf",
+    italics: "src/fonts/SolaimanLipi.ttf",
   },
   telugu:{
     bold: "src/fonts/gautamib.ttf",
