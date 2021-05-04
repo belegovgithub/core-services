@@ -91,11 +91,16 @@ export const findAndUpdateLocalisation = async (
 
     if (isMainTypeRequired) {
       if (isCategoryRequired) labelFromKey = `${labelFromKey}${delimiter}`;
+      if(item.split(".")[1])
+      {
       labelFromKey = getLocalisationLabel(
         item.split(".")[1],
         localisationMap,
         prefix
       );
+      }
+      else
+      labelFromKey = "NA"
     }
 
     if (isSubTypeRequired) {
