@@ -286,11 +286,15 @@ export const directMapping = async (
     }
     else if (directArr[i].type == "amountInWords") 
     {
-      console.log("its in for words");
-      console.log("jpath",directArr[i].jPath);
-      console.log("value--",directArr[i].val);
+      //console.log("its in for words");
+      //console.log("jpath",directArr[i].jPath);
+    if(directArr[i].val && directArr[i].val !="NA" && directArr[i].val[0] > 0)
+    {
     let finalStr = getAmountInWords(directArr[i].val);
     variableTovalueMap[directArr[i].jPath] = finalStr + ' Rupees Only';
+    }
+    else
+    variableTovalueMap[directArr[i].jPath] = "NA";
     }
     else if (directArr[i].type == "date") {
       let myDate = new Date(directArr[i].val[0]);
@@ -388,9 +392,9 @@ export const directMapping = async (
     } 
     else if (directArr[i].type == "splitString") 
     {
-    //  console.log("directArr[i].type--",directArr[i].val[0]);
+     // console.log("directArr[i].type--",directArr[i].val[0]);
       const temp = directArr[i].val[0].split(".")[0];
-    //  console.log("temp",temp);
+     // console.log("temp",temp);
       if (
         directArr[i].localisation &&
         directArr[i].localisation.required
