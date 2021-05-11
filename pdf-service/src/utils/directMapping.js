@@ -123,6 +123,11 @@ export const directMapping = async (
             if(fieldValue == "NA")
               fieldValue = "0"
           }
+          if(scema[k].type == "setPositive")
+          {
+            if(fieldValue != "NA" && fieldValue < 0)
+              fieldValue = Math.abs(fieldValue)
+          }
           if (scema[k].type == "date") {
             let myDate = new Date(fieldValue);
             if (isNaN(myDate) || fieldValue === 0) {
