@@ -292,10 +292,10 @@ export const directMapping = async (
     else if (directArr[i].type == "amountInWords") 
     {
       //console.log("its in for words");
-      //console.log("jpath",directArr[i].jPath);
+     // console.log("jpath",directArr[i].val);
     if(directArr[i].val && directArr[i].val !="NA" && directArr[i].val[0] > 0)
     {
-    let finalStr = getAmountInWords(directArr[i].val);
+    let finalStr = getAmountInWords(Math.round(directArr[i].val));
     variableTovalueMap[directArr[i].jPath] = finalStr + ' Rupees Only';
     }
     else
