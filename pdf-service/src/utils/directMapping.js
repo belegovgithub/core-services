@@ -268,7 +268,7 @@ export const directMapping = async (
     else if(directArr[i].type == "boundary") 
     {
       //console.log("directArr[i].type--",directArr[i]);
-      if(directArr[i].localisation && directArr[i].localisation.prefixCbName)
+      if(directArr[i].localisation && directArr[i].localisation.prefixCbName && directArr[i].val!="NA")
       {
         const tenantId =  get(req.query || req, "tenantId");
         const tempPrefix = (tenantId.toUpperCase() + "_" + directArr[i].localisation.prefix).replace(".","_");
@@ -288,6 +288,8 @@ export const directMapping = async (
           tenantId
         );
       }
+      if(directArr[i].val == "NA")
+      variableTovalueMap[directArr[i].jPath] = "NA";
     }
     else if (directArr[i].type == "amountInWords") 
     {
