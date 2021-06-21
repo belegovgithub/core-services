@@ -16,6 +16,7 @@ var jp = require("jsonpath");
 
 let externalHost = envVariables.EGOV_EXTERNAL_HOST;
 let egovHostUrl = envVariables.EGOV_HOST_LOGO_URL;
+let Host= envVariables.EGOV_HOST;
 /**
  *
  * @param {*} req - current module object, picked from request body
@@ -79,6 +80,9 @@ export const directMapping = async (
     } 
     else if (directArr[i].type == "external_host") {
       variableTovalueMap[directArr[i].jPath] = externalHost;
+    }
+    else if (directArr[i].type == "host") {
+      variableTovalueMap[directArr[i].jPath] = Host;
     }
     else if (directArr[i].type == "function") {
       var fun = Function("type", directArr[i].format);
