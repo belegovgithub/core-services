@@ -157,6 +157,12 @@ public class TransactionValidator {
                 isNull(user.getTenantId()) || isNull(user.getMobileNumber()))
             errorMap.put("INVALID_USER_DETAILS", "User UUID, Name, Username, Mobile Number and Tenant Id are " +
                     "mandatory");
+        log.error("user null {} ",isNull(user));
+        log.error("user uuid null {} ",isNull(user) || isNull(user.getUuid()));
+        log.error("user name null {} ",isNull(user) || isEmpty(user.getName()));
+        log.error("user getUserName null {} ",isNull(user) || isEmpty(user.getUserName()));
+        log.error("user getTenantId null {} ",isNull(user) || isEmpty(user.getTenantId()));
+        log.error("user getMobileNumber null {} ",isNull(user) || isEmpty(user.getMobileNumber()));
     }
 
     private void validateTxnAmount(TransactionRequest transactionRequest, Map<String, String> errorMap){
