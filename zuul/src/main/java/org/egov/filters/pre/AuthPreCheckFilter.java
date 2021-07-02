@@ -178,6 +178,11 @@ public class AuthPreCheckFilter extends ZuulFilter {
 
     private void setAnonymousUser(){
         User systemUser = userUtils.fetchSystemUser();
+        logger.error("systemUser val ", systemUser);
+        if(null!=systemUser)
+        {
+        	logger.error("systemUser id", systemUser.getId());
+        }
         RequestContext ctx = RequestContext.getCurrentContext();
         ctx.set(USER_INFO_KEY, systemUser);;
     }
