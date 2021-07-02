@@ -54,6 +54,8 @@ public class UserUtils {
         User user = null;
         try {
            UserDetailResponse response = restTemplate.postForObject(uri.toString(), userSearchRequest, UserDetailResponse.class);
+           log.error("UserDetailResponse: ",response);
+           log.error("CollectionUtils.isEmpty(response.getUser()): ",CollectionUtils.isEmpty(response.getUser()));
            if(!CollectionUtils.isEmpty(response.getUser()))
                user = response.getUser().get(0);
         }
