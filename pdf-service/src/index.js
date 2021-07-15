@@ -55,45 +55,6 @@ var fontDescriptors = {
     bold: "src/fonts/Cambay-Bold.ttf",
     italics: "src/fonts/Cambay-Italic.ttf",
     bolditalics: "src/fonts/Cambay-BoldItalic.ttf",
-  },
-  Roboto: {
-    bold: "src/fonts/Roboto-Bold.ttf",
-    normal: "src/fonts/Roboto-Regular.ttf",
-  },
-  kannada: {
-    bold: "src/fonts/tungab.ttf",
-    normal: "src/fonts/tunga.ttf",
-    italics: "src/fonts/tunga.ttf",
-  },
-  malyalam: {
-    bold: "src/fonts/kartika-bold.ttf",
-    normal: "src/fonts/kartika-regular.ttf",
-    italics: "src/fonts/kartika-regular.ttf",
-  },
-  tamil: {
-    bold: "src/fonts/lathab.ttf",
-    normal: "src/fonts/latha.ttf",
-    italics: "src/fonts/latha.ttf",
-  },
-  bangla: {
-    bold: "src/fonts/SolaimanLipi_Bold.ttf",
-    normal: "src/fonts/SolaimanLipi.ttf",
-    italics: "src/fonts/SolaimanLipi.ttf",
-  },
-  telugu:{
-    bold: "src/fonts/gautamib.ttf",
-    normal: "src/fonts/gautami.ttf",
-    italics: "src/fonts/gautami.ttf",
-  },
-  gujarati:{
-    bold: "src/fonts/shrutib.ttf",
-    normal: "src/fonts/shruti.ttf",
-    italics: "src/fonts/shruti.ttf",
-  },
-  punjabi:{
-    bold: "src/fonts/raavib.ttf",
-    normal: "src/fonts/raavi.ttf",
-    italics: "src/fonts/raavi.ttf",
   }
 };
 
