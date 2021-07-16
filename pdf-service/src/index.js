@@ -33,8 +33,8 @@ var pdfMakePrinter = require("pdfmake/src/printer");
 
 let app = express();
 app.use(express.static(path.join(__dirname, "public")));
-app.use(bodyParser.json({ limit: "10mb", extended: true }));
-app.use(bodyParser.urlencoded({ limit: "10mb", extended: true }));
+app.use(express.json({ limit: "50mb", extended: true }));
+app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
 let maxPagesAllowed = envVariables.MAX_NUMBER_PAGES;
 let serverport = envVariables.SERVER_PORT;
@@ -56,6 +56,50 @@ var fontDescriptors = {
     italics: "src/fonts/Cambay-Italic.ttf",
     bolditalics: "src/fonts/Cambay-BoldItalic.ttf",
   }
+ /* Roboto: {
+    bold: "src/fonts/Roboto-Bold.ttf",
+    normal: "src/fonts/Roboto-Regular.ttf",
+  },
+  kannada: {
+    bold: "src/fonts/tungab.ttf",
+    normal: "src/fonts/tunga.ttf",
+    italics: "src/fonts/tunga.ttf",
+  },
+  malyalam: {
+    bold: "src/fonts/kartika-bold.ttf",
+    normal: "src/fonts/kartika-regular.ttf",
+    italics: "src/fonts/kartika-regular.ttf",
+  },
+  tamil: {
+    bold: "src/fonts/lathab.ttf",
+    normal: "src/fonts/latha.ttf",
+    italics: "src/fonts/latha.ttf",
+  },
+  bangla: {
+    bold: "src/fonts/SolaimanLipi_Bold.ttf",
+    normal: "src/fonts/SolaimanLipi.ttf",
+    italics: "src/fonts/SolaimanLipi.ttf",
+  },
+  telugu:{
+    bold: "src/fonts/gautamib.ttf",
+    normal: "src/fonts/gautami.ttf",
+    italics: "src/fonts/gautami.ttf",
+  },
+  gujarati:{
+    bold: "src/fonts/shrutib.ttf",
+    normal: "src/fonts/shruti.ttf",
+    italics: "src/fonts/shruti.ttf",
+  },
+  punjabi:{
+    bold: "src/fonts/raavib.ttf",
+    normal: "src/fonts/raavi.ttf",
+    italics: "src/fonts/raavi.ttf",
+  },
+  kruti:{
+    bold: "src/fonts/kruti-regular.ttf",
+    normal: "src/fonts/kruti-regular.ttf",
+    italics: "src/fonts/kruti-regular.ttf",
+  }*/
 };
 
 const printer = new pdfMakePrinter(fontDescriptors);
@@ -104,7 +148,6 @@ const createPdfBinary = async (
 ) => {
   try {
     let noOfDefinitions = listDocDefinition.length;
-
     var jobid = `${key}${new Date().getTime()}`;
     if (noOfDefinitions == 0) {
       logger.error("no file generated for pdf");
@@ -184,7 +227,6 @@ const uploadFiles = async (
 ) => {
   let convertedListDocDefinition = [];
   let listOfFilestoreIds = [];
-
   if (!isconsolidated) {
     listDocDefinition.forEach((docDefinition) => {
       docDefinition["content"].forEach((defn) => {
@@ -597,8 +639,7 @@ export const createAndSave = async (
       formatconfig,
       dataconfig
     );
-
-    // logger.info(`Applied templating engine on ${moduleObjectsArray.length} objects output will be in ${formatConfigByFile.length} files`);
+      // logger.info(`Applied templating engine on ${moduleObjectsArray.length} objects output will be in ${formatConfigByFile.length} files`);
     logger.info(
       `Applied templating engine on ${totalobjectcount} objects output will be in ${formatConfigByFile.length} files`
     );
@@ -651,8 +692,9 @@ const updateBorderlayout = (formatconfig) => {
  */
 export const fillValues = (variableTovalueMap, formatconfig) => {
   let input = JSON.stringify(formatconfig);
-  //console.log("input---",input);
-  //console.log(mustache.render(input, variableTovalueMap).replace(/""/g,"\"").replace(/\\/g,"").replace(/"\[/g,"\[").replace(/\]"/g,"\]").replace(/\]\[/g,"\],\[").replace(/"\{/g,"\{").replace(/\}"/g,"\}"));
+  //console.log("variableTovalueMap---",variableTovalueMap);
+  //console.log("mustache---",mustache.render(input, variableTovalueMap).replace(/\"\"/g,''));
+  //console.log(mustache.render(input, variableTovalueMap).replace(/\"/g, '').replace(/""/g,"\"").replace(/\\/g,"").replace(/"\[/g,"\[").replace(/\]"/g,"\]").replace(/\]\[/g,"\],\[").replace(/"\{/g,"\{").replace(/\}"/g,"\}"));
   let output = JSON.parse(
     mustache
       .render(input, variableTovalueMap)
@@ -664,6 +706,7 @@ export const fillValues = (variableTovalueMap, formatconfig) => {
       .replace(/"\{/g, "{")
       .replace(/\}"/g, "}")
   );
+  console.log("output--"+JSON.stringify(output));
   return output;
 };
 
@@ -732,7 +775,7 @@ const validateRequest = (req, res, key, tenantId, requestInfo) => {
   if (formatConfigMap[key] == undefined || dataConfigMap[key] == undefined) {
     errorMessage += ` no config found for key ${key}`;
   }
-  //console.info("errorMessage--",errorMessage);
+  console.info("errorMessage--",errorMessage);
   if (res && errorMessage !== "") {
     res.status(400);
     res.json({
@@ -755,6 +798,7 @@ const prepareBegin = async (
 ) => {
   var baseKeyPath = get(dataconfig, "DataConfigs.baseKeyPath");
   var entityIdPath = get(dataconfig, "DataConfigs.entityIdPath");
+
   if (baseKeyPath == null) {
     logger.error("baseKeyPath is absent in config");
     throw { message: `baseKeyPath is absent in config` };
